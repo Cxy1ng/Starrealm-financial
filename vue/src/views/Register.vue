@@ -20,10 +20,10 @@
 
       <div class="mica-auth-card stagger-2">
         <div class="card-top">
-          <img src="@/assets/Ledger.png" alt="logo" class="card-logo" />
+          <img src="@/assets/Ledger.svg" alt="logo" class="card-logo" style="width: 44px; height: 44px;" />
           <div>
             <div class="card-title">创建新账户</div>
-            <div class="card-subtitle">加入智汇账本，科学规划个人财务</div>
+            <div class="card-subtitle">加入星界，科学规划个人财务</div>
           </div>
         </div>
 

@@ -7,11 +7,11 @@
     <el-aside :width="isCollapsed ? '68px' : '236px'" class="antd-sider">
       <div class="sider-logo" @click="router.push('/main/home')">
         <div class="logo-badge">
-          <img src="@/assets/Ledger.png" alt="Logo" class="logo-img" />
+          <img src="@/assets/Ledger.svg" alt="Logo" class="logo-img" style="width: 32px; height: 32px;" />
         </div>
         <div v-show="!isCollapsed" class="logo-text-group">
-          <span class="logo-text">智汇账本</span>
-          <span class="logo-sub">Smart Finance OS</span>
+          <span class="logo-text">星界</span>
+          <span class="logo-sub">Star Realm</span>
         </div>
       </div>
 

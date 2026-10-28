@@ -12,7 +12,7 @@
           <span class="pulse-dot"></span>
           <span>AI-Driven Personal Finance Platform</span>
         </div>
-        <h1 class="brand-headline">智汇账本</h1>
+        <h1 class="brand-headline">星界</h1>
         <p class="brand-desc">
           融合 DeepSeek 智能账单诊断、可视化收支看板与目标储蓄规划，让每一笔收支清晰可控。
         </p>
@@ -25,10 +25,12 @@
 
       <div class="mica-auth-card stagger-2">
         <div class="card-top">
-          <img src="@/assets/Ledger.png" alt="logo" class="card-logo" />
+          <div class="brand-logo-badge">
+            <img src="@/assets/Ledger.svg" alt="logo" class="card-logo" style="width: 44px; height: 44px;" />
+          </div>
           <div>
             <div class="card-title">欢迎回来</div>
-            <div class="card-subtitle">请登录您的智汇账本账户</div>
+            <div class="card-subtitle">请登录您的星界账户</div>
           </div>
         </div>
 
