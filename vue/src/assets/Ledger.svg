@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <style>
+    .xj-path { fill: #111827; transition: fill 0.3s ease; }
+    .xj-accent { fill: var(--theme-primary, #1677ff); }
+    @media (prefers-color-scheme: dark) {
+      .xj-path { fill: #f8fafc; }
+    }
+  </style>
+  <!-- 星界 (Xingjie) 品牌专属负空间 S($) 与星轨圆窗 SVG Logo (自动自适应明暗主题与动态 accent 色) -->
+  
+  <!-- 1. 上半部 S 骨架 + 矩形平头竖柱 + 左下悬挑游离翼 -->
+  <path class="xj-path" d="M 83 6 L 94 6 L 94 25.5 L 100 22 L 106 25.5 L 106 6 L 117 6 L 117 30 L 166 58 L 166 86 L 138 86 L 138 72 L 100 50 L 68.4 68.3 L 88 79.1 L 83.6 87.1 L 89.2 90.2 L 86 96 L 80.4 92.9 L 75.9 100.9 L 34 77.7 L 34 67.8 L 76.2 91.2 L 79.9 84.5 L 34 59.1 L 34 58 L 83 30 Z" />
+
+  <!-- 2. 下半部 S 骨架 + 矩形平头竖柱 + 右上悬挑游离翼 -->
+  <path class="xj-path" d="M 117 194 L 106 194 L 106 174.5 L 100 178 L 94 174.5 L 94 194 L 83 194 L 83 170 L 34 142 L 34 114 L 62 114 L 62 128 L 100 150 L 131.6 131.7 L 112 120.9 L 116.4 112.9 L 110.8 109.8 L 114 104 L 119.6 107.1 L 124.1 99.1 L 166 122.3 L 166 132.2 L 123.8 108.8 L 120.1 115.5 L 166 140.9 L 166 142 L 117 170 Z" />
+
+  <!-- 3. 中心八角卫星核心舱 (29° 倾角, 净空圆窗带动态主题色发光点) -->
+  <g transform="translate(100, 100) rotate(29)">
+    <path class="xj-path" fill-rule="evenodd" d="M -7.4 -15.4 L 7.4 -15.4 L 15.4 -7.4 L 15.4 7.4 L 7.4 15.4 L -7.4 15.4 L -15.4 7.4 L -15.4 -7.4 Z M 0 -8.7 A 8.7 8.7 0 1 1 0 8.7 A 8.7 8.7 0 1 1 0 -8.7 Z" />
+    <circle class="xj-accent" cx="0" cy="0" r="3.5" />
+  </g>
+</svg>

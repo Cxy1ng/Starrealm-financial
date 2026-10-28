@@ -1,0 +1,349 @@
+:root {
+  --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Plus Jakarta Sans', monospace;
+  --theme-primary: #1677ff;
+  --theme-dark-primary: #2f6feb;
+  --theme-dark-hover: #388bfd;
+  --theme-secondary: #06b6d4;
+  --theme-rgb: 22, 119, 255;
+  --theme-particle-dark: 125, 211, 252;
+  --theme-particle-light: 22, 119, 255;
+  --theme-orb-1: rgba(56, 189, 248, 0.36);
+  --theme-orb-2: rgba(37, 99, 235, 0.28);
+  --theme-orb-3: rgba(14, 165, 233, 0.24);
+
+  --mica-bg-light: rgba(255, 255, 255, 0.74);
+  --mica-bg-strong-light: rgba(255, 255, 255, 0.86);
+  --mica-border-light: rgba(226, 232, 240, 0.85);
+  --mica-shadow-light: 0 8px 32px -4px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --mica-shadow-hover-light: 0 16px 40px -8px rgba(var(--theme-rgb), 0.15), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+html.dark {
+  --mica-bg-dark: rgba(19, 26, 39, 0.72);
+  --mica-bg-strong-dark: rgba(15, 21, 32, 0.86);
+  --mica-border-dark: rgba(255, 255, 255, 0.08);
+  --mica-shadow-dark: 0 10px 32px -6px rgba(0, 0, 0, 0.55);
+  --mica-shadow-hover-dark: 0 14px 36px -6px rgba(var(--theme-rgb), 0.22);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.01em;
+}
+
+/* ================= View Transitions 聚光灯扩散主题切换动画 ================= */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 99999;
+}
+
+/* 金额与统计数字专用等宽几何字体 */
+.num-font,
+.el-statistic__content,
+.el-progress__text {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 云母 (Mica) 半透明毛玻璃卡片全局增强 */
+.el-card {
+  border-radius: 14px !important;
+  background: var(--mica-bg-light) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--mica-border-light) !important;
+  box-shadow: var(--mica-shadow-light) !important;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.28s ease !important;
+}
+
+html.dark .el-card {
+  background: var(--mica-bg-dark) !important;
+  border: 1px solid var(--mica-border-dark) !important;
+  box-shadow: var(--mica-shadow-dark) !important;
+}
+
+.el-card:hover {
+  box-shadow: var(--mica-shadow-hover-light) !important;
+  border-color: rgba(var(--theme-rgb), 0.3) !important;
+}
+
+html.dark .el-card:hover {
+  box-shadow: var(--mica-shadow-hover-dark) !important;
+  border-color: rgba(var(--theme-rgb), 0.38) !important;
+}
+
+/* ================= 按钮灵动微交互与暗色模式护眼降亮适配 ================= */
+.el-button {
+  border-radius: 9px !important;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.el-button:not(.is-disabled):not(.is-link):hover {
+  transform: translateY(-1.5px);
+}
+
+.el-button--primary:not(.is-link):not(.is-plain) {
+  box-shadow: 0 4px 14px rgba(var(--theme-rgb), 0.25);
+}
+
+/* 暗色模式下调低实心按钮背景亮度，采用内发光微边框与深邃渐变，避免刺眼 */
+html.dark .el-button--primary:not(.is-link):not(.is-plain) {
+  background: linear-gradient(135deg, rgba(var(--theme-rgb), 0.78), rgba(var(--theme-rgb), 0.62)) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark .el-button--primary:not(.is-link):not(.is-plain):hover {
+  background: linear-gradient(135deg, rgba(var(--theme-rgb), 0.9), rgba(var(--theme-rgb), 0.74)) !important;
+  box-shadow: 0 6px 20px -2px rgba(var(--theme-rgb), 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+
+html.dark .el-button--default:not(.is-link):not(.is-text) {
+  background-color: rgba(30, 41, 59, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-button--default:not(.is-link):not(.is-text):hover {
+  background-color: rgba(var(--theme-rgb), 0.16) !important;
+  border-color: rgba(var(--theme-rgb), 0.45) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .el-button--warning:not(.is-link):not(.is-plain) {
+  background: rgba(217, 119, 6, 0.75) !important;
+  border-color: rgba(251, 191, 36, 0.22) !important;
+  color: #fef3c7 !important;
+}
+
+html.dark .el-button--danger:not(.is-link):not(.is-plain) {
+  background: rgba(220, 38, 38, 0.75) !important;
+  border-color: rgba(248, 113, 113, 0.22) !important;
+  color: #fee2e2 !important;
+}
+
+html.dark .el-button--info:not(.is-link):not(.is-plain) {
+  background: rgba(51, 65, 85, 0.8) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  color: #e2e8f0 !important;
+}
+
+.el-button:not(.is-disabled):active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 输入框与选择器美化 */
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner {
+  border-radius: 9px !important;
+  transition: all 0.22s ease !important;
+}
+
+html.dark .el-input__wrapper,
+html.dark .el-select__wrapper,
+html.dark .el-textarea__inner {
+  background-color: rgba(15, 23, 42, 0.65) !important;
+}
+
+/* ================= 现代极简扁平表格设计（无渐变、无发光边框，采用随主题色联动的蓝黑+蓝灰 / 紫黑+紫灰 / 青黑+青灰 / 棕黑+棕灰实色扁平风格） ================= */
+.el-table {
+  border-radius: 10px !important;
+  overflow: hidden;
+  background-color: var(--table-row-bg, #f6f9fe) !important;
+  border: 1px solid var(--table-border-color, #d3e1f4) !important;
+  --el-table-border-color: var(--table-border-color, #d3e1f4) !important;
+  --el-table-header-bg-color: var(--table-head-bg, #e4eefb) !important;
+  --el-table-row-hover-bg-color: var(--table-hover-bg, #dbe8fa) !important;
+  --el-table-current-row-bg-color: var(--table-hover-bg, #dbe8fa) !important;
+  --el-table-tr-bg-color: var(--table-row-bg, #f6f9fe) !important;
+}
+
+.el-table::before,
+.el-table--border::after,
+.el-table--border::before,
+.el-table__inner-wrapper::before,
+.el-table__inner-wrapper::after,
+.el-table__border-left-patch {
+  display: none !important;
+}
+
+.el-table--border .el-table__cell {
+  border-right: none !important;
+}
+
+/* 扁平表头：纯色蓝灰/紫灰/青灰/棕灰，无高光渐变 */
+.el-table th.el-table__cell {
+  font-weight: 600 !important;
+  font-size: 13px;
+  color: var(--el-text-color-primary) !important;
+  background-color: var(--table-head-bg, #e4eefb) !important;
+  border-bottom: 1px solid var(--table-border-color, #d3e1f4) !important;
+  padding: 12px 0 !important;
+}
+
+html.dark .el-table th.el-table__cell {
+  color: #cbd5e1 !important;
+  background-color: var(--table-head-bg, #121b2d) !important;
+  border-bottom: 1px solid var(--table-border-color, #1e2c46) !important;
+}
+
+/* 扁平数据行：蓝黑+蓝灰 / 紫黑+紫灰交替纯色，无渐变无发光 */
+.el-table td.el-table__cell {
+  background-color: var(--table-row-bg, #f6f9fe) !important;
+  border-bottom: 1px solid var(--table-border-color, #d3e1f4) !important;
+  padding: 12px 0 !important;
+  color: var(--el-text-color-primary);
+}
+
+.el-table .el-table__body tr.el-table__row:nth-child(even) > td.el-table__cell {
+  background-color: var(--table-row-alt-bg, #eef4fc) !important;
+}
+
+html.dark .el-table td.el-table__cell {
+  background-color: var(--table-row-bg, #0c1322) !important;
+  border-bottom: 1px solid var(--table-border-color, #1e2c46) !important;
+}
+
+html.dark .el-table .el-table__body tr.el-table__row:nth-child(even) > td.el-table__cell {
+  background-color: var(--table-row-alt-bg, #101829) !important;
+}
+
+.el-table .el-table__body tr.el-table__row:last-child > td.el-table__cell {
+  border-bottom: none !important;
+}
+
+.el-table .el-table__body tr.el-table__row:hover > td.el-table__cell {
+  background-color: var(--table-hover-bg, #dbe8fa) !important;
+}
+
+html.dark .el-table .el-table__body tr.el-table__row:hover > td.el-table__cell {
+  background-color: var(--table-hover-bg, #18243c) !important;
+}
+
+.el-table .el-table__row {
+  transition: background-color 0.15s ease;
+}
+
+/* 表格复选框与排序箭头跟随主题色 */
+.el-table .el-checkbox__input.is-checked .el-checkbox__inner,
+.el-table .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+  background-color: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
+}
+
+/* 极简扁平分页器（去除生硬边框与高光渐变） */
+.el-pagination.is-background .el-pager li,
+.el-pagination.is-background .btn-prev,
+.el-pagination.is-background .btn-next {
+  border-radius: 7px !important;
+  background-color: rgba(148, 163, 184, 0.1) !important;
+  border: none !important;
+  color: var(--el-text-color-regular) !important;
+  font-weight: 500;
+  transition: all 0.18s ease;
+}
+
+html.dark .el-pagination.is-background .el-pager li,
+html.dark .el-pagination.is-background .btn-prev,
+html.dark .el-pagination.is-background .btn-next {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.el-pagination.is-background .el-pager li:hover,
+.el-pagination.is-background .btn-prev:hover:not(:disabled),
+.el-pagination.is-background .btn-next:hover:not(:disabled) {
+  background-color: rgba(var(--theme-rgb), 0.12) !important;
+  color: var(--el-color-primary) !important;
+}
+
+.el-pagination.is-background .el-pager li.is-active {
+  background: var(--el-color-primary) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* 弹窗与抽屉云母材质 */
+.el-dialog {
+  border-radius: 16px !important;
+  background: var(--mica-bg-strong-light) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.18) !important;
+}
+
+html.dark .el-dialog {
+  background: var(--mica-bg-strong-dark) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 顶部路由跳转极光进度条 */
+#route-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+  box-shadow: 0 0 12px rgba(var(--theme-rgb), 0.65);
+  z-index: 99999;
+  transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* 页面交错入场动效工具类 */
+@keyframes staggerUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stagger-1 { animation: staggerUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.04s both; }
+.stagger-2 { animation: staggerUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.10s both; }
+.stagger-3 { animation: staggerUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both; }
+.stagger-4 { animation: staggerUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both; }
+
+/* 定制极细滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--theme-rgb), 0.55);
+}

@@ -1,0 +1,53 @@
+html:not(.dark) {
+    /* 清透极光浅色主题 */
+    --el-bg-color: #f3f6fb;
+    --el-bg-color-page: #eef2f9;
+    --el-bg-color-overlay: #ffffff;
+    --el-text-color-primary: #0f172a;
+    --el-text-color-regular: #334155;
+    --el-text-color-secondary: #64748b;
+    --el-border-color: #e2e8f0;
+    --el-border-color-light: #edf2f7;
+    --el-fill-color-light: #f1f5f9;
+    --el-header-bg-color: rgba(255, 255, 255, 0.75);
+    --el-card-bg-color: rgba(255, 255, 255, 0.74);
+
+    /* WangEditor 浅色适配 */
+    --w-e-textarea-bg-color: #ffffff;
+    --w-e-textarea-color: #0f172a;
+    --w-e-toolbar-bg-color: #f8fafc;
+    --w-e-toolbar-color: #334155;
+}
+
+html.dark {
+    /* 深邃静谧暗夜石板蓝主题（告别死灰，层次柔和不刺眼） */
+    --el-bg-color: #0b0f17;
+    --el-bg-color-page: #080b11;
+    --el-bg-color-overlay: #151c28;
+    --el-text-color-primary: #e2e8f0;
+    --el-text-color-regular: #cbd5e1;
+    --el-text-color-secondary: #94a3b8;
+    --el-border-color: rgba(255, 255, 255, 0.09);
+    --el-border-color-light: rgba(255, 255, 255, 0.06);
+    --el-fill-color-light: rgba(30, 41, 59, 0.65);
+    --el-header-bg-color: rgba(15, 23, 42, 0.72);
+    --el-table-header-bg-color: rgba(15, 23, 42, 0.85);
+    --el-card-bg-color: rgba(19, 26, 39, 0.72);
+
+    /* 降低暗色模式下各类语义按钮的荧光感，采用低饱和深邃色阶 */
+    --el-color-success: #059669;
+    --el-color-warning: #d97706;
+    --el-color-danger: #dc2626;
+    --el-color-info: #475569;
+
+    /* WangEditor 深色适配 */
+    --w-e-textarea-bg-color: #111827;
+    --w-e-textarea-color: #e2e8f0;
+    --w-e-toolbar-bg-color: #151c28;
+    --w-e-toolbar-color: #cbd5e1;
+    --w-e-toolbar-active-bg-color: #1e293b;
+    --w-e-toolbar-active-color: #f8fafc;
+    --w-e-toolbar-border-color: rgba(255, 255, 255, 0.1);
+    --w-e-modal-button-bg-color: var(--el-color-primary);
+    --w-e-modal-button-border-color: var(--el-border-color);
+}

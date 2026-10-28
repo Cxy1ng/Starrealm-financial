@@ -1,0 +1,17 @@
+# IDE & OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build & Dependencies
+**/target/
+**/dist/
+**/node_modules/
+
+# Uploaded local runtime files
+files/
+
+# Logs & Temp
+*.log
