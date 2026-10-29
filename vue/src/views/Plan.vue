@@ -33,20 +33,48 @@
                   <div class="plan-title">{{ item.name }}</div>
                   <div class="plan-date"><i class="el-icon-date"></i> {{ item.end }}</div>
                 </div>
-                <!-- 支持超过100%的双层 Boss 血条式进度条：第一层主题色，超出100%的部分以流光金条覆盖在第一层之上 -->
+                <!-- 四层 Boss 充能血条：主题色(0-100%) -> 紫色(100-200%) -> 红色(200-300%) -> 金色(300%+) -->
                 <div class="boss-progress-row">
-                  <div class="boss-bar-track">
+                  <div class="boss-bar-track" :class="'stage-' + getActiveStage(item)">
+                    <!-- 第一层：主题色 -->
                     <div
-                        class="boss-bar-base"
-                        :style="{ width: getBaseWidth(item) + '%' }"
+                        class="boss-bar-layer layer-theme"
+                        :style="{ width: getStageWidth(item, 1) + '%' }"
                     ></div>
+                    <!-- 第二层：紫色（第一层满100%后起步） -->
                     <div
                         v-if="getRealPercent(item) > 100"
-                        class="boss-bar-overfill"
-                        :style="{ width: getOverfillWidth(item) + '%' }"
+                        class="boss-bar-layer layer-purple"
+                        :style="{ width: getStageWidth(item, 2) + '%' }"
                     ></div>
+                    <!-- 第三层：红色（第二层满100%后起步） -->
+                    <div
+                        v-if="getRealPercent(item) > 200"
+                        class="boss-bar-layer layer-red"
+                        :style="{ width: getStageWidth(item, 3) + '%' }"
+                    ></div>
+                    <!-- 第四层：金色（第三层满100%后起步） -->
+                    <div
+                        v-if="getRealPercent(item) > 300"
+                        class="boss-bar-layer layer-gold"
+                        :style="{ width: getStageWidth(item, 4) + '%' }"
+                    ></div>
+
+                    <!-- 充能头（移动端点）处跟随移动的电火花粒子特效 -->
+                    <div
+                        class="spark-emitter"
+                        :class="'spark-stage-' + getActiveStage(item)"
+                        :style="{ left: getCurrentTipPosition(item) + '%' }"
+                    >
+                      <span class="spark-core"></span>
+                      <span class="spark-arc arc-1"></span>
+                      <span class="spark-arc arc-2"></span>
+                      <span class="spark-arc arc-3" v-if="getActiveStage(item) >= 3"></span>
+                      <span class="spark-lightning" v-if="getActiveStage(item) === 4"></span>
+                    </div>
                   </div>
-                  <span class="boss-bar-label num-font" :class="{ 'is-overfill': getRealPercent(item) > 100 }">
+                  <span class="boss-bar-label num-font" :class="'label-stage-' + getActiveStage(item)">
+                    <span v-if="getActiveStage(item) > 1" class="stage-tag">x{{ getActiveStage(item) }}</span>
                     {{ getRealPercent(item) }}%
                   </span>
                 </div>
@@ -192,7 +220,7 @@ const data = reactive({
   detailForm: {}
 })
 
-// 实时根据存钱明细累计金额与目标金额计算真实百分比（支持超过 100% 的超额数值，无需等待后端重启）
+// 实时根据存钱明细累计金额与目标金额计算真实百分比（支持超过 100% 的超额数值）
 const getRealPercent = (item) => {
   if (!item) return 0
   const target = Number(item.money) || 0
@@ -202,14 +230,30 @@ const getRealPercent = (item) => {
   return Math.max(0, Number(item.percent) || 0)
 }
 
-const getBaseWidth = (item) => {
-  return Math.min(getRealPercent(item), 100)
+// 获取当前处于第几层 Boss 充能阶段 (1:主题色, 2:紫色, 3:红色, 4:金色)
+const getActiveStage = (item) => {
+  const pct = getRealPercent(item)
+  if (pct > 300) return 4
+  if (pct > 200) return 3
+  if (pct > 100) return 2
+  return 1
 }
 
-const getOverfillWidth = (item) => {
+// 严格顺序充能：前一层必须达到 100% 后，下一层才开始充能（每层各代表 100% 阈值）
+const getStageWidth = (item, stage) => {
   const pct = getRealPercent(item)
-  if (pct <= 100) return 0
-  return Math.min(pct - 100, 100)
+  if (stage === 1) {
+    return Math.min(pct, 100)
+  }
+  const minRequired = (stage - 1) * 100
+  if (pct <= minRequired) return 0
+  return Math.min(pct - minRequired, 100)
+}
+
+// 当前处于充能状态的最前端位置（百分比），用于粒子电火花精确定位跟随
+const getCurrentTipPosition = (item) => {
+  const stage = getActiveStage(item)
+  return getStageWidth(item, stage)
 }
 
 const load = () => {
@@ -462,7 +506,7 @@ const statusTagType = (status) => {
   color: var(--el-text-color-regular);
 }
 
-/* Boss 血条式双层超额进度条 */
+/* 四层 Boss 充能血条及流光粒子特效系统 */
 .boss-progress-row {
   display: flex;
   align-items: center;
@@ -473,55 +517,270 @@ const statusTagType = (status) => {
 .boss-bar-track {
   position: relative;
   flex: 1;
-  height: 8px;
+  height: 10px;
   border-radius: 999px;
   background-color: rgba(148, 163, 184, 0.22);
-  overflow: hidden;
+  overflow: visible; /* 允许粒子与电弧微微外溢营造强烈光效 */
 }
 
 html.dark .boss-bar-track {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.boss-bar-base {
+.boss-bar-layer {
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   border-radius: 999px;
+  /* 慢速放缓的平滑充能缓动动画 */
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 第 1 层：系统主题色 */
+.layer-theme {
   background-color: var(--el-color-primary);
-  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 8px rgba(var(--theme-rgb, 64, 158, 255), 0.4);
   z-index: 1;
 }
 
-.boss-bar-overfill {
+/* 第 2 层：星云紫 */
+.layer-purple {
+  background: linear-gradient(90deg, #9333ea 0%, #a855f7 60%, #c084fc 100%);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+  z-index: 2;
+}
+
+/* 第 3 层：烈焰红 */
+.layer-red {
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 60%, #f87171 100%);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
+  z-index: 3;
+}
+
+/* 第 4 层：流光金（高能神圣） */
+.layer-gold {
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #fde047 100%);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.85);
+  z-index: 4;
+}
+
+/* 从第 2 层开始：在已充能轨道上叠加循环渲染环境微光与电弧围绕动画 */
+.boss-bar-track.stage-2::before {
+  content: '';
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  top: -2px;
+  bottom: -2px;
+  right: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 55%, #fde047 100%);
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.55);
-  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 2;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.35) 10%, transparent 60%);
+  background-size: 24px 100%;
+  animation: purpleParticlePulse 1.8s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.boss-bar-track.stage-3::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -3px;
+  bottom: -3px;
+  right: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.45) 15%, transparent 65%);
+  background-size: 20px 100%;
+  animation: redArcSurround 1.2s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.boss-bar-track.stage-4::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: -4px;
+  bottom: -4px;
+  right: -2px;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(253, 224, 71, 0.6) 0px,
+      rgba(251, 191, 36, 0.2) 8px,
+      rgba(253, 224, 71, 0.7) 16px
+  );
+  animation: goldThunderRush 0.75s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.9));
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 跟随充能端点移动的电火花粒子发生器 */
+.spark-emitter {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  transition: left 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spark-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background-color: #fff;
+}
+
+/* 第 1 阶段：主题色点状火花 */
+.spark-stage-1 .spark-core {
+  box-shadow: 0 0 8px var(--el-color-primary), 0 0 16px var(--el-color-primary);
+}
+.spark-stage-1 .spark-arc {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: var(--el-color-primary);
+  animation: sparkDots 0.6s ease-out infinite;
+}
+
+/* 第 2 阶段：紫色细小电弧火花 */
+.spark-stage-2 .spark-core {
+  box-shadow: 0 0 10px #c084fc, 0 0 20px #a855f7;
+}
+.spark-stage-2 .spark-arc {
+  position: absolute;
+  width: 8px;
+  height: 2px;
+  background: #c084fc;
+  box-shadow: 0 0 4px #a855f7;
+  border-radius: 2px;
+  animation: purpleSmallArcs 0.4s ease-in-out infinite alternate;
+}
+
+/* 第 3 阶段：红色中等跃动电弧 */
+.spark-stage-3 .spark-core {
+  box-shadow: 0 0 12px #f87171, 0 0 24px #ef4444;
+}
+.spark-stage-3 .spark-arc {
+  position: absolute;
+  width: 12px;
+  height: 3px;
+  background: #fecaca;
+  box-shadow: 0 0 6px #ef4444;
+  border-radius: 2px;
+  animation: redMediumArcs 0.3s ease-in-out infinite alternate;
+}
+
+/* 第 4 阶段：金色强电流大电弧与雷电粒子 */
+.spark-stage-4 .spark-core {
+  width: 8px;
+  height: 8px;
+  background-color: #fff;
+  box-shadow: 0 0 16px #fde047, 0 0 30px #f59e0b;
+}
+.spark-stage-4 .spark-arc {
+  position: absolute;
+  width: 16px;
+  height: 3px;
+  background: #fff;
+  box-shadow: 0 0 8px #f59e0b, 0 0 16px #fde047;
+  border-radius: 2px;
+  animation: goldLargeArcs 0.22s steps(2, start) infinite;
+}
+
+.spark-stage-4 .spark-lightning {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border: 1px dashed rgba(254, 240, 138, 0.9);
+  border-radius: 50%;
+  animation: lightningRotate 0.4s linear infinite;
+}
+
+.arc-1 { top: 0; left: 0; transform: rotate(25deg); }
+.arc-2 { bottom: 0; right: 0; transform: rotate(-35deg); }
+.arc-3 { top: -2px; right: -2px; transform: rotate(70deg); }
+
+@keyframes sparkDots {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(6px, -6px) scale(0); opacity: 0; }
+}
+
+@keyframes purpleSmallArcs {
+  0% { transform: translate(-2px, -2px) rotate(15deg); }
+  100% { transform: translate(4px, 3px) rotate(60deg); }
+}
+
+@keyframes redMediumArcs {
+  0% { transform: translate(-3px, -3px) rotate(-30deg) scale(1.1); }
+  100% { transform: translate(5px, 4px) rotate(45deg) scale(0.9); }
+}
+
+@keyframes goldLargeArcs {
+  0% { transform: translate(-5px, -3px) rotate(10deg) scaleX(1.4); }
+  50% { transform: translate(4px, -4px) rotate(-45deg) scaleX(1.8); }
+  100% { transform: translate(6px, 5px) rotate(80deg) scaleX(1.2); }
+}
+
+@keyframes lightningRotate {
+  0% { transform: rotate(0deg) scale(0.9); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(0.9); }
+}
+
+@keyframes purpleParticlePulse {
+  0% { background-position: 0 0; opacity: 0.4; }
+  50% { opacity: 0.85; }
+  100% { background-position: 24px 0; opacity: 0.4; }
+}
+
+@keyframes redArcSurround {
+  0% { transform: scaleY(0.9); opacity: 0.5; }
+  100% { transform: scaleY(1.3); opacity: 0.95; }
+}
+
+@keyframes goldThunderRush {
+  0% { background-position: 0 0; }
+  100% { background-position: 32px 0; }
 }
 
 .boss-bar-label {
   font-size: 13px;
-  font-weight: 600;
-  min-width: 44px;
-  text-align: right;
-  color: var(--el-text-color-regular);
-}
-
-.boss-bar-label.is-overfill {
-  color: #f59e0b;
   font-weight: 700;
+  min-width: 58px;
+  text-align: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
-html.dark .boss-bar-label.is-overfill {
-  color: #fbbf24;
+.stage-tag {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #fff;
+  line-height: 1.2;
 }
+
+.label-stage-1 { color: var(--el-color-primary); }
+.label-stage-2 { color: #a855f7; }
+.label-stage-2 .stage-tag { background: #9333ea; }
+.label-stage-3 { color: #ef4444; }
+.label-stage-3 .stage-tag { background: #dc2626; }
+.label-stage-4 { color: #f59e0b; text-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
+.label-stage-4 .stage-tag { background: linear-gradient(90deg, #d97706, #f59e0b); }
 
 .plan-actions {
   display: flex;
