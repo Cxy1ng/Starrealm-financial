@@ -147,7 +147,7 @@
             <div class="palette-panel">
               <div class="palette-head">
                 <span class="palette-title">主题色与粒子光效</span>
-                <span class="palette-sub">实时渲染</span>
+                <span class="palette-sub">随心配</span>
               </div>
               <div class="palette-list">
                 <div
@@ -281,38 +281,15 @@ const currentTitle = computed(() => {
 
 // 聚光灯从点击位置发散至全屏的实时渲染切换效果 (View Transitions API + Web Animations clipPath)
 const runSpotlightTransition = (event, stateMutator) => {
-  const x = event?.clientX ?? window.innerWidth - 80;
-  const y = event?.clientY ?? 32;
-  const endRadius = Math.hypot(
-    Math.max(x, window.innerWidth - x),
-    Math.max(y, window.innerHeight - y)
-  );
-
   if (!document.startViewTransition) {
     stateMutator();
     return;
   }
-
   const transition = document.startViewTransition(async () => {
     stateMutator();
     await nextTick();
   });
-
-  transition.ready.then(() => {
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`
-        ]
-      },
-      {
-        duration: 560,
-        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-        pseudoElement: "::view-transition-new(root)"
-      }
-    );
-  });
+  transition.ready.catch(() => {});
 };
 
 const handleSpotlightThemeToggle = (event) => {
@@ -710,7 +687,7 @@ html.dark .clock-date {
 }
 
 .sun-icon {
-  color: #f59e0b;
+  color: #0f172a;
 }
 
 .moon-icon {

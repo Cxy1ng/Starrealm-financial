@@ -67,7 +67,7 @@
             <div class="auth-palette-panel">
               <div class="auth-palette-head">
                 <span class="auth-palette-title">主题色与粒子光效</span>
-                <span class="auth-palette-sub">实时渲染</span>
+                <span class="auth-palette-sub">随心配</span>
               </div>
               <div class="auth-palette-list">
                 <div
@@ -131,12 +131,6 @@ const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
 const runSpotlightTransition = (event, stateMutator) => {
-  const x = event?.clientX ?? window.innerWidth - 80;
-  const y = event?.clientY ?? 32;
-  const endRadius = Math.hypot(
-    Math.max(x, window.innerWidth - x),
-    Math.max(y, window.innerHeight - y)
-  );
   if (!document.startViewTransition) {
     stateMutator();
     return;
@@ -145,21 +139,7 @@ const runSpotlightTransition = (event, stateMutator) => {
     stateMutator();
     await nextTick();
   });
-  transition.ready.then(() => {
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`
-        ]
-      },
-      {
-        duration: 520,
-        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-        pseudoElement: "::view-transition-new(root)"
-      }
-    );
-  });
+  transition.ready.catch(() => {});
 };
 
 const handleSpotlightThemeToggle = (event) => {

@@ -72,7 +72,7 @@
             <div class="auth-palette-panel">
               <div class="auth-palette-head">
                 <span class="auth-palette-title">主题色与粒子光效</span>
-                <span class="auth-palette-sub">实时渲染</span>
+                <span class="auth-palette-sub">随心配</span>
               </div>
               <div class="auth-palette-list">
                 <div
@@ -151,12 +151,6 @@ const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
 const runSpotlightTransition = (event, stateMutator) => {
-  const x = event?.clientX ?? window.innerWidth - 80;
-  const y = event?.clientY ?? 32;
-  const endRadius = Math.hypot(
-    Math.max(x, window.innerWidth - x),
-    Math.max(y, window.innerHeight - y)
-  );
   if (!document.startViewTransition) {
     stateMutator();
     return;
@@ -165,21 +159,7 @@ const runSpotlightTransition = (event, stateMutator) => {
     stateMutator();
     await nextTick();
   });
-  transition.ready.then(() => {
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`
-        ]
-      },
-      {
-        duration: 520,
-        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-        pseudoElement: "::view-transition-new(root)"
-      }
-    );
-  });
+  transition.ready.catch(() => {});
 };
 
 const handleSpotlightThemeToggle = (event) => {
@@ -349,13 +329,13 @@ html.dark .mica-auth-card {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.58);
 }
 
-/* ================= 浮窗右上角：纸张卷边（Page Curl / Dog-ear）明暗主题切换器 ================= */
+/* ================= 浮窗右上角：精巧版纸张卷边（Page Curl / Dog-ear）明暗主题切换器 ================= */
 .page-curl-theme-btn {
   position: absolute;
   top: 0;
   right: 0;
-  width: 52px;
-  height: 52px;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border: none;
   background: transparent;
@@ -364,7 +344,7 @@ html.dark .mica-auth-card {
   outline: none;
 }
 
-/* 被掀起的一角背后露出的昼/夜底色三角区 */
+/* 被掀起的一角背后露出的昼/夜底色三角区（面积适中、不干扰标题） */
 .curl-peek-sky {
   position: absolute;
   inset: 0;
@@ -373,8 +353,8 @@ html.dark .mica-auth-card {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-  padding: 7px 7px 0 0;
-  transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 5px 5px 0 0;
+  transition: transform 0.15s ease;
 }
 
 html.dark .curl-peek-sky {
@@ -382,51 +362,52 @@ html.dark .curl-peek-sky {
 }
 
 .curl-icon {
-  font-size: 14px;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  font-size: 13px;
+  transition: transform 0.15s ease;
 }
 
 .curl-icon.sun {
-  color: #fbbf24;
+  color: #0f172a;
 }
 
 .curl-icon.moon {
   color: #d97706;
 }
 
-/* 向左下方折回的立体纸张卷边折页（左下三角） */
+/* 卷边折页（缩小面积：只覆盖右上角约 60% 区域，折起动作明显但整体更精致小巧） */
 .curl-flap {
   position: absolute;
   inset: 0;
-  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  clip-path: polygon(0 0, 0 42%, 42% 0);
   background: linear-gradient(
-    45deg,
+    135deg,
     var(--table-head-bg, #e4eefb) 0%,
-    #ffffff 55%,
-    rgba(var(--theme-rgb), 0.22) 100%
+    #ffffff 65%,
+    rgba(var(--theme-rgb), 0.25) 100%
   );
-  border-bottom-left-radius: 12px;
-  box-shadow: -3px 3px 8px rgba(15, 23, 42, 0.18);
-  transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  border-bottom-left-radius: 8px;
+  box-shadow: -2px 2px 6px rgba(15, 23, 42, 0.15);
+  transform-origin: top right;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
 }
 
 html.dark .curl-flap {
   background: linear-gradient(
-    45deg,
+    135deg,
     var(--table-hover-bg, #18243c) 0%,
-    #334155 58%,
-    rgba(var(--theme-rgb), 0.38) 100%
+    #334155 65%,
+    rgba(var(--theme-rgb), 0.4) 100%
   );
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.55);
+  box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.page-curl-theme-btn:hover {
-  width: 58px;
-  height: 58px;
+.page-curl-theme-btn:hover .curl-flap {
+  transform: scale(1.32) translate(-3px, 3px);
+  box-shadow: -4px 4px 12px rgba(15, 23, 42, 0.28);
 }
 
 .page-curl-theme-btn:hover .curl-icon {
-  transform: scale(1.15) rotate(-12deg);
+  transform: scale(1.1);
 }
 
 .card-top {
