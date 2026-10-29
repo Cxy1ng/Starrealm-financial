@@ -32,10 +32,26 @@
           <el-button
               v-if="hasStartedChat"
               size="small"
+              type="primary"
+              @click="startNewSession"
+          >
+            <el-icon style="margin-right: 4px"><Plus /></el-icon>开启新对话
+          </el-button>
+          <el-button
+              v-if="hasStartedChat"
+              size="small"
               plain
               @click="resetToInitialChart"
           >
-            <el-icon style="margin-right: 4px"><Delete /></el-icon>清空对话并展开图表
+            <el-icon style="margin-right: 4px"><PieChart /></el-icon>返回收支看板
+          </el-button>
+          <el-button
+              size="small"
+              type="success"
+              plain
+              @click="showHistoryDrawer = true"
+          >
+            <el-icon style="margin-right: 4px"><Collection /></el-icon>历史对话存档 ({{ chatHistoryList.length }})
           </el-button>
           <el-button
               size="small"
@@ -153,6 +169,24 @@
                           @click="handleMarkdownBlockCopy($event)"
                           v-html="renderMessageHtml(msg)"
                       ></div>
+                      <!-- 每条 AI 消息底部独立小工具栏：仅在流式生成完全结束后才显示，包含复制、完成时间与免责提示语 -->
+                      <div v-if="!msg.waitingFirstToken && !msg.streaming" class="ai-msg-footer-bar">
+                        <div class="ai-footer-left">
+                          <button type="button" class="ai-msg-action-btn" @click="copyFullMessage(msg.content)">
+                            <el-icon><CopyDocument /></el-icon>
+                            <span>复制</span>
+                          </button>
+                          <span class="ai-footer-divider"></span>
+                          <span class="ai-footer-time num-font">
+                            <el-icon style="vertical-align: -2px; margin-right: 3px"><Clock /></el-icon>生成时间：{{ msg.time }}
+                          </span>
+                        </div>
+                        <div class="ai-footer-right">
+                          <span class="ai-disclaimer-badge">
+                            <el-icon style="vertical-align: -2px; margin-right: 3px"><InfoFilled /></el-icon>AI可能会犯错，仅供参考
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -171,6 +205,39 @@
         </Transition>
       </div>
     </div>
+
+    <!-- ================= 历史对话存档抽屉 ================= -->
+    <el-drawer
+        v-model="showHistoryDrawer"
+        title="历史 AI 财务诊断存档"
+        direction="rtl"
+        size="400px"
+        destroy-on-close
+    >
+      <div class="history-drawer-body">
+        <div v-if="chatHistoryList.length === 0" class="history-empty">
+          <el-icon :size="36" style="color: var(--el-text-color-secondary)"><Collection /></el-icon>
+          <p>暂无历史对话存档</p>
+          <span class="history-empty-sub">每次清空或重新开始对话时会自动存档当前会话</span>
+        </div>
+        <div v-else class="history-list">
+          <div
+              v-for="hist in chatHistoryList"
+              :key="hist.id"
+              class="history-item-card"
+              @click="loadHistorySession(hist)"
+          >
+            <div class="hist-card-head">
+              <span class="hist-title">{{ hist.title }}</span>
+              <el-button type="danger" link size="small" @click="deleteHistorySession(hist.id, $event)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+            <div class="hist-time num-font">存档时间：{{ hist.time }}</div>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
 
     <!-- ================= 云母饼图悬浮窗（开启时后方流式对话内容自动高斯模糊，且流式传输在后台继续实时更新） ================= -->
     <Transition name="mica-modal-pop">
@@ -284,7 +351,11 @@ import {
   InfoFilled,
   Search,
   Aim,
-  TrendCharts
+  TrendCharts,
+  CopyDocument,
+  Clock,
+  Collection,
+  Plus
 } from '@element-plus/icons-vue'
 import { useDark } from '@vueuse/core'
 import MarkdownIt from 'markdown-it'
@@ -587,13 +658,158 @@ const fetchBillCountsAndRender = async () => {
   }
 }
 
-// ==================== 对话与流式输出控制 ====================
+// ==================== 对话与流式输出控制（按用户隔离 + 切换页面不丢失 + 第一条回复后自动存档 + 首行充当标题） ====================
+const currentUserKey = () => {
+  const uid = data.user?.id || data.user?.username || 'guest'
+  return {
+    historyKey: `star_realm_ai_history_${uid}`,
+    activeKey: `star_realm_ai_active_${uid}`
+  }
+}
+
 const hasStartedChat = ref(false)
 const showChartOverlay = ref(false)
+const showHistoryDrawer = ref(false)
 const inputFocused = ref(false)
 const isStreaming = ref(false)
 const chatViewportRef = ref(null)
 const chatList = ref([])
+const currentSessionId = ref(null)
+
+const chatHistoryList = ref([])
+
+// 提取第一条 AI 回复的首行有效文本作为存档标题（若尚未生成完毕则回退到用户首条提问首行）
+const extractArchiveTitle = (messages = []) => {
+  const firstAi = messages.find(m => m.role === 'assistant' && m.content && !m.waitingFirstToken && !m.content.startsWith('**智能分析中断**'))
+  const rawSource = firstAi?.content || messages.find(m => m.role === 'user')?.content || '财务深度诊断会话'
+  const lines = String(rawSource)
+    .split(/\r?\n/)
+    .map(l => l.replace(/^[#>*\-\d.\s`]+/, '').replace(/[*_`~[\]]/g, '').trim())
+    .filter(Boolean)
+  const firstLine = lines[0] || '财务深度诊断会话'
+  return firstLine.length > 26 ? firstLine.slice(0, 26) + '...' : firstLine
+}
+
+// 持久化当前正在进行的会话状态，保证切换到其他子页面再切回来时内容完全保留不丢失
+const persistActiveSessionState = () => {
+  const { activeKey } = currentUserKey()
+  if (!hasStartedChat.value || chatList.value.length === 0) {
+    localStorage.removeItem(activeKey)
+    return
+  }
+  const cleanMessages = chatList.value.map(m => ({
+    role: m.role,
+    content: m.content || '',
+    time: m.time || '',
+    waitingFirstToken: false,
+    streaming: false
+  }))
+  localStorage.setItem(activeKey, JSON.stringify({
+    sessionId: currentSessionId.value,
+    hasStartedChat: hasStartedChat.value,
+    messages: cleanMessages
+  }))
+}
+
+// 当生成第一条回复后（以及后续每轮回复后）自动写入/更新历史存档
+const saveCurrentChatToHistory = () => {
+  if (chatList.value.length === 0) return
+  const hasAnyReply = chatList.value.some(m => m.role === 'assistant' && (m.content || '').trim().length > 0)
+  if (!hasAnyReply) return
+
+  const { historyKey } = currentUserKey()
+  if (!currentSessionId.value) {
+    currentSessionId.value = Date.now()
+  }
+  const title = extractArchiveTitle(chatList.value)
+  const serializedMessages = chatList.value.map(m => ({
+    role: m.role,
+    content: m.content || '',
+    time: m.time || '',
+    waitingFirstToken: false,
+    streaming: false
+  }))
+
+  const existingIdx = chatHistoryList.value.findIndex(h => h.id === currentSessionId.value)
+  const archiveItem = {
+    id: currentSessionId.value,
+    title,
+    time: new Date().toLocaleString(),
+    messages: serializedMessages
+  }
+
+  if (existingIdx !== -1) {
+    chatHistoryList.value.splice(existingIdx, 1, archiveItem)
+  } else {
+    chatHistoryList.value.unshift(archiveItem)
+    if (chatHistoryList.value.length > 30) chatHistoryList.value.pop()
+  }
+  localStorage.setItem(historyKey, JSON.stringify(chatHistoryList.value))
+  persistActiveSessionState()
+}
+
+const restoreHistoryAndActiveSession = () => {
+  const { historyKey, activeKey } = currentUserKey()
+  try {
+    chatHistoryList.value = JSON.parse(localStorage.getItem(historyKey) || '[]')
+  } catch {
+    chatHistoryList.value = []
+  }
+  try {
+    const savedActive = JSON.parse(localStorage.getItem(activeKey) || 'null')
+    if (savedActive && Array.isArray(savedActive.messages) && savedActive.messages.length > 0) {
+      currentSessionId.value = savedActive.sessionId || Date.now()
+      chatList.value = savedActive.messages
+      hasStartedChat.value = true
+      nextTick(() => scrollToBottom(true))
+    }
+  } catch {
+    // ignore
+  }
+}
+
+const loadHistorySession = (item) => {
+  if (isStreaming.value) return
+  currentSessionId.value = item.id
+  chatList.value = JSON.parse(JSON.stringify(item.messages || []))
+  hasStartedChat.value = true
+  showHistoryDrawer.value = false
+  persistActiveSessionState()
+  scrollToBottom(true)
+}
+
+const startNewSession = () => {
+  if (isStreaming.value) return
+  saveCurrentChatToHistory()
+  currentSessionId.value = Date.now()
+  chatList.value = []
+  hasStartedChat.value = false
+  showChartOverlay.value = false
+  const { activeKey } = currentUserKey()
+  localStorage.removeItem(activeKey)
+  nextTick(() => {
+    renderChartsOnPair(inlinePie1Ref.value, inlinePie2Ref.value)
+  })
+}
+
+const deleteHistorySession = (id, event) => {
+  event.stopPropagation()
+  const { historyKey } = currentUserKey()
+  chatHistoryList.value = chatHistoryList.value.filter(h => h.id !== id)
+  localStorage.setItem(historyKey, JSON.stringify(chatHistoryList.value))
+  if (currentSessionId.value === id) {
+    currentSessionId.value = null
+  }
+}
+
+const copyFullMessage = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('AI 分析报告全文已复制到剪贴板')
+  } catch {
+    ElMessage.warning('复制失败')
+  }
+}
 
 const nowTime = () => new Date().toTimeString().slice(0, 5)
 
@@ -630,9 +846,11 @@ const toggleChartOverlay = () => {
 
 const resetToInitialChart = () => {
   if (isStreaming.value) return
+  saveCurrentChatToHistory()
   showChartOverlay.value = false
   hasStartedChat.value = false
-  chatList.value = []
+  const { activeKey } = currentUserKey()
+  localStorage.removeItem(activeKey)
   nextTick(() => {
     renderChartsOnPair(inlinePie1Ref.value, inlinePie2Ref.value)
   })
@@ -653,6 +871,9 @@ const analyze = async () => {
   // 1. 触发饼图向输入框左下角收纳动画，进入对话视图
   if (!hasStartedChat.value) {
     hasStartedChat.value = true
+    if (!currentSessionId.value) {
+      currentSessionId.value = Date.now()
+    }
   }
 
   data.input = ''
@@ -661,6 +882,7 @@ const analyze = async () => {
     content: userText,
     time: nowTime()
   })
+  persistActiveSessionState()
 
   // 2. 插入带类 Telegram 输入中等待动画的 AI 气泡
   const aiMsg = reactive({
@@ -782,6 +1004,7 @@ const analyze = async () => {
       }
     }
     aiMsg.streaming = false
+    aiMsg.time = nowTime()
     connStatus.connected = true
     connStatus.state = 'online'
     connStatus.message = '已连接 · 流式输出正常'
@@ -792,12 +1015,15 @@ const analyze = async () => {
     }
     aiMsg.waitingFirstToken = false
     aiMsg.streaming = false
+    aiMsg.time = nowTime()
     aiMsg.content = `**智能分析中断**：${err.message || '请前往【个人设置】填写有效的 DeepSeek API 密钥。'}`
     connStatus.connected = false
     connStatus.state = 'error'
     connStatus.message = '未就绪 · 请检查密钥'
   } finally {
     isStreaming.value = false
+    // 生成第一条（及后续每条）回复完成后，立即自动生成/更新历史存档（并以回复内容首行作为标题）
+    saveCurrentChatToHistory()
     scrollToBottom()
   }
 }
@@ -821,12 +1047,14 @@ watch(isDark, () => {
 })
 
 onMounted(() => {
+  restoreHistoryAndActiveSession()
   checkConnectivity()
   fetchBillCountsAndRender()
   window.addEventListener('resize', handleResize)
 })
 
 onBeforeUnmount(() => {
+  persistActiveSessionState()
   window.removeEventListener('resize', handleResize)
 })
 </script>
@@ -1303,6 +1531,131 @@ html.dark .stream-card {
   padding-bottom: 10px;
   margin-bottom: 10px;
   border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+/* AI 消息底部小工具栏 */
+.ai-msg-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(var(--theme-rgb), 0.06);
+  border: 1px solid rgba(var(--theme-rgb), 0.16);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+html.dark .ai-msg-footer-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ai-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-footer-divider {
+  width: 1px;
+  height: 12px;
+  background: rgba(148, 163, 184, 0.35);
+}
+
+.ai-msg-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(var(--theme-rgb), 0.12);
+  border: 1px solid rgba(var(--theme-rgb), 0.24);
+  color: var(--el-color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.ai-msg-action-btn:hover {
+  background: var(--el-color-primary);
+  color: #ffffff;
+}
+
+.ai-footer-time {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+}
+
+.ai-disclaimer-badge {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  font-weight: 500;
+}
+
+/* 历史对话存档抽屉样式 */
+.history-drawer-body {
+  padding: 10px 16px;
+}
+
+.history-empty {
+  padding: 60px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--el-text-color-regular);
+}
+
+.history-empty-sub {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item-card {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--table-row-alt-bg, #eef4fc);
+  border: 1px solid var(--table-border-color, #d3e1f4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+html.dark .history-item-card {
+  background: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
+}
+
+.history-item-card:hover {
+  border-color: var(--el-color-primary);
+  transform: translateY(-1px);
+}
+
+.hist-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.hist-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+
+.hist-time {
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
 }
 
 .meta-left {

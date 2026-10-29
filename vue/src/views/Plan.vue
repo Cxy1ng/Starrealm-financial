@@ -87,6 +87,20 @@
       </div>
     </el-card>
 
+    <el-card style="margin-top: 10px" v-else>
+      <el-card class="empty-placeholder-card" shadow="never">
+        <div class="empty-card-inner">
+          <div class="empty-card-title">暂无存钱计划</div>
+          <div class="empty-card-sub">
+            {{ data.user.role === 'USER' ? '当前还没有任何存钱计划，点击上方「新建计划」开启您的第一个储蓄目标吧' : '当前没有任何存钱计划记录' }}
+          </div>
+          <el-button v-if="data.user.role === 'USER'" type="primary" size="small" style="margin-top: 8px" @click="handleAdd">
+            新建存钱计划
+          </el-button>
+        </div>
+      </el-card>
+    </el-card>
+
     <el-dialog title="计划信息" v-model="data.fromVisible" width="70vh" :close-on-click-modal="false" destroy-on-close>
       <el-form :model="data.form" label-width="100px" style="padding-right: 50px" :rules="data.rules" ref="formRef">
         <el-form-item label="计划名称" prop="name">
@@ -515,6 +529,31 @@ html.dark .boss-bar-label.is-overfill {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 5px;
+}
+
+.empty-placeholder-card {
+  border-style: dashed !important;
+}
+
+.empty-card-inner {
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+}
+
+.empty-card-sub {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 
 </style>

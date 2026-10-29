@@ -1,6 +1,7 @@
 package com.cxy1ng.controller;
 
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
@@ -18,10 +19,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -128,57 +133,210 @@ public class BillController {
 
     @PostMapping("/import")
     public Result importData(MultipartFile file) throws Exception {
-        InputStream inputStream = file.getInputStream();
-        ExcelReader excelReader = ExcelUtil.getReader(inputStream);
-
-        Map<String, String> headerAlias = new HashMap<>() {{
-            put("交易时间", "time");
-            put("交易类型", "category");
-            put("交易分类", "category");
-            put("交易对方", "payee");
-            put("对方账号", "payee");
-            put("商品", "detail");
-            put("商品说明", "detail");
-            put("收/支", "type");
-            put("金额", "amount");
-            put("金额(元)", "amount");
-            put("支付方式", "payment");
-            put("收/付款方式", "payment");
-            put("当前状态", "status");
-            put("交易状态", "status");
-            put("备注", "comment");
-        }};
-        excelReader.setHeaderAlias(headerAlias);
+        if (file == null || file.isEmpty()) {
+            return Result.error(400, "请选择要导入的账单文件");
+        }
         Account currentUser = TokenUtils.getCurrentUser();
-        Integer userId = currentUser.getId();
+        Integer userId = currentUser != null ? currentUser.getId() : null;
+        if (userId == null) {
+            return Result.error(401, "登录状态已失效，请重新登录");
+        }
 
-        List<Map<String, Object>> rawList = excelReader.readAll();
-        List<Bill> billList = new ArrayList<>();
-        for (Map<String, Object> row : rawList) {
-            Bill bill = new Bill();
+        byte[] fileBytes = file.getBytes();
+        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
 
-            bill.setTime((DateTime) row.get("time"));
-            bill.setCategory(row.get("category").toString());
-            bill.setPayee(row.get("payee").toString());
-            bill.setDetail(row.get("detail").toString());
-            bill.setType(row.get("type").toString());
+        // 1. 将 Excel (.xlsx/.xls) 或 CSV 统一解析为二维字符串/对象矩阵 allRows
+        List<List<Object>> allRows = new ArrayList<>();
+        boolean parsedAsExcel = false;
+        if (!originalFilename.endsWith(".csv")) {
+            try {
+                ExcelReader reader = ExcelUtil.getReader(new ByteArrayInputStream(fileBytes));
+                // 遍历所有 Sheet，找到包含账单数据的 Sheet（防止某些导出文件首个 Sheet 为空或说明页）
+                int sheetCount = reader.getSheetCount();
+                for (int s = 0; s < sheetCount; s++) {
+                    ExcelReader sheetReader = ExcelUtil.getReader(new ByteArrayInputStream(fileBytes), s);
+                    List<List<Object>> rows = sheetReader.read();
+                    if (rows != null && !rows.isEmpty()) {
+                        allRows.addAll(rows);
+                    }
+                }
+                parsedAsExcel = !allRows.isEmpty();
+            } catch (Exception ignored) {
+                parsedAsExcel = false;
+            }
+        }
 
-            Object rawAmount = row.get("amount");
-            if (rawAmount != null) {
-                String amountStr = rawAmount.toString().replaceAll("[^\\d.-]", "");
-                bill.setAmount(new BigDecimal(amountStr));
+        // 若不是标准 Excel 或以 .csv 导出，则自动按 UTF-8 / GBK 解析 CSV
+        if (!parsedAsExcel) {
+            String contentUtf8 = new String(fileBytes, StandardCharsets.UTF_8);
+            Charset csvCharset = (contentUtf8.contains("交易时间") || contentUtf8.contains("金额") || contentUtf8.contains("收/支"))
+                    ? StandardCharsets.UTF_8
+                    : Charset.forName("GBK");
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fileBytes), csvCharset))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.startsWith("\uFEFF")) {
+                        line = line.substring(1);
+                    }
+                    String[] cols = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                    List<Object> row = new ArrayList<>(cols.length);
+                    for (String c : cols) {
+                        String clean = c.trim();
+                        if (clean.startsWith("\"") && clean.endsWith("\"") && clean.length() >= 2) {
+                            clean = clean.substring(1, clean.length() - 1).trim();
+                        }
+                        row.add(clean);
+                    }
+                    allRows.add(row);
+                }
+            }
+        }
+
+        if (allRows.isEmpty()) {
+            return Result.error(400, "账单文件内容为空，未解析到任何数据");
+        }
+
+        // 2. 自动扫描定位真实表头行（兼容微信/支付宝前 16~25 行的统计说明区，以及本系统首行表头）
+        int headerRowIndex = -1;
+        Map<String, Integer> colIdxMap = new HashMap<>();
+
+        for (int i = 0; i < Math.min(allRows.size(), 60); i++) {
+            List<Object> row = allRows.get(i);
+            if (row == null || row.isEmpty()) continue;
+
+            Map<String, Integer> candidateMap = new HashMap<>();
+            for (int c = 0; c < row.size(); c++) {
+                Object cell = row.get(c);
+                if (cell == null) continue;
+                // 去除零宽字符、BOM、首尾空格与全角空格
+                String header = cell.toString()
+                        .replace("\uFEFF", "")
+                        .replace("\u200B", "")
+                        .replace("　", "")
+                        .trim();
+                if (header.isEmpty()) continue;
+
+                if (header.contains("交易时间") || header.equals("时间") || header.contains("付款时间") || header.contains("创建时间")) {
+                    candidateMap.putIfAbsent("time", c);
+                } else if (header.contains("交易类型") || header.contains("交易分类") || header.equals("分类") || header.equals("类型")) {
+                    candidateMap.putIfAbsent("category", c);
+                } else if (header.contains("交易对方") || header.contains("收款方") || header.contains("对方账号") || header.contains("商户")) {
+                    candidateMap.putIfAbsent("payee", c);
+                } else if (header.equals("商品") || header.contains("商品说明") || header.contains("交易说明") || header.contains("商品名称")) {
+                    candidateMap.putIfAbsent("detail", c);
+                } else if (header.contains("收/支") || header.contains("收支") || header.contains("账单类型")) {
+                    candidateMap.putIfAbsent("type", c);
+                } else if (header.startsWith("金额") || header.contains("金额(元)") || header.contains("金额（元）")) {
+                    candidateMap.putIfAbsent("amount", c);
+                } else if (header.contains("支付方式") || header.contains("收/付款方式") || header.contains("收付款方式")) {
+                    candidateMap.putIfAbsent("payment", c);
+                } else if (header.contains("当前状态") || header.contains("交易状态") || header.equals("状态")) {
+                    candidateMap.putIfAbsent("status", c);
+                } else if (header.contains("备注")) {
+                    candidateMap.putIfAbsent("comment", c);
+                }
             }
 
-            bill.setPayment(row.get("payment").toString());
-            bill.setStatus(row.get("status").toString());
-            bill.setComment(row.get("comment").toString());
+            // 只要同时命中了“金额”列与（“时间”或“收/支”或“分类”）列，即判定为真实表头行
+            if (candidateMap.containsKey("amount") && (candidateMap.containsKey("time") || candidateMap.containsKey("type") || candidateMap.containsKey("category"))) {
+                headerRowIndex = i;
+                colIdxMap = candidateMap;
+                break;
+            }
+        }
+
+        if (headerRowIndex == -1) {
+            return Result.error(400, "未识别到有效的账单表头（需包含交易时间、收/支、金额等列）");
+        }
+
+        // 3. 逐行解析表头下方的数据行
+        List<Bill> billList = new ArrayList<>();
+        for (int r = headerRowIndex + 1; r < allRows.size(); r++) {
+            List<Object> row = allRows.get(r);
+            if (row == null || row.isEmpty()) continue;
+
+            Object rawAmount = getCell(row, colIdxMap.get("amount"));
+            if (rawAmount == null) continue;
+            // 清洗 ¥、￥、元、逗号、空格等符号
+            String amountStr = rawAmount.toString().replaceAll("[^\\d.-]", "").trim();
+            if (StrUtil.isBlank(amountStr)) continue;
+            BigDecimal amount;
+            try {
+                amount = new BigDecimal(amountStr).abs();
+            } catch (Exception e) {
+                continue;
+            }
+            if (amount.compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
+
+            String rawCategory = cellToStr(row, colIdxMap.get("category"), "其他");
+            String rawDetail = cellToStr(row, colIdxMap.get("detail"), "");
+            String rawStatus = cellToStr(row, colIdxMap.get("status"), "交易成功");
+            String rawType = cellToStr(row, colIdxMap.get("type"), "");
+
+            // 归一化“收/支”类型（兼容微信账单中的“支出”、“收入”、“/”、“不计收支”等）
+            String normalizedType;
+            if (rawType.contains("支")) {
+                normalizedType = "支出";
+            } else if (rawType.contains("收") && !rawType.contains("不计")) {
+                normalizedType = "收入";
+            } else {
+                // 若微信账单中收/支列为 "/" 或 "不计收支"，根据交易类型/说明智能推断：含转入/退款/红包/收款归为收入，否则归为支出
+                String combined = rawCategory + " " + rawDetail + " " + rawStatus;
+                if (combined.contains("转入") || combined.contains("退款") || combined.contains("收款") || combined.contains("收到")) {
+                    normalizedType = "收入";
+                } else {
+                    normalizedType = "支出";
+                }
+            }
+
+            Bill bill = new Bill();
+            Object rawTime = getCell(row, colIdxMap.get("time"));
+            if (rawTime instanceof Date) {
+                bill.setTime((Date) rawTime);
+            } else if (rawTime != null && StrUtil.isNotBlank(rawTime.toString())) {
+                try {
+                    bill.setTime(DateUtil.parse(rawTime.toString().trim()));
+                } catch (Exception e) {
+                    bill.setTime(new Date());
+                }
+            } else {
+                bill.setTime(new Date());
+            }
+
+            bill.setCategory(StrUtil.isNotBlank(rawCategory) ? rawCategory : "其他");
+            bill.setPayee(cellToStr(row, colIdxMap.get("payee"), "未知商户"));
+            bill.setDetail(rawDetail);
+            bill.setType(normalizedType);
+            bill.setAmount(amount);
+            String paymentStr = cellToStr(row, colIdxMap.get("payment"), "微信支付");
+            bill.setPayment("/".equals(paymentStr) || StrUtil.isBlank(paymentStr) ? "微信支付" : paymentStr);
+            bill.setStatus("/".equals(rawStatus) || StrUtil.isBlank(rawStatus) ? "交易成功" : rawStatus);
+            String commentStr = cellToStr(row, colIdxMap.get("comment"), "");
+            bill.setComment("/".equals(commentStr) ? "" : commentStr);
             bill.setUserId(userId);
 
             billList.add(bill);
         }
-        for (Bill bill : billList) {
-            billService.insert(bill);
+
+        if (billList.isEmpty()) {
+            return Result.error(400, "未在文件中解析到有效的收支记录，请检查账单内容");
         }
-        return Result.success();
+
+        int importedCount = billService.insertBatch(billList, userId);
+        return Result.success(importedCount);
+    }
+
+    private Object getCell(List<Object> row, Integer idx) {
+        if (idx == null || idx < 0 || idx >= row.size()) return null;
+        return row.get(idx);
+    }
+
+    private String cellToStr(List<Object> row, Integer idx, String defaultVal) {
+        Object val = getCell(row, idx);
+        if (val == null) return defaultVal;
+        String s = val.toString().replace("\uFEFF", "").trim();
+        return s.isEmpty() ? defaultVal : s;
     }
 }

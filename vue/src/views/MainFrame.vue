@@ -281,6 +281,12 @@ const currentTitle = computed(() => {
 
 // 聚光灯从点击位置发散至全屏的实时渲染切换效果 (View Transitions API + Web Animations clipPath)
 const runSpotlightTransition = (event, stateMutator) => {
+  const x = event?.clientX ?? window.innerWidth - 80;
+  const y = event?.clientY ?? 32;
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
   if (!document.startViewTransition) {
     stateMutator();
     return;
@@ -289,7 +295,23 @@ const runSpotlightTransition = (event, stateMutator) => {
     stateMutator();
     await nextTick();
   });
-  transition.ready.catch(() => {});
+  transition.ready
+    .then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ]
+        },
+        {
+          duration: 540,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          pseudoElement: "::view-transition-new(root)"
+        }
+      );
+    })
+    .catch(() => {});
 };
 
 const handleSpotlightThemeToggle = (event) => {

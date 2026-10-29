@@ -13,8 +13,8 @@
       <el-button type="info" @click="handleAdd" v-if="data.user.role === 'USER'">新建日记</el-button>
       <el-button type="danger" @click="delBatch" v-if="data.user.perm >= 10">批量删除</el-button>
     </el-card>
-    <el-card style="margin-top: 5px" v-if="data.user.role === 'USER' && data.tableData.length">
-      <el-row :gutter="16">
+    <el-card style="margin-top: 5px" v-if="data.user.role === 'USER'">
+      <el-row :gutter="16" v-if="data.tableData.length">
         <el-col
             v-for="item in data.tableData"
             :key="item.id"
@@ -43,15 +43,30 @@
           </el-card>
         </el-col>
       </el-row>
+      <el-card v-else class="empty-placeholder-card" shadow="never">
+        <div class="empty-card-inner">
+          <div class="empty-card-title">暂无理财日记</div>
+          <div class="empty-card-sub">当前还没有任何理财日记，点击上方「新建日记」记录您的第一篇理财心得吧</div>
+          <el-button type="primary" size="small" style="margin-top: 8px" @click="handleAdd">
+            新建理财日记
+          </el-button>
+        </div>
+      </el-card>
     </el-card>
 
-    <el-card style="margin-top: 5px" v-else-if="data.user.perm >= 10 && data.tableData.length">
+    <el-card style="margin-top: 5px" v-else-if="data.user.perm >= 10">
       <el-table
           :data="data.tableData"
           style="width: 100%"
           border
           @selection-change="handleSelectionChange"
       >
+        <template #empty>
+          <div class="empty-table-placeholder">
+            <div class="empty-card-title">表格是空的 · 暂无理财日记数据</div>
+            <div class="empty-card-sub">当前没有任何用户的理财日记记录</div>
+          </div>
+        </template>
         <el-table-column type="selection" width="55" align="center" sortable/>
         <el-table-column prop="id" label="ID" width="80" align="center" sortable/>
         <el-table-column label="封面">
@@ -381,6 +396,32 @@ const showContent = (content) => {
   .card-title {
     font-size: 16px;
   }
+}
+
+.empty-placeholder-card {
+  border-style: dashed !important;
+}
+
+.empty-card-inner,
+.empty-table-placeholder {
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+}
+
+.empty-card-sub {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 
 </style>

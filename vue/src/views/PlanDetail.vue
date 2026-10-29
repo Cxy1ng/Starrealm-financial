@@ -48,7 +48,7 @@
     </div>
 
     <div class="record-list">
-      <el-row :gutter="16">
+      <el-row :gutter="16" v-if="data.tableData.length">
         <el-col
             v-for="item in data.tableData"
             :key="item.id"
@@ -77,6 +77,22 @@
           </div>
         </el-col>
       </el-row>
+
+      <div v-else class="record-empty-card">
+        <div class="record-empty-title">暂无存钱打卡记录</div>
+        <div class="record-empty-sub">
+          {{ isExpired ? '该存钱计划已结束，期间未产生存钱记录' : '当前还没有任何存入明细，点击右上方「存一笔」记录您的第一笔储蓄吧' }}
+        </div>
+        <el-button
+            v-if="!isExpired"
+            type="primary"
+            size="small"
+            style="margin-top: 6px"
+            @click="addPlanDetail(data.planId)"
+        >
+          立即存一笔
+        </el-button>
+      </div>
     </div>
 
     <el-dialog title="存钱" v-model="data.detailFromVisible" width="40vw" :close-on-click-modal="false" destroy-on-close>
@@ -404,5 +420,34 @@ html.dark .record-card:hover {
   font-size: 12.5px;
   color: var(--el-text-color-secondary);
   align-items: center;
+}
+
+.record-empty-card {
+  background-color: var(--table-row-alt-bg, #eef4fc);
+  border: 1px dashed var(--table-border-color, #d3e1f4);
+  border-radius: 12px;
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+html.dark .record-empty-card {
+  background-color: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
+}
+
+.record-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+}
+
+.record-empty-sub {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 </style>

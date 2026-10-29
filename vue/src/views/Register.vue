@@ -1,8 +1,19 @@
 <template>
   <div class="auth-container">
-    <video class="loginbg" autoplay loop muted playsinline disablePictureInPicture controlsList="nodownload">
-      <source src="@/assets/loginbg1080.mp4" type="video/mp4">
-    </video>
+    <video
+        ref="bgVideoRef"
+        class="loginbg"
+        :src="loginBgVideoUrl"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="auto"
+        disablePictureInPicture
+        controlsList="nodownload"
+        @ended="handleVideoLoop"
+        @timeupdate="handleVideoTimeUpdate"
+    ></video>
     <div class="bg-overlay"></div>
     <ParticleBackground :isDark="isDark" :particleCount="55" />
 
@@ -115,7 +126,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, nextTick } from "vue";
+import { reactive, ref, nextTick, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Check, Sunny, Moon } from "@element-plus/icons-vue";
@@ -123,12 +134,45 @@ import { useDark } from "@vueuse/core";
 import { request } from "@/utils/request.js";
 import ParticleBackground from "@/components/ParticleBackground.vue";
 import { useThemePalette } from "@/utils/theme.js";
+import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
 const router = useRouter();
 const loading = ref(false);
 const formRef = ref();
+const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
+
+const ensureVideoLooping = () => {
+  const v = bgVideoRef.value;
+  if (!v) return;
+  v.muted = true;
+  v.loop = true;
+  if (v.paused) {
+    v.play().catch(() => {});
+  }
+};
+
+const handleVideoLoop = (e) => {
+  const v = e?.target || bgVideoRef.value;
+  if (!v) return;
+  v.currentTime = 0;
+  v.play().catch(() => {});
+};
+
+const handleVideoTimeUpdate = (e) => {
+  const v = e?.target || bgVideoRef.value;
+  if (!v || !v.duration) return;
+  if (v.duration - v.currentTime <= 0.12) {
+    v.currentTime = 0;
+    v.play().catch(() => {});
+  }
+};
+
+onMounted(() => {
+  applyThemePalette(activeThemeKey.value, isDark.value);
+  ensureVideoLooping();
+});
 
 const runSpotlightTransition = (event, stateMutator) => {
   if (!document.startViewTransition) {
@@ -300,50 +344,53 @@ html.dark .mica-auth-card {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.58);
 }
 
-/* ================= 浮窗右上角：纸张卷边（Page Curl / Dog-ear）明暗主题切换器 ================= */
+/* ================= 浮窗右上角：精巧版纸张卷边（Page Curl / Dog-ear）明暗主题切换器 ================= */
 .page-curl-theme-btn {
   position: absolute;
   top: 0;
   right: 0;
-  width: 52px;
-  height: 52px;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
   z-index: 15;
   outline: none;
+  transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1), height 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* 被掀起的一角背后露出的昼/夜底色三角区（日间：浅色灰背景+黑色太阳；夜间：稍浅的深色灰背景+白色月亮） */
 .curl-peek-sky {
   position: absolute;
   inset: 0;
   clip-path: polygon(0 0, 100% 0, 100% 100%);
-  background: linear-gradient(225deg, #1e293b 0%, #0f172a 70%);
+  background: linear-gradient(225deg, #e2e8f0 0%, #cbd5e1 100%);
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-  padding: 7px 7px 0 0;
-  transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 6px 6px 0 0;
+  transition: background 0.22s ease;
 }
 
 html.dark .curl-peek-sky {
-  background: linear-gradient(225deg, #fef3c7 0%, #fde68a 75%);
+  background: linear-gradient(225deg, #334155 0%, #1e293b 100%);
 }
 
 .curl-icon {
-  font-size: 14px;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  font-size: 13px;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .curl-icon.sun {
-  color: #fbbf24;
+  color: #0f172a;
 }
 
 .curl-icon.moon {
-  color: #d97706;
+  color: #f8fafc;
 }
 
+/* 向左下方折回的纸张卷边折页（左下三角，斜边与露出背景三角完美严丝合缝） */
 .curl-flap {
   position: absolute;
   inset: 0;
@@ -351,31 +398,36 @@ html.dark .curl-peek-sky {
   background: linear-gradient(
     45deg,
     var(--table-head-bg, #e4eefb) 0%,
-    #ffffff 55%,
+    #ffffff 60%,
     rgba(var(--theme-rgb), 0.22) 100%
   );
-  border-bottom-left-radius: 12px;
-  box-shadow: -3px 3px 8px rgba(15, 23, 42, 0.18);
-  transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  border-bottom-left-radius: 9px;
+  box-shadow: -2px 2px 6px rgba(15, 23, 42, 0.16);
+  transition: box-shadow 0.22s ease, border-radius 0.22s ease;
 }
 
 html.dark .curl-flap {
   background: linear-gradient(
     45deg,
     var(--table-hover-bg, #18243c) 0%,
-    #334155 58%,
-    rgba(var(--theme-rgb), 0.38) 100%
+    #475569 60%,
+    rgba(var(--theme-rgb), 0.36) 100%
   );
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.55);
+  box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.52);
 }
 
 .page-curl-theme-btn:hover {
-  width: 58px;
-  height: 58px;
+  width: 44px;
+  height: 44px;
+}
+
+.page-curl-theme-btn:hover .curl-flap {
+  border-bottom-left-radius: 11px;
+  box-shadow: -4px 4px 10px rgba(15, 23, 42, 0.24);
 }
 
 .page-curl-theme-btn:hover .curl-icon {
-  transform: scale(1.15) rotate(-12deg);
+  transform: scale(1.12);
 }
 
 .card-top {

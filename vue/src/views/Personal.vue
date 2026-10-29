@@ -214,7 +214,40 @@
             </div>
           </div>
 
-          <!-- 卡片 2：账户密码与登录安全（点击直接弹出修改密码弹窗） -->
+          <!-- 卡片 2：网站字体大小设置 -->
+          <div class="bento-panel security-card" style="margin-bottom: 20px;">
+            <div class="security-row">
+              <div class="panel-title-group">
+                <div class="panel-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                  <el-icon :size="18"><ZoomIn /></el-icon>
+                </div>
+                <div>
+                  <h3 class="panel-title">网站字体大小设置</h3>
+                  <span class="panel-sub">实时调整全站界面文字与控件尺寸，所选字号即时预览生效</span>
+                </div>
+              </div>
+              <el-select
+                  v-model="currentFontSize"
+                  style="width: 168px;"
+                  :style="{ fontSize: currentFontSize }"
+                  @change="handleFontSizeChange"
+              >
+                <el-option
+                    v-for="opt in fontSizePresets"
+                    :key="opt.key"
+                    :label="opt.label"
+                    :value="opt.key"
+                    :style="{ fontSize: opt.size, height: 'auto', lineHeight: '2.1', padding: '4px 16px' }"
+                >
+                  <span :style="{ fontSize: opt.size, fontWeight: currentFontSize === opt.key ? 700 : 500 }">
+                    {{ opt.label }}
+                  </span>
+                </el-option>
+              </el-select>
+            </div>
+          </div>
+
+          <!-- 卡片 3：账户密码与登录安全（点击直接弹出修改密码弹窗） -->
           <div class="bento-panel security-card">
             <div class="security-row">
               <div class="panel-title-group">
@@ -389,17 +422,25 @@ import {
   Plus,
   Postcard,
   User,
-  WarningFilled
+  WarningFilled,
+  ZoomIn
 } from "@element-plus/icons-vue";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import request from "@/utils/request.js";
 import { ElMessage, ElMessageBox } from "element-plus";
 import defaultAvatar from "@/assets/avatar.jpg";
+import { useThemePalette } from "@/utils/theme.js";
 
 const route = useRoute();
 const router = useRouter();
 const emit = defineEmits(["updateUser"]);
+const { fontSizePresets, activeFontSize: currentFontSize, applyGlobalFontSize } = useThemePalette();
+
+const handleFontSizeChange = (val) => {
+  applyGlobalFontSize(val);
+  ElMessage.success(`网站字号已切换为 ${val}`);
+};
 
 const data = reactive({
   user: JSON.parse(localStorage.getItem("loginToken") || "{}"),
@@ -698,6 +739,7 @@ watch(
 );
 
 onMounted(() => {
+  applyGlobalFontSize(currentFontSize.value);
   loadProfile();
 });
 </script>

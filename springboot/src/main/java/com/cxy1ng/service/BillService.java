@@ -84,6 +84,28 @@ public class BillService {
     }
 
     @Transactional
+    public int insertBatch(List<Bill> billList, Integer userId) {
+        if (billList == null || billList.isEmpty()) {
+            return 0;
+        }
+        int count = 0;
+        for (Bill bill : billList) {
+            if (bill.getTime() == null) {
+                bill.setTime(DateUtil.date());
+            }
+            if (userId != null) {
+                bill.setUserId(userId);
+            }
+            billMapper.insert(bill);
+            count++;
+        }
+        if (userId != null) {
+            syncUserAcfun(userId);
+        }
+        return count;
+    }
+
+    @Transactional
     public void deleteById(Integer id) {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());

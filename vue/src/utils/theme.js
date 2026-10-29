@@ -193,12 +193,49 @@ export function applyThemePalette(themeKey, isDarkMode = null) {
   window.dispatchEvent(new CustomEvent('accent-theme-change', { detail: preset }))
 }
 
+export const FONT_SIZE_PRESETS = [
+  { key: '14px', label: '标准 (14px)', size: '14px', scale: 1 },
+  { key: '15px', label: '舒适中号 (15px)', size: '15px', scale: 15 / 14 },
+  { key: '16px', label: '大字护眼 (16px)', size: '16px', scale: 16 / 14 },
+  { key: '18px', label: '特大关怀 (18px)', size: '18px', scale: 18 / 14 }
+]
+
+const savedFontSize = typeof localStorage !== 'undefined' ? (localStorage.getItem('star_realm_font_size') || '14px') : '14px'
+export const activeFontSize = ref(FONT_SIZE_PRESETS.some(f => f.key === savedFontSize) ? savedFontSize : '14px')
+
+export function applyGlobalFontSize(sizeKey = activeFontSize.value) {
+  const preset = FONT_SIZE_PRESETS.find(f => f.key === sizeKey) || FONT_SIZE_PRESETS[0]
+  activeFontSize.value = preset.key
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('star_realm_font_size', preset.key)
+  }
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  const px = parseInt(preset.size, 10) || 14
+  root.setAttribute('data-font-size', preset.key)
+  root.style.setProperty('--app-base-font-size', `${px}px`)
+  root.style.setProperty('--app-font-scale', String(preset.scale))
+  root.style.setProperty('--el-font-size-base', `${px}px`)
+  root.style.setProperty('--el-font-size-small', `${Math.max(12, px - 1)}px`)
+  root.style.setProperty('--el-font-size-extra-small', `${Math.max(11, px - 2)}px`)
+  root.style.setProperty('--el-font-size-medium', `${px + 2}px`)
+  root.style.setProperty('--el-font-size-large', `${px + 4}px`)
+  root.style.setProperty('--el-font-size-extra-large', `${px + 6}px`)
+}
+
+if (typeof document !== 'undefined') {
+  applyGlobalFontSize(activeFontSize.value)
+}
+
 export function useThemePalette() {
   const currentPreset = computed(() => THEME_PRESETS.find(t => t.key === activeThemeKey.value) || THEME_PRESETS[0])
   return {
     presets: THEME_PRESETS,
     activeThemeKey,
     currentPreset,
-    applyThemePalette
+    applyThemePalette,
+    fontSizePresets: FONT_SIZE_PRESETS,
+    activeFontSize,
+    applyGlobalFontSize
   }
 }

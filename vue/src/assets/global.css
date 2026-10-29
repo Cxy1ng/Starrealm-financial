@@ -36,13 +36,42 @@ html.dark {
 body {
   margin: 0;
   padding: 0;
-  font-size: 14px;
+  font-size: var(--app-base-font-size, 14px);
   font-family: var(--font-sans);
   background-color: var(--el-bg-color);
   color: var(--el-text-color-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.01em;
+}
+
+/* 全站字号缩放联动适配：确保表格、菜单、表单标签、输入框、按钮、统计文本等均随所选字号同步缩放 */
+.el-menu-item,
+.el-sub-menu__title,
+.el-table,
+.el-table th.el-table__cell,
+.el-table td.el-table__cell,
+.el-form-item__label,
+.el-input__inner,
+.el-textarea__inner,
+.el-select__placeholder,
+.el-select__selected-item,
+.el-dropdown-menu__item,
+.el-button:not(.el-button--small):not(.el-button--large),
+.el-breadcrumb {
+  font-size: var(--app-base-font-size, 14px) !important;
+}
+
+html[data-font-size="15px"] .antd-main-container {
+  zoom: 1.05;
+}
+
+html[data-font-size="16px"] .antd-main-container {
+  zoom: 1.12;
+}
+
+html[data-font-size="18px"] .antd-main-container {
+  zoom: 1.22;
 }
 
 /* ================= View Transitions 聚光灯扩散主题切换动画 ================= */
@@ -240,6 +269,13 @@ html.dark .el-dropdown-menu,
 html.dark .el-select-dropdown,
 html.dark .el-picker-panel {
   background-color: var(--table-row-alt-bg, #101829) !important;
+  border-color: var(--table-border-color, #1e2c46) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .el-popper.is-dark .el-popper__arrow::before,
+html.dark .el-popper.is-light .el-popper__arrow::before {
+  background: var(--table-row-alt-bg, #101829) !important;
   border-color: var(--table-border-color, #1e2c46) !important;
 }
 

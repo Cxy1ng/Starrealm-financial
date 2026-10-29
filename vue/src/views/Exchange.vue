@@ -147,8 +147,20 @@
                   v-html="renderMarkdown(msg.content)"
               ></div>
               <div v-else class="user-text">{{ msg.content }}</div>
+
+              <!-- 侧边栏 AI 回复底部小工具栏：仅在流式输出结束后出现，包含复制、生成完成时间与免责提示语 -->
+              <div v-if="msg.role === 'assistant' && !msg.waitingFirstToken && !msg.streaming" class="sidebar-ai-footer">
+                <div class="sidebar-footer-left">
+                  <button type="button" class="sidebar-copy-btn" @click="copyMessageText(msg.content)">
+                    <el-icon><CopyDocument /></el-icon>
+                    <span>复制</span>
+                  </button>
+                  <span class="sidebar-footer-time num-font">{{ msg.time }}</span>
+                </div>
+                <span class="sidebar-footer-disclaimer">AI可能会犯错，仅供参考</span>
+              </div>
             </div>
-            <div class="msg-time num-font">{{ msg.time }}</div>
+            <div v-if="msg.role === 'user'" class="msg-time num-font">{{ msg.time }}</div>
           </div>
         </div>
       </div>
@@ -185,6 +197,9 @@
           发送
         </el-button>
       </div>
+      <div class="sidebar-ephemeral-notice">
+        会话不会保存，请及时复制重要内容；如需长久存档请使用「AI 智能分析」
+      </div>
     </div>
   </div>
 </template>
@@ -201,7 +216,8 @@ import {
   Service,
   TrendCharts,
   PieChart,
-  Aim
+  Aim,
+  CopyDocument
 } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import request from '@/utils/request.js'
@@ -370,6 +386,15 @@ const clearChat = () => {
   ]
 }
 
+const copyMessageText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text || '')
+    ElMessage.success('回复内容已复制到剪贴板')
+  } catch {
+    ElMessage.warning('复制失败')
+  }
+}
+
 const askRateAdvice = () => {
   const { base, target, amount } = data.form
   const rateInfo = exchangeRate.value
@@ -476,12 +501,14 @@ const sendMessage = async () => {
       }
     }
     aiMsg.streaming = false
+    aiMsg.time = nowTimeStr()
     connStatus.connected = true
     connStatus.state = 'online'
     connStatus.message = '在线 · 流式响应正常'
   } catch (err) {
     aiMsg.waitingFirstToken = false
     aiMsg.streaming = false
+    aiMsg.time = nowTimeStr()
     aiMsg.content = `**连接提示**：${err.message || '请前往【个人设置】或管理员【网站公共配置】设置有效的 DeepSeek API Key。'}`
     connStatus.connected = false
     connStatus.state = 'error'
@@ -916,6 +943,55 @@ html.dark .msg-assistant .msg-bubble {
   padding: 0 2px;
 }
 
+.sidebar-ai-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.28);
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+}
+
+.sidebar-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid rgba(var(--theme-rgb), 0.25);
+  background: rgba(var(--theme-rgb), 0.1);
+  color: var(--el-color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.sidebar-copy-btn:hover {
+  background: var(--el-color-primary);
+  color: #ffffff;
+}
+
+.sidebar-footer-time {
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+}
+
+.sidebar-footer-disclaimer {
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+}
+
 .markdown-chat :deep(p) {
   margin: 4px 0;
 }
@@ -980,5 +1056,18 @@ html.dark .chat-input-bar {
 
 .send-btn {
   padding: 0 16px;
+}
+
+.sidebar-ephemeral-notice {
+  padding: 5px 12px 7px 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+  background: rgba(255, 255, 255, 0.45);
+  border-top: 1px dashed rgba(148, 163, 184, 0.14);
+}
+
+html.dark .sidebar-ephemeral-notice {
+  background: rgba(15, 23, 42, 0.45);
 }
 </style>

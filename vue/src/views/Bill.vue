@@ -53,6 +53,12 @@
                 :default-sort="{ prop: 'id', order: 'descending'}"
                 @selection-change="handleSelectionChange"
                 >
+        <template #empty>
+          <div class="empty-table-placeholder">
+            <div class="empty-table-title">暂无收支账单数据</div>
+            <div class="empty-table-sub">当前没有任何账单记录，您可以点击上方「记一笔」或「导入」添加账单</div>
+          </div>
+        </template>
         <el-table-column type="selection" width="55" align="center"/>
         <el-table-column label="ID" prop="id" width="80" align="center" sortable />
         <el-table-column label="交易时间" prop="time" :formatter="formatTime"/>
@@ -321,12 +327,16 @@ const exportData = () => {
 }
 const handleImportSuccess = (res) => {
   if (res.code === 200) {
-    ElMessage.success("操作成功")
+    const count = typeof res.data === 'number' ? res.data : null
+    if (count === 0) {
+      ElMessage.warning("未从文件中解析到可导入的账单记录")
+    } else {
+      ElMessage.success(count ? `成功导入 ${count} 条账单记录` : "导入成功")
+    }
     load()
   } else {
-    ElMessage.error(res.msg)
+    ElMessage.error(res.msg || "账单导入失败")
   }
-
 }
 
 const getCategoryList = () => {
@@ -398,5 +408,22 @@ const formatTime = (row, column, cellValue) => {
 .bill-upload-inline :deep(.el-upload) {
   display: inline-flex;
   align-items: center;
+}
+.empty-table-placeholder {
+  padding: 36px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.empty-table-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+}
+.empty-table-sub {
+  font-size: 12.5px;
+  color: var(--el-text-color-secondary);
 }
 </style>
