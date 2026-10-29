@@ -68,33 +68,51 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* 云母 (Mica) 半透明毛玻璃卡片全局增强 */
+/* 卡片全局主题色联动（大卡片与嵌套小卡片统一跟随蓝黑+蓝灰 / 青黑+青灰 / 紫黑+紫灰 / 棕黑+棕灰） */
 .el-card {
   border-radius: 14px !important;
-  background: var(--mica-bg-light) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--mica-border-light) !important;
+  background-color: var(--table-row-bg, #f6f9fe) !important;
+  border: 1px solid var(--table-border-color, #d3e1f4) !important;
   box-shadow: var(--mica-shadow-light) !important;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.28s ease !important;
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.24s ease,
+              box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.24s ease !important;
 }
 
 html.dark .el-card {
-  background: var(--mica-bg-dark) !important;
-  border: 1px solid var(--mica-border-dark) !important;
+  background-color: var(--table-row-bg, #0c1322) !important;
+  border: 1px solid var(--table-border-color, #1e2c46) !important;
   box-shadow: var(--mica-shadow-dark) !important;
+}
+
+/* 嵌套在大 Card 内部的小 Card（如存钱计划小卡片、理财日记小卡片）采用次级主题色底，层次分明且完全跟随主题 */
+.el-card .el-card {
+  background-color: var(--table-row-alt-bg, #eef4fc) !important;
+  border: 1px solid var(--table-border-color, #d3e1f4) !important;
+}
+
+html.dark .el-card .el-card {
+  background-color: var(--table-row-alt-bg, #101829) !important;
+  border: 1px solid var(--table-border-color, #1e2c46) !important;
+}
+
+.el-card .el-card:hover {
+  background-color: var(--table-hover-bg, #dbe8fa) !important;
+}
+
+html.dark .el-card .el-card:hover {
+  background-color: var(--table-hover-bg, #18243c) !important;
 }
 
 .el-card:hover {
   box-shadow: var(--mica-shadow-hover-light) !important;
-  border-color: rgba(var(--theme-rgb), 0.3) !important;
+  border-color: rgba(var(--theme-rgb), 0.32) !important;
 }
 
 html.dark .el-card:hover {
   box-shadow: var(--mica-shadow-hover-dark) !important;
-  border-color: rgba(var(--theme-rgb), 0.38) !important;
+  border-color: rgba(var(--theme-rgb), 0.4) !important;
 }
 
 /* ================= 按钮灵动微交互与暗色模式护眼降亮适配 ================= */
@@ -127,8 +145,8 @@ html.dark .el-button--primary:not(.is-link):not(.is-plain):hover {
 }
 
 html.dark .el-button--default:not(.is-link):not(.is-text) {
-  background-color: rgba(30, 41, 59, 0.72) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: var(--table-row-alt-bg, #101829) !important;
+  border-color: var(--table-border-color, #1e2c46) !important;
   color: #cbd5e1 !important;
 }
 
@@ -160,18 +178,54 @@ html.dark .el-button--info:not(.is-link):not(.is-plain) {
   transform: translateY(0) scale(0.98);
 }
 
-/* 输入框与选择器美化 */
+/* 输入框、选择器与所有下拉菜单/浮层跟随主题色 */
 .el-input__wrapper,
 .el-select__wrapper,
 .el-textarea__inner {
   border-radius: 9px !important;
+  background-color: var(--table-row-alt-bg, #eef4fc) !important;
+  box-shadow: 0 0 0 1px var(--table-border-color, #d3e1f4) inset !important;
   transition: all 0.22s ease !important;
 }
 
 html.dark .el-input__wrapper,
 html.dark .el-select__wrapper,
 html.dark .el-textarea__inner {
-  background-color: rgba(15, 23, 42, 0.65) !important;
+  background-color: var(--table-row-alt-bg, #101829) !important;
+  box-shadow: 0 0 0 1px var(--table-border-color, #1e2c46) inset !important;
+}
+
+.el-popper.is-light,
+.el-dropdown-menu,
+.el-select-dropdown,
+.el-picker-panel {
+  background-color: var(--table-row-bg, #f6f9fe) !important;
+  border-color: var(--table-border-color, #d3e1f4) !important;
+}
+
+html.dark .el-popper.is-light,
+html.dark .el-popper.is-dark,
+html.dark .el-dropdown-menu,
+html.dark .el-select-dropdown,
+html.dark .el-picker-panel {
+  background-color: var(--table-row-alt-bg, #101829) !important;
+  border-color: var(--table-border-color, #1e2c46) !important;
+}
+
+.el-dropdown-menu__item:not(.is-disabled):hover,
+.el-dropdown-menu__item:not(.is-disabled):focus,
+.el-select-dropdown__item.is-hovering,
+.el-select-dropdown__item:hover {
+  background-color: var(--table-hover-bg, #dbe8fa) !important;
+  color: var(--el-color-primary) !important;
+}
+
+html.dark .el-dropdown-menu__item:not(.is-disabled):hover,
+html.dark .el-dropdown-menu__item:not(.is-disabled):focus,
+html.dark .el-select-dropdown__item.is-hovering,
+html.dark .el-select-dropdown__item:hover {
+  background-color: var(--table-hover-bg, #18243c) !important;
+  color: #f8fafc !important;
 }
 
 /* ================= 现代极简扁平表格设计（无渐变、无发光边框，采用随主题色联动的蓝黑+蓝灰 / 紫黑+紫灰 / 青黑+青灰 / 棕黑+棕灰实色扁平风格） ================= */
@@ -291,18 +345,19 @@ html.dark .el-pagination.is-background .btn-next {
   box-shadow: none !important;
 }
 
-/* 弹窗与抽屉云母材质 */
-.el-dialog {
+/* 弹窗与抽屉主题色联动 */
+.el-dialog,
+.el-drawer {
   border-radius: 16px !important;
-  background: var(--mica-bg-strong-light) !important;
-  backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: var(--table-row-bg, #f6f9fe) !important;
+  border: 1px solid var(--table-border-color, #d3e1f4) !important;
   box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.18) !important;
 }
 
-html.dark .el-dialog {
-  background: var(--mica-bg-strong-dark) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+html.dark .el-dialog,
+html.dark .el-drawer {
+  background-color: var(--table-row-bg, #0c1322) !important;
+  border: 1px solid var(--table-border-color, #1e2c46) !important;
 }
 
 /* 顶部路由跳转极光进度条 */

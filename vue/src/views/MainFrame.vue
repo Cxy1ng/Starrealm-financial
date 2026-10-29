@@ -7,7 +7,13 @@
     <el-aside :width="isCollapsed ? '68px' : '236px'" class="antd-sider">
       <div class="sider-logo" @click="router.push('/main/home')">
         <div class="logo-badge">
-          <img src="@/assets/Ledger.svg" alt="Logo" class="logo-img" style="width: 32px; height: 32px;" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="logo-img xingjie-logo-svg" aria-label="星界 Logo">
+            <path fill="currentColor" d="M 83 6 L 94 6 L 94 25.5 L 100 22 L 106 25.5 L 106 6 L 117 6 L 117 30 L 166 58 L 166 86 L 138 86 L 138 72 L 100 50 L 68.4 68.3 L 88 79.1 L 83.6 87.1 L 89.2 90.2 L 86 96 L 80.4 92.9 L 75.9 100.9 L 34 77.7 L 34 67.8 L 76.2 91.2 L 79.9 84.5 L 34 59.1 L 34 58 L 83 30 Z" />
+            <path fill="currentColor" d="M 117 194 L 106 194 L 106 174.5 L 100 178 L 94 174.5 L 94 194 L 83 194 L 83 170 L 34 142 L 34 114 L 62 114 L 62 128 L 100 150 L 131.6 131.7 L 112 120.9 L 116.4 112.9 L 110.8 109.8 L 114 104 L 119.6 107.1 L 124.1 99.1 L 166 122.3 L 166 132.2 L 123.8 108.8 L 120.1 115.5 L 166 140.9 L 166 142 L 117 170 Z" />
+            <g transform="translate(100, 100) rotate(29)">
+              <path fill="currentColor" fill-rule="evenodd" d="M -7.4 -15.4 L 7.4 -15.4 L 15.4 -7.4 L 15.4 7.4 L 7.4 15.4 L -7.4 15.4 L -15.4 7.4 L -15.4 -7.4 Z M 0 -8.7 A 8.7 8.7 0 1 1 0 8.7 A 8.7 8.7 0 1 1 0 -8.7 Z" />
+            </g>
+          </svg>
         </div>
         <div v-show="!isCollapsed" class="logo-text-group">
           <span class="logo-text">星界</span>
@@ -106,7 +112,7 @@
             </el-icon>
           </el-button>
           <el-breadcrumb separator="/" class="antd-breadcrumb">
-            <el-breadcrumb-item :to="{ path: '/main/home' }">智汇账本</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/main/home' }">星界</el-breadcrumb-item>
             <el-breadcrumb-item>{{ currentTitle }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
@@ -270,7 +276,7 @@ if (!data.user || !data.user.id) {
 
 const currentTitle = computed(() => {
   const raw = route.meta?.title || "当前页面";
-  return raw.replace("智汇账本 - ", "");
+  return raw.replace(/^(星界|智汇账本)\s*-\s*/, "");
 });
 
 // 聚光灯从点击位置发散至全屏的实时渲染切换效果 (View Transitions API + Web Animations clipPath)
@@ -392,20 +398,20 @@ html.dark .antd-pro-layout {
   --antd-layout-bg: radial-gradient(120% 100% at 15% 0%, rgba(var(--theme-rgb), 0.16) 0%, transparent 55%),
                     radial-gradient(100% 90% at 90% 100%, rgba(var(--theme-rgb), 0.12) 0%, transparent 50%),
                     var(--theme-bg-dark, #080e1c);
-  --antd-sider-bg: rgba(13, 19, 30, 0.72);
-  --antd-header-bg: rgba(13, 19, 30, 0.68);
-  --antd-border-color: rgba(255, 255, 255, 0.07);
-  --antd-menu-active-bg: rgba(var(--theme-rgb), 0.16);
+  --antd-sider-bg: var(--table-row-bg, #0c1322);
+  --antd-header-bg: var(--table-row-bg, #0c1322);
+  --antd-border-color: var(--table-border-color, #1e2c46);
+  --antd-menu-active-bg: var(--table-hover-bg, #18243c);
 }
 
 html:not(.dark) .antd-pro-layout {
   --antd-layout-bg: radial-gradient(120% 100% at 15% 0%, rgba(var(--theme-rgb), 0.14) 0%, transparent 55%),
                     radial-gradient(100% 90% at 90% 100%, rgba(var(--theme-rgb), 0.10) 0%, transparent 50%),
                     var(--theme-bg-light, #eaf2ff);
-  --antd-sider-bg: rgba(255, 255, 255, 0.72);
-  --antd-header-bg: rgba(255, 255, 255, 0.68);
-  --antd-border-color: rgba(var(--theme-rgb), 0.12);
-  --antd-menu-active-bg: rgba(var(--theme-rgb), 0.10);
+  --antd-sider-bg: var(--table-row-bg, #f6f9fe);
+  --antd-header-bg: var(--table-row-bg, #f6f9fe);
+  --antd-border-color: var(--table-border-color, #d3e1f4);
+  --antd-menu-active-bg: var(--table-hover-bg, #dbe8fa);
 }
 
 /* Sider 云母材质样式 */
@@ -452,9 +458,18 @@ html:not(.dark) .antd-pro-layout {
 }
 
 .logo-img {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
+}
+
+.xingjie-logo-svg {
+  color: #111827;
+  transition: color 0.28s ease;
+}
+
+html.dark .xingjie-logo-svg {
+  color: #f8fafc;
 }
 
 .logo-text-group {

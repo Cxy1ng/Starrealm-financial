@@ -10,11 +10,11 @@
       <div class="brand-showcase stagger-1">
         <div class="brand-pill">
           <span class="pulse-dot"></span>
-          <span>Start Your Smart Wealth Journey</span>
+          <span>Start Your Star Realm Journey</span>
         </div>
-        <h1 class="brand-headline">开启智能记账</h1>
+        <h1 class="brand-headline">开启星界记账</h1>
         <p class="brand-desc">
-          只需 30 秒创建您的专属智汇账本账户，即刻体验多维可视化收支报表、目标存钱计划与 DeepSeek 私人理财顾问。
+          只需 30 秒创建您的专属星界账户，即刻体验多维可视化收支报表、目标存钱计划与 DeepSeek 私人理财顾问。
         </p>
       </div>
 

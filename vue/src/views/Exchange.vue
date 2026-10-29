@@ -410,7 +410,7 @@ const sendMessage = async () => {
   const historyPayload = [
     {
       role: 'system',
-      content: `你是智汇账本内置的智能外汇与理财客服助手（模型标识：Deepseek V4.1 Flash 1017）。当前用户上方汇率计算器状态为：${data.form.amount} ${data.form.base} -> ${data.form.target}（Finexly 单价汇率：${exchangeRate.value || '未查询'}，本地折算：${convertedResult.value}）。请用简洁、友好、条理清晰的中文回答。`
+      content: `你是星界 (Star Realm) 内置的智能外汇与理财客服助手（模型标识：Deepseek V4.1 Flash 1017）。当前用户上方汇率计算器状态为：${data.form.amount} ${data.form.base} -> ${data.form.target}（Finexly 单价汇率：${exchangeRate.value || '未查询'}，本地折算：${convertedResult.value}）。请用简洁、友好、条理清晰的中文回答。`
     },
     ...messages.value
       .slice(0, -1)
@@ -518,8 +518,8 @@ onMounted(() => {
 }
 
 html.dark .exchange-panel {
-  background: rgba(19, 26, 39, 0.75);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
 }
 
 .panel-header {
@@ -650,8 +650,8 @@ html.dark .amount-box {
 }
 
 html.dark .chat-widget {
-  background: rgba(19, 26, 39, 0.76);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--table-row-bg, #0c1322);
+  border-color: var(--table-border-color, #1e2c46);
 }
 
 .chat-header {

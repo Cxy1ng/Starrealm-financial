@@ -509,6 +509,12 @@ const buildPieOption = (titleText, subText, dark, list, palette) => ({
       radius: ['42%', '70%'],
       center: ['50%', '48%'],
       avoidLabelOverlap: false,
+      showEmptyCircle: true,
+      emptyCircleStyle: {
+        color: dark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(148, 163, 184, 0.22)',
+        borderColor: dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(148, 163, 184, 0.28)',
+        borderWidth: 1
+      },
       itemStyle: {
         borderRadius: 10,
         borderColor: dark ? '#1e293b' : '#ffffff',
@@ -669,7 +675,7 @@ const analyze = async () => {
   scrollToBottom(true)
 
   const systemPrompt = `你是一位经验丰富、客观稳重的私人财务分析师（模型：Deepseek V4.1 Flash 1017）。
-请结合以下来自“智汇账本”用户的实时收支分类汇总数据，使用结构清晰的 Markdown 格式（包含核心结论、收支结构亮点/风险点、可执行理财建议）回答用户。
+请结合以下来自“星界 (Star Realm)”用户的实时收支分类汇总数据，使用结构清晰的 Markdown 格式（包含核心结论、收支结构亮点/风险点、可执行理财建议）回答用户。
 【实时收入分类汇总】：${JSON.stringify(data.incomeList)}
 【实时支出分类汇总】：${JSON.stringify(data.payList)}`
 
@@ -1082,8 +1088,8 @@ html.dark .mica-chart-box {
 }
 
 html.dark .starter-card {
-  background: rgba(19, 26, 39, 0.72);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
 }
 
 .starter-card:hover {
@@ -1275,8 +1281,8 @@ html.dark .shimmer-marquee-text {
 }
 
 html.dark .stream-card {
-  background: rgba(19, 26, 39, 0.84);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--table-row-bg, #0c1322);
+  border-color: var(--table-border-color, #1e2c46);
 }
 
 .stream-item.is-user .stream-card {
@@ -1406,8 +1412,8 @@ html.dark .stream-card {
 }
 
 html.dark .mica-floating-window {
-  background: rgba(15, 21, 32, 0.85);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--table-row-bg, #0c1322);
+  border-color: var(--table-border-color, #1e2c46);
   box-shadow: 0 28px 64px -12px rgba(0, 0, 0, 0.65);
 }
 
@@ -1509,7 +1515,7 @@ html.dark .floating-chart-pane {
 }
 
 html.dark .mica-composer-dock {
-  background: rgba(15, 21, 32, 0.86);
+  background: var(--table-row-alt-bg, #101829);
   border-color: rgba(var(--theme-rgb), 0.3);
   box-shadow: 0 18px 42px -8px rgba(0, 0, 0, 0.6);
 }
@@ -1709,14 +1715,14 @@ html.dark .mica-composer-dock {
   margin: 16px 0;
   border-radius: 13px;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(248, 250, 252, 0.88);
+  border: 1px solid var(--table-border-color, #d3e1f4);
+  background: var(--table-row-alt-bg, #eef4fc);
   box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06);
 }
 
 html.dark .markdown-body :deep(.md-block-card) {
-  background: rgba(15, 23, 42, 0.78);
-  border-color: rgba(148, 163, 184, 0.24);
+  background: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
   box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.45);
 }
 

@@ -888,16 +888,14 @@ html.dark .profile-hero-card {
 .bento-panel {
   padding: 22px 24px;
   border-radius: 18px;
-  background: var(--mica-bg-light);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgba(226, 232, 240, 0.88);
+  background: var(--table-row-bg, #f6f9fe);
+  border: 1px solid var(--table-border-color, #d3e1f4);
   box-shadow: var(--mica-shadow-light);
 }
 
 html.dark .bento-panel {
-  background: var(--mica-bg-dark);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--table-row-bg, #0c1322);
+  border-color: var(--table-border-color, #1e2c46);
   box-shadow: var(--mica-shadow-dark);
 }
 
@@ -959,9 +957,14 @@ html.dark .bento-panel {
   gap: 12px;
   padding: 14px 16px;
   border-radius: 14px;
-  background: rgba(148, 163, 184, 0.07);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: var(--table-row-alt-bg, #eef4fc);
+  border: 1px solid var(--table-border-color, #d3e1f4);
   transition: all 0.22s ease;
+}
+
+html.dark .info-tile {
+  background: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
 }
 
 .info-tile:hover {

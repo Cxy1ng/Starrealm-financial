@@ -15,7 +15,7 @@
             {{ todayCalendarText }}
           </div>
           <p class="hero-subtitle">
-            欢迎回到智汇账本。清晰的收支洞察与科学的预算规划，助您稳步积累每一份财富。
+            欢迎回到星界。清晰的收支洞察与科学的预算规划，助您稳步积累每一份财富。
           </p>
         </div>
         <div class="hero-actions" v-if="data.user.role === 'USER'">
@@ -292,6 +292,12 @@ const createPieOption = (titleText, dark, dataList) => ({
       radius: ['44%', '72%'],
       center: ['50%', '48%'],
       avoidLabelOverlap: false,
+      showEmptyCircle: true,
+      emptyCircleStyle: {
+        color: dark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(148, 163, 184, 0.22)',
+        borderColor: dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(148, 163, 184, 0.28)',
+        borderWidth: 1
+      },
       itemStyle: {
         borderRadius: 10,
         borderColor: dark ? '#1e293b' : '#ffffff',

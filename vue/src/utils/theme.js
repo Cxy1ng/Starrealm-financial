@@ -144,7 +144,7 @@ export function applyThemePalette(themeKey, isDarkMode = null) {
   const root = document.documentElement
   const dark = isDarkMode !== null ? isDarkMode : root.classList.contains('dark')
   const baseColor = dark ? preset.darkPrimary : preset.primary
-  const mixTarget = dark ? '#0b0f17' : '#ffffff'
+  const mixTarget = dark ? preset.darkBg : '#ffffff'
 
   root.setAttribute('data-accent', preset.key)
   root.style.setProperty('--theme-primary', preset.primary)
@@ -163,6 +163,18 @@ export function applyThemePalette(themeKey, isDarkMode = null) {
   root.style.setProperty('--theme-bg-page-dark', preset.darkPageBg)
   root.style.setProperty('--el-bg-color', dark ? preset.darkBg : preset.lightBg)
   root.style.setProperty('--el-bg-color-page', dark ? preset.darkPageBg : preset.lightPageBg)
+  root.style.setProperty('--el-bg-color-overlay', dark ? preset.tableRowAltDark : preset.tableRowLight)
+  root.style.setProperty('--el-card-bg-color', dark ? preset.tableRowDark : preset.tableRowLight)
+  root.style.setProperty('--el-fill-color-light', dark ? preset.tableHoverDark : preset.tableRowAltLight)
+  root.style.setProperty('--el-fill-color-blank', dark ? preset.tableRowDark : preset.tableRowLight)
+  root.style.setProperty('--el-border-color', dark ? preset.tableBorderDark : preset.tableBorderLight)
+  root.style.setProperty('--el-border-color-light', dark ? preset.tableBorderDark : preset.tableBorderLight)
+  root.style.setProperty('--mica-bg-light', preset.tableRowLight)
+  root.style.setProperty('--mica-bg-strong-light', preset.tableRowAltLight)
+  root.style.setProperty('--mica-border-light', preset.tableBorderLight)
+  root.style.setProperty('--mica-bg-dark', preset.tableRowDark)
+  root.style.setProperty('--mica-bg-strong-dark', preset.tableRowAltDark)
+  root.style.setProperty('--mica-border-dark', preset.tableBorderDark)
   root.style.setProperty('--table-head-bg', dark ? preset.tableHeadDark : preset.tableHeadLight)
   root.style.setProperty('--table-row-bg', dark ? preset.tableRowDark : preset.tableRowLight)
   root.style.setProperty('--table-row-alt-bg', dark ? preset.tableRowAltDark : preset.tableRowAltLight)
