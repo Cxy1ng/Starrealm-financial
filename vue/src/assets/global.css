@@ -195,6 +195,37 @@ html.dark .el-textarea__inner {
   box-shadow: 0 0 0 1px var(--table-border-color, #1e2c46) inset !important;
 }
 
+/* 彻底解决浏览器自动填充（Autofill）导致输入框内部与外层 wrapper 出现两种不同背景色的问题 */
+.el-input__inner:-webkit-autofill,
+.el-input__inner:-webkit-autofill:hover,
+.el-input__inner:-webkit-autofill:focus,
+.el-input__inner:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--table-row-alt-bg, #eef4fc) inset !important;
+  box-shadow: 0 0 0 1000px var(--table-row-alt-bg, #eef4fc) inset !important;
+  -webkit-text-fill-color: var(--el-text-color-primary, #0f172a) !important;
+  caret-color: var(--el-text-color-primary, #0f172a) !important;
+  background-clip: content-box !important;
+  transition: background-color 99999s ease-in-out 0s, color 99999s ease-in-out 0s !important;
+}
+
+html.dark .el-input__inner:-webkit-autofill,
+html.dark .el-input__inner:-webkit-autofill:hover,
+html.dark .el-input__inner:-webkit-autofill:focus,
+html.dark .el-input__inner:-webkit-autofill:active,
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--table-row-alt-bg, #101829) inset !important;
+  box-shadow: 0 0 0 1000px var(--table-row-alt-bg, #101829) inset !important;
+  -webkit-text-fill-color: var(--el-text-color-primary, #e2e8f0) !important;
+  caret-color: var(--el-text-color-primary, #e2e8f0) !important;
+}
+
 .el-popper.is-light,
 .el-dropdown-menu,
 .el-select-dropdown,
