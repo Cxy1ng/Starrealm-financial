@@ -24,8 +24,11 @@ request.interceptors.response.use(
         if (typeof res === 'string') {
             res = res ? JSON.parse(res) : res
         }
-        if (res.code === 401) {
+        if (res.code === 401 || res.code === 5012) {
             ElMessage.error(res.msg)
+            if (res.code === 5012) {
+                localStorage.removeItem('loginToken')
+            }
             router.push('/login')
         }
         return res;

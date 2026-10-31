@@ -54,9 +54,16 @@ public class JwtInterceptor implements HandlerInterceptor {
                 if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
                     account = adminService.selectById(Integer.valueOf(userId));
                 } else if (role.equals(PermEnum.USER)) {
-                    account = userService.selectById(Integer.valueOf(userId));
+                    com.cxy1ng.entity.User u = userService.selectById(Integer.valueOf(userId));
+                    if (u != null && Integer.valueOf(1).equals(u.getBanned())) {
+                        String reason = cn.hutool.core.util.StrUtil.isNotBlank(u.getBanReason()) ? u.getBanReason() : "违反《星界用户服务协议》相关条款";
+                        throw new CustomException(ResultCodeEnum.USER_BANNED_ERROR.code, "账号已被封禁，原因：" + reason);
+                    }
+                    account = u;
                 }
             }
+        } catch (CustomException ce) {
+            throw ce;
         } catch (Exception e) {
             throw new CustomException(ResultCodeEnum.TOKEN_CHECK_ERROR);
         }

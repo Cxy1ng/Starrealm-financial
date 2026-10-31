@@ -1,6 +1,7 @@
 :root {
   --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Plus Jakarta Sans', monospace;
+  /* 等宽字体栈补齐中文字体：金额/日期容器里的“存入”“累计”“目标”等中文与全站保持同一字形 */
+  --font-mono: 'JetBrains Mono', 'Plus Jakarta Sans', 'Noto Sans SC', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', monospace;
   --theme-primary: #1677ff;
   --theme-dark-primary: #2f6feb;
   --theme-dark-hover: #388bfd;

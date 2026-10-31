@@ -20,6 +20,33 @@ public class User extends Account implements Serializable {
     private String token;
     private String role;
     private String apiKey;
+    private Integer banned;
+    private String banReason;
+    private String banTime;
+
+    public Integer getBanned() {
+        return banned;
+    }
+
+    public void setBanned(Integer banned) {
+        this.banned = banned;
+    }
+
+    public String getBanReason() {
+        return banReason;
+    }
+
+    public void setBanReason(String banReason) {
+        this.banReason = banReason;
+    }
+
+    public String getBanTime() {
+        return banTime;
+    }
+
+    public void setBanTime(String banTime) {
+        this.banTime = banTime;
+    }
 
     @Override
     public String getApiKey() {

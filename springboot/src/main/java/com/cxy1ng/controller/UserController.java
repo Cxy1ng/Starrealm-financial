@@ -52,6 +52,12 @@ public class UserController {
         return Result.success();
     }
 
+    @PutMapping("/ban")
+    public Result updateBanStatus(@RequestBody User user) {
+        userService.updateBanStatus(user);
+        return Result.success();
+    }
+
     @DeleteMapping("/delete/{id}")
     public Result deleteById(@PathVariable Integer id) {
         userService.deleteById(id);

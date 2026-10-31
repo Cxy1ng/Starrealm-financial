@@ -131,6 +131,15 @@
             </div>
           </el-form-item>
 
+          <div class="legal-consent-row">
+            <el-checkbox v-model="agreedTerms" size="small">
+              <span class="consent-text">我已阅读并同意</span>
+            </el-checkbox>
+            <button type="button" class="legal-inline-link" @click="openLegalDoc('agreement')">《星界用户服务协议》</button>
+            <span class="consent-sep">与</span>
+            <button type="button" class="legal-inline-link" @click="openLegalDoc('privacy')">《隐私保护政策》</button>
+          </div>
+
           <el-button @click="login" :loading="loading" size="large" type="primary" class="submit-btn">
             立即登录
           </el-button>
@@ -142,6 +151,12 @@
         </el-form>
       </div>
     </div>
+
+    <LegalAgreementDialog
+        v-model="legalDialogVisible"
+        v-model:activeTab="legalActiveTab"
+        @agree="handleAgreeLegal"
+    />
   </div>
 </template>
 
@@ -153,6 +168,7 @@ import { Cpu, PieChart, Lock, Check, Sunny, Moon } from "@element-plus/icons-vue
 import { useDark } from "@vueuse/core";
 import { request } from "@/utils/request.js";
 import ParticleBackground from "@/components/ParticleBackground.vue";
+import LegalAgreementDialog from "@/components/LegalAgreementDialog.vue";
 import { useThemePalette } from "@/utils/theme.js";
 import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
@@ -162,6 +178,21 @@ const formRef = ref();
 const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
+
+const agreedTerms = ref(localStorage.getItem('xingjie_agreed_terms') === '1');
+const legalDialogVisible = ref(false);
+const legalActiveTab = ref('agreement');
+
+const openLegalDoc = (tab) => {
+  legalActiveTab.value = tab;
+  legalDialogVisible.value = true;
+};
+
+const handleAgreeLegal = () => {
+  agreedTerms.value = true;
+  localStorage.setItem('xingjie_agreed_terms', '1');
+  legalDialogVisible.value = false;
+};
 
 const ensureVideoLooping = () => {
   const v = bgVideoRef.value;
@@ -233,6 +264,11 @@ const data = reactive({
 });
 
 const login = () => {
+  if (!agreedTerms.value) {
+    ElMessage.warning('请先阅读并勾选同意《星界用户服务协议》与《隐私保护政策》');
+    return;
+  }
+  localStorage.setItem('xingjie_agreed_terms', '1');
   formRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
@@ -668,6 +704,39 @@ html.dark .xingjie-logo-svg {
   background: var(--el-color-primary);
   color: #ffffff;
   box-shadow: 0 2px 6px rgba(var(--theme-rgb), 0.28);
+}
+
+.legal-consent-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: -4px 0 12px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary, #64748b);
+}
+
+.consent-text {
+  font-size: 12px;
+  color: var(--el-text-color-secondary, #64748b);
+}
+
+.consent-sep {
+  margin: 0 1px;
+}
+
+.legal-inline-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--el-color-primary, #1677ff);
+  cursor: pointer;
+}
+
+.legal-inline-link:hover {
+  text-decoration: underline;
 }
 
 .submit-btn {

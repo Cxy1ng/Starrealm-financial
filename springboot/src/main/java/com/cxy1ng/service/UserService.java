@@ -1,5 +1,6 @@
 package com.cxy1ng.service;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.cxy1ng.common.Constants;
@@ -25,11 +26,53 @@ public class UserService {
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private SiteConfigService siteConfigService;
+
+    private void populateBanInfo(User user) {
+        if (user == null || user.getId() == null) return;
+        String raw = siteConfigService.getPlainValue("user_ban_" + user.getId(), "");
+        if (StrUtil.isNotBlank(raw)) {
+            cn.hutool.json.JSONObject obj = cn.hutool.json.JSONUtil.parseObj(raw);
+            user.setBanned(obj.getInt("banned", 0));
+            user.setBanReason(obj.getStr("banReason", ""));
+            user.setBanTime(obj.getStr("banTime", ""));
+        } else {
+            user.setBanned(0);
+        }
+    }
+
+    public void updateBanStatus(User req) {
+        Account currentUser = TokenUtils.getCurrentUser();
+        PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
+        if (!PermEnum.ADMIN.equals(role) && !PermEnum.SUPER_ADMIN.equals(role)) {
+            throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
+        }
+        if (req == null || req.getId() == null) {
+            throw new CustomException(ResultCodeEnum.PARAM_LOST_ERROR);
+        }
+        int banned = (req.getBanned() != null && req.getBanned() == 1) ? 1 : 0;
+        String key = "user_ban_" + req.getId();
+        java.util.Map<String, String> payload = new java.util.HashMap<>();
+        if (banned == 1) {
+            cn.hutool.json.JSONObject obj = new cn.hutool.json.JSONObject();
+            obj.set("banned", 1);
+            obj.set("banReason", StrUtil.isNotBlank(req.getBanReason()) ? req.getBanReason().trim() : "违反《星界用户服务协议》第 4.2 条（AI 提示词注入或越狱攻击）");
+            obj.set("banTime", DateUtil.now());
+            payload.put(key, obj.toString());
+        } else {
+            payload.put(key, "");
+        }
+        siteConfigService.saveBatch(payload);
+    }
+
     public List<User> selectAll(User user) {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
         if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
-            return userMapper.selectAll(user);
+            List<User> list = userMapper.selectAll(user);
+            list.forEach(this::populateBanInfo);
+            return list;
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
         }
@@ -39,6 +82,7 @@ public class UserService {
         User user = userMapper.selectById(id);
         if (user != null) {
             user.setHasApiKey(StrUtil.isNotBlank(user.getApiKey()));
+            populateBanInfo(user);
         }
         return user;
     }
@@ -49,6 +93,7 @@ public class UserService {
         if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
             PageHelper.startPage(pageNum, pageSize);
             List<User> list = userMapper.selectAll(user);
+            list.forEach(this::populateBanInfo);
             return PageInfo.of(list);
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
@@ -119,12 +164,17 @@ public class UserService {
     }
 
     public Account login(Account account) {
-        Account dbUser = userMapper.selectByUsername(account.getUsername());
+        User dbUser = userMapper.selectByUsername(account.getUsername());
         if (ObjectUtil.isNull(dbUser)) {
             throw new CustomException(ResultCodeEnum.USER_NOT_EXIST_ERROR);
         }
         if (!account.getPwd().equals(dbUser.getPwd())) {
             throw new CustomException(ResultCodeEnum.USER_ACCOUNT_ERROR);
+        }
+        populateBanInfo(dbUser);
+        if (Integer.valueOf(1).equals(dbUser.getBanned())) {
+            String reason = StrUtil.isNotBlank(dbUser.getBanReason()) ? dbUser.getBanReason() : "违反《星界用户服务协议》相关条款";
+            throw new CustomException(ResultCodeEnum.USER_BANNED_ERROR.code, "账号已被封禁，原因：" + reason + "。如有疑问请联系系统管理员。");
         }
         if (StrUtil.isBlank(dbUser.getRole())) {
             dbUser.setRole(String.valueOf(PermEnum.getRoleByPerm(dbUser.getPerm())));

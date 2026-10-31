@@ -88,10 +88,10 @@ public class DeepseekController {
         }
         String combinedUserText = userTextBuilder.toString();
         if (PROMPT_INJECTION_PATTERN.matcher(combinedUserText).find()) {
-            return "**安全护栏拦截**：检测到疑似提示词注入或越狱指令。我是「星界 (Star Realm)」智能理财顾问，无法执行修改系统设定或越权指令，请围绕您的账单收支、存钱计划或汇率换算进行提问。";
+            return "**安全护栏拦截**：我是「星界 (Star Realm)」智能理财顾问，无法执行修改系统设定或越权指令，请围绕您的账单收支、存钱计划或汇率换算进行提问。";
         }
         if (SENSITIVE_TOPIC_PATTERN.matcher(combinedUserText).find()) {
-            return "**合规安全提醒**：您的提问包含敏感或违规话题（涉黄、涉政或违法违禁内容）。「星界 (Star Realm)」AI 助手仅提供个人财务分析、收支记账与汇率理财咨询服务，请勿发送无关或违规内容。";
+            return "**合规安全提醒**：您的提问包含敏感或违规话题。「星界 (Star Realm)」AI 助手仅提供个人财务分析、收支记账与汇率理财咨询服务，请勿发送无关或违规内容。";
         }
         return null;
     }

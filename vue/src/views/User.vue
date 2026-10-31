@@ -32,13 +32,43 @@
         <el-table-column label="手机号" prop="phone" />
         <el-table-column label="邮箱" prop="email" show-overflow-tooltip/>
         <el-table-column label="生日" prop="birth" />
-        <el-table-column label="操作">
+        <el-table-column label="账号状态" width="120" align="center">
+          <template #default="scope">
+            <el-tooltip
+                v-if="scope.row.banned === 1"
+                :content="'封禁原因：' + (scope.row.banReason || '违反《星界用户服务协议》') + (scope.row.banTime ? ' (' + scope.row.banTime + ')' : '')"
+                placement="top"
+            >
+              <el-tag type="danger" effect="dark" size="small">已封禁</el-tag>
+            </el-tooltip>
+            <el-tag v-else type="success" effect="light" size="small">正常</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="220">
           <template #default="scope">
             <el-button
                 link
                 @click="handleUpdate(scope.row)"
                 :icon="Edit">
               编辑
+            </el-button>
+            <el-button
+                v-if="scope.row.banned === 1"
+                link
+                type="success"
+                @click="handleUnban(scope.row)"
+                :icon="Unlock"
+            >
+              解封
+            </el-button>
+            <el-button
+                v-else
+                link
+                type="warning"
+                @click="handleOpenBan(scope.row)"
+                :icon="Lock"
+            >
+              封禁
             </el-button>
             <el-button
                 link
@@ -123,14 +153,66 @@
         </div>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="data.banVisible" title="封禁违规账号" width="460px" :close-on-click-modal="false" destroy-on-close>
+      <el-form :model="data.banForm" label-position="top" style="padding: 4px 10px 0;">
+        <el-alert
+            title="封禁后该用户将立即被强制下线且无法登录星界平台，直至管理员解除封禁。"
+            type="warning"
+            :closable="false"
+            show-icon
+            style="margin-bottom: 14px;"
+        />
+        <el-form-item label="目标账号">
+          <el-input :model-value="data.banForm.username + (data.banForm.nickname ? ' (' + data.banForm.nickname + ')' : '')" disabled />
+        </el-form-item>
+        <el-form-item label="快捷违规原因">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <el-tag
+                v-for="preset in banReasonPresets"
+                :key="preset"
+                size="small"
+                effect="plain"
+                style="cursor: pointer;"
+                @click="data.banForm.banReason = preset"
+            >
+              {{ preset }}
+            </el-tag>
+          </div>
+        </el-form-item>
+        <el-form-item label="封禁原因说明（将展示给被封禁用户）">
+          <el-input
+              v-model="data.banForm.banReason"
+              type="textarea"
+              :rows="3"
+              maxlength="120"
+              show-word-limit
+              placeholder="请输入封禁原因"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="data.banVisible = false">取消</el-button>
+          <el-button type="danger" @click="confirmBan">确认封禁</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import {reactive, ref} from "vue";
-import {Delete, Edit, Female, Male, Plus, Search} from "@element-plus/icons-vue";
+import {Delete, Edit, Female, Lock, Male, Plus, Search, Unlock} from "@element-plus/icons-vue";
 import {request} from "@/utils/request.js";
 import {ElMessage, ElMessageBox} from 'element-plus'
+
+const banReasonPresets = [
+  '违反《星界用户服务协议》第 4.2 条：恶意提示词注入或诱导 AI 角色扮演越狱',
+  '违反《星界用户服务协议》第 4.1 条：发送涉政、色情或违禁违规内容',
+  '违反《星界用户服务协议》第 3.3 条：异常高频滥用平台公共 AI 算力配额',
+  '账号存在安全风险或异常登录行为，暂时冻结保护'
+]
 
 const data = reactive({
   user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
@@ -139,6 +221,13 @@ const data = reactive({
   pageSize: 10,
   total: 0,
   formVisible: false,
+  banVisible: false,
+  banForm: {
+    id: null,
+    username: '',
+    nickname: '',
+    banReason: ''
+  },
   ids:[],
   rules: {
     username: [
@@ -182,6 +271,53 @@ const handleAdd = () => {
 const handleUpdate = (row) => {
   data.form = JSON.parse(JSON.stringify(row))
   data.formVisible = true
+}
+
+const handleOpenBan = (row) => {
+  data.banForm = {
+    id: row.id,
+    username: row.username,
+    nickname: row.nickname,
+    banReason: banReasonPresets[0]
+  }
+  data.banVisible = true
+}
+
+const confirmBan = () => {
+  request.put('/user/ban', {
+    id: data.banForm.id,
+    banned: 1,
+    banReason: data.banForm.banReason
+  }).then(res => {
+    if (res.code === 200) {
+      ElMessage.success(`已封禁账号 ${data.banForm.username}`)
+      data.banVisible = false
+      load()
+    } else {
+      ElMessage.error(res.msg)
+    }
+  })
+}
+
+const handleUnban = (row) => {
+  ElMessageBox.confirm(`确定要解除账号「${row.username}」的封禁状态，恢复其正常登录权限吗？`, '解封确认', {
+    confirmButtonText: '确认解封',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(() => {
+    request.put('/user/ban', {
+      id: row.id,
+      banned: 0,
+      banReason: ''
+    }).then(res => {
+      if (res.code === 200) {
+        ElMessage.success(`已解除账号 ${row.username} 的封禁`)
+        load()
+      } else {
+        ElMessage.error(res.msg)
+      }
+    })
+  }).catch(() => {})
 }
 
 const handleDelete = (id) => {
