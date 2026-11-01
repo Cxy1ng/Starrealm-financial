@@ -266,8 +266,19 @@ const add = () => {
             `<div style="font-size: 14px; line-height: 1.8;">
               <p>管理员账户 <b>${data.form.username}</b> 已成功创建！</p>
               <p>系统已为其随机生成高强度初始临时密码：</p>
-              <div style="padding: 10px 14px; background: rgba(22, 119, 255, 0.08); border: 1px dashed #1677ff; border-radius: 8px; font-family: monospace; font-size: 16px; font-weight: bold; color: #1677ff; letter-spacing: 1px; user-select: all; text-align: center; margin: 10px 0;">
-                ${tempPassword}
+              <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0;">
+                <span style="padding: 8px 16px; background: rgba(22, 119, 255, 0.08); border: 1px dashed #1677ff; border-radius: 8px; font-family: monospace; font-size: 16px; font-weight: bold; color: #1677ff; letter-spacing: 1px; user-select: all;">
+                  ${tempPassword}
+                </span>
+                <button
+                  type="button"
+                  onclick="window.__copyTempPassword(this, '${tempPassword}')"
+                  title="点击复制临时密码"
+                  style="display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; background: #1677ff; color: #ffffff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(22, 119, 255, 0.28);"
+                >
+                  <svg viewBox="0 0 1024 1024" width="13" height="13" fill="currentColor" style="vertical-align: -1px;"><path d="M768 832a64 64 0 0 1-64 64H256a64 64 0 0 1-64-64V384a64 64 0 0 1 64-64h448a64 64 0 0 1 64 64v448z m64-576V192a64 64 0 0 0-64-64H320a64 64 0 0 0-64 64v64h448a64 64 0 0 1 64 64v320h64a64 64 0 0 0 64-64V256z"></path></svg>
+                  <span>点击复制</span>
+                </button>
               </div>
               <p style="color: #f59e0b; font-size: 12.5px;">注意：请立即复制并妥善转交该管理员。该管理员首次登录后，系统将在主页强制弹窗要求设置新密码后方可使用。</p>
             </div>`,

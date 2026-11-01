@@ -82,6 +82,16 @@ router.beforeEach((to, from, next) => {
     return next('/main/home')
   }
 
+  // 强制改密全局路由守卫（防 F12 绕过）：若用户处于初始密码待重置状态，限制在主页完成改密，禁止跳转到其他业务页面
+  if (loggedIn) {
+    try {
+      const user = JSON.parse(localStorage.getItem('loginToken') || '{}')
+      if (user && user.needChangePwd === 1 && to.path !== '/main/home' && to.path !== '/login') {
+        return next('/main/home')
+      }
+    } catch (e) {}
+  }
+
   next()
 })
 

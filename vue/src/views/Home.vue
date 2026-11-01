@@ -213,8 +213,11 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <div style="display: flex; justify-content: flex-end;">
-          <el-button type="primary" :loading="submittingForcePwd" @click="handleForcePwdSubmit" style="width: 100%;">
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <el-button @click="handleForcePwdLogout" style="flex: 1;">
+            退出登录
+          </el-button>
+          <el-button type="primary" :loading="submittingForcePwd" @click="handleForcePwdSubmit" style="flex: 2;">
             保存新密码并重新登录
           </el-button>
         </div>
@@ -296,7 +299,7 @@ const data = reactive({
 });
 
 // ==================== 初始临时密码强制修改逻辑 ====================
-const forcePwdVisible = ref(false);
+const forcePwdVisible = ref(Boolean(data.user?.needChangePwd === 1));
 const submittingForcePwd = ref(false);
 const forcePwdFormRef = ref();
 const forcePwdForm = reactive({
@@ -324,6 +327,13 @@ const forcePwdRules = {
   confirmPwd: [{ validator: validateForceConfirmPwd, trigger: "blur" }]
 };
 
+const handleForcePwdLogout = () => {
+  localStorage.removeItem("loginToken");
+  clearLoginSessionCookie();
+  request.post("/logout").catch(() => {});
+  router.replace("/login");
+};
+
 const checkNeedChangePwd = () => {
   if (!data.user?.id) return;
   const api = data.user.perm >= 10 ? ('/admin/selectById/' + data.user.id) : ('/user/selectById/' + data.user.id);
@@ -331,6 +341,18 @@ const checkNeedChangePwd = () => {
     if (res.code === 200 && res.data) {
       if (res.data.needChangePwd === 1) {
         forcePwdVisible.value = true;
+        try {
+          const stored = JSON.parse(localStorage.getItem('loginToken') || '{}');
+          stored.needChangePwd = 1;
+          localStorage.setItem('loginToken', JSON.stringify(stored));
+        } catch (e) {}
+      } else {
+        forcePwdVisible.value = false;
+        try {
+          const stored = JSON.parse(localStorage.getItem('loginToken') || '{}');
+          stored.needChangePwd = 0;
+          localStorage.setItem('loginToken', JSON.stringify(stored));
+        } catch (e) {}
       }
     }
   });

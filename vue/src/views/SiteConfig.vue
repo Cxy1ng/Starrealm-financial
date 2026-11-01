@@ -71,15 +71,28 @@
             <div class="card-head-row">
               <div class="head-left">
                 <el-icon class="head-icon"><Cpu /></el-icon>
-                <span class="head-title">DeepSeek 智能服务公共配置</span>
+                <span class="head-title">DeepSeek 智能服务配置</span>
               </div>
-              <el-tag :type="statusMeta.deepseek_public_api_key ? 'success' : 'info'" size="small" effect="light">
-                {{ statusMeta.deepseek_public_api_key ? '已配置公共密钥' : '使用用户个人密钥' }}
+              <el-tag type="success" size="small" effect="light" round>
+                用户自备 Key 架构
               </el-tag>
             </div>
           </template>
 
-          <el-form label-position="top" :model="form">
+          <!-- 个人中心同款金库级安全状态横幅 -->
+          <div class="vault-status-banner is-active">
+            <div class="vault-shield-icon">
+              <el-icon :size="24"><CircleCheckFilled /></el-icon>
+            </div>
+            <div class="vault-status-text">
+              <div class="vault-main-line">全站统一采用「用户自备 API 密钥」零托管安全模式</div>
+              <div class="vault-sub-line">
+                平台不设全局公摊 API Key 资金池，杜绝算力挤占与公摊消耗。用户与管理员在【个人中心 &amp; 安全设置】中加密保存个人专属 DeepSeek Key 即可畅享全套智能财务分析与侧边栏理财助手。
+              </div>
+            </div>
+          </div>
+
+          <el-form label-position="top" :model="form" style="margin-top: 16px;">
             <el-form-item label="DeepSeek API 基础端点 (Base URL)">
               <el-input
                   v-model="form.deepseek_base_url"
@@ -87,20 +100,7 @@
                   placeholder="默认 https://api.deepseek.com"
               />
               <div class="field-help">
-                标准端点为 <code>https://api.deepseek.com</code>（系统会自动拼接 <code>/v1/chat/completions</code> 与 <code>/v1/models</code>）。
-              </div>
-            </el-form-item>
-
-            <el-form-item label="网站公共备用 DeepSeek API Key (可选)">
-              <el-input
-                  v-model="form.deepseek_public_api_key"
-                  type="password"
-                  show-password
-                  clearable
-                  placeholder="输入公共 sk-... 密钥（当普通用户未配置个人 Key 时作为全站兜底）"
-              />
-              <div class="field-help">
-                若在此配置了公共密钥，即使普通用户未在个人中心填写 Key，也可直接使用智能账单分析与侧边栏 AI 助手。
+                官方标准端点为 <code>https://api.deepseek.com</code>（系统发起大模型推理调用时会自动拼接 <code>/v1/chat/completions</code> 与 <code>/v1/models</code>；如自建反代或中转网关可在此直接替换）。
               </div>
             </el-form-item>
           </el-form>
@@ -113,7 +113,7 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Setting, Refresh, Check, Coin, Cpu } from '@element-plus/icons-vue'
+import { Setting, Refresh, Check, Coin, Cpu, CircleCheckFilled } from '@element-plus/icons-vue'
 import request from '@/utils/request.js'
 
 const loading = ref(false)
@@ -123,13 +123,11 @@ const rateTestResult = ref('')
 
 const form = reactive({
   finexly_api_key: '',
-  deepseek_public_api_key: '',
   deepseek_base_url: 'https://api.deepseek.com'
 })
 
 const statusMeta = reactive({
-  finexly_api_key: false,
-  deepseek_public_api_key: false
+  finexly_api_key: false
 })
 
 const loadConfigs = async () => {
@@ -158,7 +156,6 @@ const saveConfigs = async () => {
   try {
     const res = await request.put('/siteConfig/saveBatch', {
       finexly_api_key: form.finexly_api_key,
-      deepseek_public_api_key: form.deepseek_public_api_key,
       deepseek_base_url: form.deepseek_base_url || 'https://api.deepseek.com'
     })
     if (res.code === 200) {
@@ -297,5 +294,48 @@ onMounted(() => {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--el-color-primary);
+}
+.vault-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.09);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  margin-bottom: 6px;
+  transition: all 0.25s ease;
+}
+
+.vault-status-banner.is-active {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.26);
+}
+
+.vault-shield-icon {
+  color: #f59e0b;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.vault-status-banner.is-active .vault-shield-icon {
+  color: #10b981;
+}
+
+.vault-status-text {
+  flex: 1;
+}
+
+.vault-main-line {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  margin-bottom: 4px;
+}
+
+.vault-sub-line {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--el-text-color-secondary);
 }
 </style>

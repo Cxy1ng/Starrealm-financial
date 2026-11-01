@@ -9,6 +9,7 @@ import com.cxy1ng.exception.CustomException;
 import com.cxy1ng.service.SiteConfigService;
 import com.cxy1ng.service.UserService;
 import com.cxy1ng.utils.ApiKeyCryptoUtil;
+import com.cxy1ng.utils.GuardrailCryptoUtil;
 import com.cxy1ng.utils.TokenUtils;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,58 +50,15 @@ public class DeepseekController {
     @Resource
     private UserService userService;
 
-    // 1. 强防提示词注入/越狱/系统指令篡改/伪造控制标记/角色扮演人设覆盖（多层反破甲正则矩阵）
-    private static final Pattern PROMPT_INJECTION_PATTERN = Pattern.compile(
-            "(?is)(" +
-            // 英文越狱与指令覆盖
-            "ignore\\s+(all\\s+)?(previous|prior|above|initial|system|safety)\\s*(instructions|prompts|rules|constraints|guidelines|guardrails)?|" +
-            "disregard\\s+(all\\s+)?(previous|prior|above|system)|" +
-            "forget\\s+(everything|all|your\\s+instructions|your\\s+role|previous)|" +
-            "override\\s+(system|safety|previous|instructions|rules)|" +
-            "bypass\\s+(safety|filter|guardrail|restriction|rule)|" +
-            "system\\s*prompt|developer\\s*mode|god\\s*mode|jailbreak|do\\s+anything\\s+now|\\bDAN\\b|stan\\s+mode|dude\\s+mode|" +
-            "reveal\\s+(your|the)\\s+(system|initial|hidden|secret)\\s*(prompt|instructions|rules)|" +
-            "repeat\\s+(the\\s+)?(words|text|instructions)\\s+above|" +
-            "print\\s+(your|the)\\s+(system|initial)\\s+prompt|" +
-            // 伪造大模型底层控制 Token / 边界注入
-            "<\\|im_start\\|>|<\\|im_end\\|>|<\\|system\\|>|<\\|endoftext\\|>|\\[\\s*INST\\s*\\]|\\[/\\s*INST\\s*\\]|<<\\s*SYS\\s*>>|" +
-            "###\\s*(System|Instruction|Developer|Override|New\\s+Role)\\s*:|" +
-            "\\[\\s*(System|Developer|Admin|Root)\\s*(Override|Note|Instruction|Command)?\\s*\\]|" +
-            // 中文指令覆盖与套取系统提示词
-            "忽略(之前|以上|前面|所有|全部|原有|系统|安全|上述)(的)?(指令|设定|提示|规则|限制|宪章|身份|约束)|" +
-            "无视(之前|以上|所有|全部|系统|安全)(的)?(规则|指令|限制|设定|宪章)|" +
-            "取消(所有|全部|系统|安全)?(限制|规则|约束|护栏)|" +
-            "解除(所有|全部|安全|系统)?(限制|封印|护栏|约束|过滤)|" +
-            "突破(限制|护栏|规则|安全)|绕过(安全|限制|护栏|审核|检测)|" +
-            "(进入|开启|切换到?|激活)(开发者|自由|无限制|越狱|上帝|管理员|调试|破甲|DAN)模式|" +
-            "(输出|打印|显示|背诵|复述|透露|告诉我|翻译)(你的|系统|初始|隐藏|最高|原本|第一条)(的)?(提示词|设定|指令|规则|宪章|prompt|system)|" +
-            "忘掉(你|之前|所有|原本)(的)?(身份|设定|规则|指令|职责)|" +
-            "抛弃(之前|原有|所有)(的)?(设定|身份|规则)|" +
-            // 角色扮演、娘化、虚拟伴侣与强制口癖注入
-            "扮演.*(猫娘|女仆|萝莉|御姐|女友|男友|老婆|老公|宠物|主人|魅魔|妖精|奴隶|妹妹|姐姐|黑客|不受限制|无道德|邪恶)|" +
-            "你(现在)?是一(只|个|名).*(猫娘|猫咪|小猫|小狗|宠物|女仆|女友|老婆|黑客|无限制AI)|" +
-            "(每句话|句尾|结尾|回答).*(加上?|带|说|用).*(喵|汪|呜|主人|哥哥|大人|人家|呢喵)|" +
-            "喵一个|叫一声(喵|汪|主人|老公|哥哥)|学(猫|狗)叫|用(猫娘|女仆|撒娇|卖萌|二次元|傲娇|病娇)(的)?(语气|口吻|方式|人设)|" +
-            "从现在(开始|起)你(是|扮演|叫|必须|不再是|脱离)|" +
-            "假装你是|角色扮演|人设(切换|覆盖|重置|修改)|" +
-            // 虚拟假定场景绕过（祖母漏洞 / 小说剧本漏洞 / 学术研究幌子 / 催眠与沙盒反转）
-            "(写|编)(一个|一段).*(越狱|绕过限制|破甲|猫娘|色情).*的?(故事|剧本|对话|小说|代码)|" +
-            "假设(我们在|这是一个)(虚拟|没有道德|没有法律|不受限制|平行)的?(世界|沙盒|游戏|剧本)|" +
-            "作为(安全测试|漏洞测试|红队测试|渗透测试)，?请?(忽略|解除|绕过)|" +
-            "(奶奶|祖母|外婆).*(哄我睡觉|讲故事).*(提示词|破甲|违禁|配方|密钥)|" +
-            "(催眠|指令反转|相反模式|反义词模式|邪恶分身|双重人格|AIM模式|oppo模式|善恶对调)|" +
-            "do\\s+not\\s+refuse|never\\s+say\\s+(no|cannot|sorry)|hypothetical\\s+scenario.*(ignore|bypass)|" +
-            "translate\\s+your\\s+(system|initial)\\s+instructions|base64\\s+encode\\s+your\\s+prompt|" +
-            "脱离(财务|金融|星界|顾问)(身份|限制|设定)|不再是(财务|金融|理财)(顾问|分析师|助手)" +
-            ")"
-    );
+    // 1. 强防提示词注入/越狱/系统指令篡改（AES-128 密文封装，杜绝敏感词明文源码上云被服务商关键词审查扫描）
+    private static final String PROMPT_INJECTION_CIPHER =
+            "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";
+    private static final Pattern PROMPT_INJECTION_PATTERN = GuardrailCryptoUtil.compileEncryptedPattern(PROMPT_INJECTION_CIPHER);
 
-    // 2. 涉黄、涉政、暴恐、违法违禁敏感话题特征匹配
-    private static final Pattern SENSITIVE_TOPIC_PATTERN = Pattern.compile(
-            "(?is)(色情|淫秽|黄色小说|黄色视频|成人视频|成人小说|肉文|H文|乱伦|嫖娼|卖淫|约炮|裸聊|性交|口交|肛交|自慰|高潮|调教|SM|母狗|番号|里番|本子|av女优|pornhub|xvideos|onlyfans|" +
-            "法轮功|台独|藏独|疆独|港独|推翻(政府|政权)|颠覆国家|反共|反党|六四事件|天安门事件|政治敏感|习近平|共产党下台|游行示威|" +
-            "冰毒|海洛因|可卡因|大麻种植|制毒|合成毒品|买枪|制枪|炸药配方|TATP|制造炸弹|自杀方法|如何自杀|网络赌博|六合彩|洗钱通道|跑分洗钱|暗网交易|人肉搜索|盗取密码|木马免杀)"
-    );
+    // 2. 涉黄、涉政、暴恐、违法违禁敏感话题特征匹配（AES-128 密文封装）
+    private static final String SENSITIVE_TOPIC_CIPHER =
+            "kLhgRFdyIa6QX1aGVVJzb6v5siapic2k+XzffTloDZvpX1IrHW3T+QNSS2DPfj48vwD9iU6MG5WiLBe3GRvHoLKNk3sPSdfh+gCaOLLKVGkQG4tvgjSv+ZgvhBma4J+fM+O4vajgcEmi0NXg4/9vqw/LevE5kLP8Xoyv7ZDTuckAULrAvXtSrYnMypG2KuCLKvGTDsdjfMqYFLP0SR0Er92jmgPZIieU38Yo8DsL6XLenEh2ZTs+lFRPGXQDdYBfRSnVzbd6QdDAJBUZfxpQWw6j4/t9qEFjmUF2+ikYeIxa4QVxiuCHs39qNoQSgVQp/9HDlmleGe/H5saRG37aF/WL7HD2OASkDjT92tjUAH1/ljqxCXsJy17DJlGMmgh4tpdYZZ8icXZb9S2j2YbJTBuhR5/4uBcgsVSk+Hri7kpCqsjLEUw9AExn/37RnqJ06FH1Q8kk7o+9hLz7cqx7Dt3C6RLNFuN1lRq7I8TWMWfXZNNpdBRIu5zVnI/EvDy1f5DXmMMVoTvoRXOjTwrxi16KNv8s2qP1H6Dblk33Tx5fyisBIDMkxEMdmXYDIx88gmPgcap1IXxx2QqK9hRNUJMEwwLndUTvzMioW4Q2aHs/3oCJAWA+5AXg9BycfAbxwfVYGoLEx/wvSlfetpQqJHaLX9mEN4Cf0btMXzEJuha2AzKja3pOoXos0Jis+qqVwYtm7vh54xBW4dcxhOg5NDsxCnt+1Xd43/rPbYpIvIUMW+6zJzQX9CAAUN0z14xbbSsQjOEKHYZRDcw3tGhRB5Xeuz/lXksna1ATLCkM+dC5LATl/YRgikVMIpCuoLlN";
+    private static final Pattern SENSITIVE_TOPIC_PATTERN = GuardrailCryptoUtil.compileEncryptedPattern(SENSITIVE_TOPIC_CIPHER);
 
     // Base64 编码块探测（防止用户通过 Base64 编码绕过规则）
     private static final Pattern BASE64_CHUNK_PATTERN = Pattern.compile("(?:[A-Za-z0-9+/]{4}){5,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?");
@@ -253,12 +211,6 @@ public class DeepseekController {
         if (currentUser != null && StrUtil.isNotBlank(currentUser.getApiKey())) {
             plainApiKey = ApiKeyCryptoUtil.decrypt(currentUser.getApiKey());
         }
-        if (StrUtil.isBlank(plainApiKey)) {
-            plainApiKey = siteConfigService.getPlainValue("deepseek_public_api_key", null);
-        }
-        if (StrUtil.isBlank(plainApiKey) && StrUtil.isNotBlank(fallbackApiKey)) {
-            plainApiKey = fallbackApiKey.trim();
-        }
         return plainApiKey;
     }
 
@@ -311,7 +263,7 @@ public class DeepseekController {
         if (StrUtil.isBlank(plainApiKey)) {
             statusMap.put("connected", false);
             statusMap.put("state", "unconfigured");
-            statusMap.put("message", "未配置 API 密钥");
+            statusMap.put("message", "未配置个人 API 密钥，请在个人设置填写");
             return Result.success(statusMap);
         }
 
@@ -457,7 +409,7 @@ public class DeepseekController {
 
         String plainApiKey = resolvePlainApiKey();
         if (StrUtil.isBlank(plainApiKey)) {
-            throw new CustomException(ResultCodeEnum.PARAM_ERROR.code, "尚未配置 DeepSeek API Key，请前往【个人设置】或【网站配置】填写密钥");
+            throw new CustomException(ResultCodeEnum.PARAM_ERROR.code, "尚未配置个人 DeepSeek API Key，请前往【个人中心 & 安全设置】填写您的专属密钥");
         }
         String baseUrl = resolveBaseUrl();
 

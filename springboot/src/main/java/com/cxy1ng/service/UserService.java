@@ -145,7 +145,7 @@ public class UserService {
 
         // 4. 读取管理员创建普通账号的首次登录重置密码标记（自主注册用户无此标记）
         String needPwdVal = siteConfigService.getPlainValue("user_need_change_pwd_" + user.getId(), "");
-        if (StrUtil.isNotBlank(needPwdVal) && "1".equals(needPwdVal.trim())) {
+        if (("1".equals(needPwdVal != null ? needPwdVal.trim() : "")) || Constants.USER_DEFAULT_PASSWORD.equals(user.getPwd())) {
             user.setNeedChangePwd(1);
         } else {
             user.setNeedChangePwd(0);

@@ -35,6 +35,15 @@ public class User extends Account implements Serializable {
     private String aiBanExpireTime;
     private Integer violationCount24h;
     private String violationLogs;
+    private Integer needChangePwd; // 1-初始默认密码需重置
+
+    public Integer getNeedChangePwd() {
+        return needChangePwd;
+    }
+
+    public void setNeedChangePwd(Integer needChangePwd) {
+        this.needChangePwd = needChangePwd;
+    }
 
     public Integer getAccountBanned() {
         return accountBanned;
