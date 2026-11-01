@@ -142,6 +142,14 @@ public class UserService {
         }
         user.setViolationCount24h(validLogs.size());
         user.setViolationLogs(validLogs.toString());
+
+        // 4. 读取管理员创建普通账号的首次登录重置密码标记（自主注册用户无此标记）
+        String needPwdVal = siteConfigService.getPlainValue("user_need_change_pwd_" + user.getId(), "");
+        if (StrUtil.isNotBlank(needPwdVal) && "1".equals(needPwdVal.trim())) {
+            user.setNeedChangePwd(1);
+        } else {
+            user.setNeedChangePwd(0);
+        }
     }
 
     /**
@@ -409,7 +417,7 @@ public class UserService {
         }
     }
 
-    public void insert(User user) {
+    public String insert(User user) {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
         if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
@@ -423,12 +431,20 @@ public class UserService {
             if (ObjectUtil.isEmpty(user.getNickname())) {
                 user.setNickname(user.getUsername());
             }
+            String defaultPwd = Constants.USER_DEFAULT_PASSWORD;
             if (ObjectUtil.isEmpty(user.getPwd())) {
-                user.setPwd(Constants.USER_DEFAULT_PASSWORD);
+                user.setPwd(defaultPwd);
+            } else {
+                defaultPwd = user.getPwd();
             }
             user.setPerm(PermEnum.USER.getMinPerm());
             user.setRole(String.valueOf(PermEnum.getRoleByPerm(user.getPerm())));
             userMapper.insert(user);
+            User created = userMapper.selectByUsername(user.getUsername());
+            if (created != null && created.getId() != null) {
+                siteConfigService.putSystemValue("user_need_change_pwd_" + created.getId(), "1", "管理员创建普通用户需首次登录重置密码", currentUser != null ? currentUser.getUsername() : "system");
+            }
+            return defaultPwd;
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
         }
@@ -528,5 +544,6 @@ public class UserService {
         }
         dbUser.setPwd(account.getNewPwd());
         this.update(dbUser);
+        siteConfigService.putSystemValue("user_need_change_pwd_" + dbUser.getId(), "0", "普通用户初始密码已重置", account.getUsername() != null ? account.getUsername() : "system");
     }
 }

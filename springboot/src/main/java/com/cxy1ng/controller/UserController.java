@@ -42,8 +42,8 @@ public class UserController {
 
     @PostMapping("/insert")
     public Result insert(@RequestBody User user) {
-        userService.insert(user);
-        return Result.success();
+        String defaultPwd = userService.insert(user);
+        return Result.success(defaultPwd);
     }
 
     @PutMapping("/update")

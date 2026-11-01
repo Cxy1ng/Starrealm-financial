@@ -172,7 +172,7 @@
     >
       <div style="margin-bottom: 14px;">
         <el-alert
-            title="安全检测提示：当前管理员账号使用的是系统生成的初始临时密码。为了保障后台数据安全，您必须首先设置符合安全要求的新密码后方可正常使用系统。"
+            title="安全检测提示：当前账号使用的是系统初始分配的默认密码或临时密码。为了保障账户资产与数据安全，您必须首先设置符合安全要求的新密码后方可正常使用系统。"
             type="warning"
             :closable="false"
             show-icon
@@ -184,11 +184,11 @@
           :rules="forcePwdRules"
           label-position="top"
       >
-        <el-form-item label="当前临时密码" prop="pwd">
+        <el-form-item label="当前密码" prop="pwd">
           <el-input
               v-model="forcePwdForm.pwd"
               type="password"
-              placeholder="请输入当前登录使用的临时密码"
+              placeholder="请输入当前登录使用的初始密码"
               show-password
               autocomplete="off"
           />
@@ -316,7 +316,7 @@ const validateForceConfirmPwd = (rule, value, callback) => {
 };
 
 const forcePwdRules = {
-  pwd: [{ required: true, message: "请输入当前临时密码", trigger: "blur" }],
+  pwd: [{ required: true, message: "请输入当前密码", trigger: "blur" }],
   newPwd: [
     { required: true, message: "请输入设置的新密码", trigger: "blur" },
     { validator: validatePasswordRule, trigger: "blur" }
@@ -325,15 +325,15 @@ const forcePwdRules = {
 };
 
 const checkNeedChangePwd = () => {
-  if (data.user?.perm >= 10 && data.user?.id) {
-    request.get('/admin/selectById/' + data.user.id).then(res => {
-      if (res.code === 200 && res.data) {
-        if (res.data.needChangePwd === 1) {
-          forcePwdVisible.value = true;
-        }
+  if (!data.user?.id) return;
+  const api = data.user.perm >= 10 ? ('/admin/selectById/' + data.user.id) : ('/user/selectById/' + data.user.id);
+  request.get(api).then(res => {
+    if (res.code === 200 && res.data) {
+      if (res.data.needChangePwd === 1) {
+        forcePwdVisible.value = true;
       }
-    });
-  }
+    }
+  });
 };
 checkNeedChangePwd();
 
@@ -352,7 +352,7 @@ const handleForcePwdSubmit = () => {
     request.put('/updatePwd', payload).then(res => {
       submittingForcePwd.value = false;
       if (res.code === 200) {
-        ElMessage.success("初始临时密码重置成功，请使用新密码重新登录！");
+        ElMessage.success("初始密码重置成功，请使用新密码重新登录！");
         forcePwdVisible.value = false;
         // 密码重置后立即强制退出登录并跳转至登录页
         localStorage.removeItem("loginToken");
@@ -360,7 +360,7 @@ const handleForcePwdSubmit = () => {
         request.post("/logout").catch(() => {});
         router.replace("/login");
       } else {
-        ElMessage.error(res.msg || "修改失败，请检查原临时密码是否正确");
+        ElMessage.error(res.msg || "修改失败，请检查原密码是否正确");
       }
     }).catch(() => {
       submittingForcePwd.value = false;

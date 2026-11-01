@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { getLoginSessionFromCookie } from '@/utils/cookie.js'
 
 // 轻量顶部路由跳转流光加载进度条
 let progressEl = null
@@ -32,6 +33,18 @@ function finishRouteProgress() {
   }, 180)
 }
 
+function checkIsLoggedIn() {
+  try {
+    const user = JSON.parse(localStorage.getItem('loginToken') || '{}')
+    if (user && user.token) return true
+  } catch (e) {}
+  try {
+    const cookieSession = getLoginSessionFromCookie()
+    if (cookieSession && cookieSession.token) return true
+  } catch (e) {}
+  return false
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -62,6 +75,13 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   startRouteProgress()
   document.title = to.meta.title || '星界'
+
+  // 在已经登录的情况下进入登录/注册页面，自动重定向到系统主页
+  const loggedIn = checkIsLoggedIn()
+  if ((to.path === '/login' || to.path === '/register') && loggedIn) {
+    return next('/main/home')
+  }
+
   next()
 })
 

@@ -603,13 +603,30 @@ const save = () => {
 }
 
 const add = () => {
+  const username = data.form.username
   request.post('/user/insert', data.form).then(res => {
     if (res.code === 200) {
-      ElMessage.success('操作成功')
       data.formVisible = false
       load()
+      const defaultPassword = res.data || '123456'
+      ElMessageBox.alert(
+          `<div style="font-size: 14px; line-height: 1.8;">
+            <p>普通用户账户 <b>${username}</b> 已成功创建！</p>
+            <p>系统已为其分配初始默认密码：</p>
+            <div style="padding: 10px 14px; background: rgba(22, 119, 255, 0.08); border: 1px dashed #1677ff; border-radius: 8px; font-family: monospace; font-size: 16px; font-weight: bold; color: #1677ff; letter-spacing: 1px; user-select: all; text-align: center; margin: 10px 0;">
+              ${defaultPassword}
+            </div>
+            <p style="color: #f59e0b; font-size: 12.5px;">注意：请立即复制并妥善告知该用户。该用户首次登录系统后，主页将强制弹窗要求设置新密码后方可正常使用全部功能。</p>
+          </div>`,
+          '普通用户创建成功 · 初始默认密码',
+          {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: '我已复制并知晓',
+            type: 'success'
+          }
+      )
     } else {
-      ElMessage.error(res.msg)
+      ElMessage.error(res.msg || '添加失败')
     }
   })
 }
