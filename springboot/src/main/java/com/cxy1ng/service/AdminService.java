@@ -29,13 +29,13 @@ public class AdminService {
 
     private void fillAdminBanStatus(Admin a) {
         if (a == null || a.getId() == null) return;
-        String val = siteConfigService.getValue("admin_ban_" + a.getId());
+        String val = siteConfigService.getPlainValue("admin_ban_" + a.getId(), "0");
         if (cn.hutool.core.util.StrUtil.isNotBlank(val) && "1".equals(val.trim())) {
             a.setBanned(1);
         } else {
             a.setBanned(0);
         }
-        String needPwdVal = siteConfigService.getValue("admin_need_change_pwd_" + a.getId());
+        String needPwdVal = siteConfigService.getPlainValue("admin_need_change_pwd_" + a.getId(), "0");
         if (cn.hutool.core.util.StrUtil.isNotBlank(needPwdVal) && "1".equals(needPwdVal.trim())) {
             a.setNeedChangePwd(1);
         } else {
@@ -101,7 +101,7 @@ public class AdminService {
             adminMapper.insert(admin);
             Admin created = adminMapper.selectByUsername(admin.getUsername());
             if (created != null && created.getId() != null) {
-                siteConfigService.putSystemValue("admin_need_change_pwd_" + created.getId(), "1", "管理员需首次登录重置密码", currentUser.getUsername());
+                siteConfigService.putSystemValue("admin_need_change_pwd_" + created.getId(), "1", "管理员需首次登录重置密码", currentUser != null ? currentUser.getUsername() : "system");
             }
             return tempPwd;
         } else {
@@ -179,9 +179,9 @@ public class AdminService {
         String key = "admin_ban_" + req.getId();
         int banned = (req.getBanned() != null && req.getBanned() == 1) ? 1 : 0;
         if (banned == 1) {
-            siteConfigService.putSystemValue(key, "1", "管理员账号封禁状态", currentUser.getUsername());
+            siteConfigService.putSystemValue(key, "1", "管理员账号封禁状态", currentUser != null ? currentUser.getUsername() : "system");
         } else {
-            siteConfigService.putSystemValue(key, "0", "管理员账号封禁状态", currentUser.getUsername());
+            siteConfigService.putSystemValue(key, "0", "管理员账号封禁状态", currentUser != null ? currentUser.getUsername() : "system");
         }
     }
 
@@ -235,6 +235,6 @@ public class AdminService {
         dbAdmin.setPwd(account.getNewPwd());
         adminMapper.update(dbAdmin);
         // 清除临时密码重置标记
-        siteConfigService.putSystemValue("admin_need_change_pwd_" + dbAdmin.getId(), "0", "管理员初始临时密码已重置", account.getUsername());
+        siteConfigService.putSystemValue("admin_need_change_pwd_" + dbAdmin.getId(), "0", "管理员初始临时密码已重置", account.getUsername() != null ? account.getUsername() : "system");
     }
 }

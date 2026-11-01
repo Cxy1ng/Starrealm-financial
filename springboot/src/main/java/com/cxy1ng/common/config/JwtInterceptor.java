@@ -9,6 +9,7 @@ import com.cxy1ng.common.Constants;
 import com.cxy1ng.common.enums.ResultCodeEnum;
 import com.cxy1ng.common.enums.PermEnum;
 import com.cxy1ng.entity.Account;
+import com.cxy1ng.entity.Admin;
 import com.cxy1ng.exception.CustomException;
 import com.cxy1ng.service.AdminService;
 import com.cxy1ng.service.UserService;
