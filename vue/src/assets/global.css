@@ -471,7 +471,20 @@ html.dark .el-drawer {
   background: rgba(var(--theme-rgb), 0.55);
 }
 
-/* ================= 全局 UI 防误触框选与防拖拽规范 ================= */
+/* 表格操作栏统一样式：单行紧凑排列、间距对齐、禁止换行 */
+.table-action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.table-action-group .el-button {
+  margin-left: 0 !important;
+  padding: 4px 6px !important;
+  font-size: 13px !important;
+}
 /* 登录注册界面、左侧边栏、顶部工具栏、按钮、下拉菜单、标签、图标与图片等界面控件禁止拖拽与文字框选 */
 .auth-container,
 .brand-showcase,

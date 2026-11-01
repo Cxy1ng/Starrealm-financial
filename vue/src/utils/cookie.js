@@ -81,9 +81,45 @@ export function setAgreedLegalTerms() {
 }
 
 /**
+ * 保存主题色、明暗模式与全局字号偏好到 Cookie（有效期 365 天）
+ */
+export function saveThemePreferencesToCookie({ themeKey, isDark, fontSize } = {}) {
+  if (themeKey) {
+    setCookie(THEME_PALETTE_COOKIE, themeKey, { days: 365 })
+  }
+  if (typeof isDark === 'boolean') {
+    setCookie(DARK_MODE_COOKIE, isDark ? '1' : '0', { days: 365 })
+  }
+  if (fontSize) {
+    setCookie(FONT_SIZE_COOKIE, fontSize, { days: 365 })
+  }
+}
+
+/**
+ * 从 Cookie 读取主题色、明暗模式与全局字号偏好
+ */
+export function readThemePreferencesFromCookie() {
+  const themeKey = getCookie(THEME_PALETTE_COOKIE) || null
+  const darkRaw = getCookie(DARK_MODE_COOKIE)
+  const isDark = darkRaw === '1' ? true : (darkRaw === '0' ? false : null)
+  const fontSize = getCookie(FONT_SIZE_COOKIE) || null
+  return { themeKey, isDark, fontSize }
+}
+
+/**
+ * 从 Cookie 读取上次记住的登录账号与角色偏好
+ */
+export function readRememberedAccountFromCookie() {
+  const username = getCookie(LAST_USER_COOKIE) || ''
+  const perm = getCookie(LAST_PERM_COOKIE) || '1'
+  const rememberMe = getCookie(REMEMBER_ME_COOKIE) !== '0'
+  return { username, perm, rememberMe }
+}
+
+/**
  * 保存登录会话与记住我偏好到 Cookie
  */
-export function saveLoginSessionCookie(userData, rememberMe = true) {
+export function saveLoginSessionCookie(userData, rememberMe = true, fallbackPerm = '1') {
   if (!userData) return
   const days = rememberMe ? 7 : null
   try {
@@ -93,7 +129,7 @@ export function saveLoginSessionCookie(userData, rememberMe = true) {
       username: userData.username,
       nickname: userData.nickname,
       role: userData.role,
-      perm: userData.perm,
+      perm: userData.perm ?? fallbackPerm,
       avatar: userData.avatar,
       token: userData.token
     }
@@ -104,8 +140,9 @@ export function saveLoginSessionCookie(userData, rememberMe = true) {
   if (userData.username) {
     setCookie(LAST_USER_COOKIE, userData.username, { days: 30 })
   }
-  if (userData.perm !== undefined && userData.perm !== null) {
-    setCookie(LAST_PERM_COOKIE, String(userData.perm), { days: 30 })
+  const permToSave = userData.perm ?? fallbackPerm
+  if (permToSave !== undefined && permToSave !== null) {
+    setCookie(LAST_PERM_COOKIE, String(permToSave), { days: 30 })
   }
   setCookie(REMEMBER_ME_COOKIE, rememberMe ? '1' : '0', { days: 30 })
 }

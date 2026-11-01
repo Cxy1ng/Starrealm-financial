@@ -80,22 +80,25 @@
             <el-button @click="showContent(scope.row.content)">查看内容</el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column label="操作" align="center" width="160">
           <template #default="scope">
-            <el-button
-                link
-                @click="handleUpdate(scope.row)"
-                :icon="Edit">
-              编辑
-            </el-button>
-            <el-button
-                link
-                type="danger"
-                @click="handleDelete(scope.row.id)"
-                :icon="Delete"
-            >
-              删除
-            </el-button>
+            <div class="table-action-group">
+              <el-button
+                  link
+                  type="primary"
+                  @click="handleUpdate(scope.row)"
+                  :icon="Edit">
+                编辑
+              </el-button>
+              <el-button
+                  link
+                  type="danger"
+                  @click="handleDelete(scope.row.id)"
+                  :icon="Delete"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

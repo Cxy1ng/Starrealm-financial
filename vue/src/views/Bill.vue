@@ -71,22 +71,25 @@
         <el-table-column label="交易状态" prop="status"/>
         <el-table-column label="备注" prop="comment" show-overflow-tooltip/>
         <el-table-column v-if="data.user.perm >= 10" label="用户ID" prop="userId" show-overflow-tooltip/>
-        <el-table-column label="操作" align="center" width="180">
+        <el-table-column label="操作" align="center" width="160">
           <template #default="scope">
-            <el-button
-                link
-                @click="handleUpdate(scope.row)"
-                :icon="Edit">
-              编辑
-            </el-button>
-            <el-button
-                link
-                type="danger"
-                @click="handleDelete(scope.row.id)"
-                :icon="Delete"
-            >
-              删除
-            </el-button>
+            <div class="table-action-group">
+              <el-button
+                  link
+                  type="primary"
+                  @click="handleUpdate(scope.row)"
+                  :icon="Edit">
+                编辑
+              </el-button>
+              <el-button
+                  link
+                  type="danger"
+                  @click="handleDelete(scope.row.id)"
+                  :icon="Delete"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

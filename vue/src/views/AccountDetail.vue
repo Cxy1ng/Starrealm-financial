@@ -25,16 +25,18 @@
         <el-table-column label="账户总收支差" prop="balance" />
         <el-table-column label="账户总收入" prop="income" />
         <el-table-column label="账户总支出" prop="pay" />
-        <el-table-column label="操作">
+        <el-table-column label="操作" align="center" width="120">
           <template #default="scope">
-            <el-button
-                link
-                type="danger"
-                @click="handleDelete(scope.row.id)"
-                :icon="Delete"
-            >
-              删除
-            </el-button>
+            <div class="table-action-group">
+              <el-button
+                  link
+                  type="danger"
+                  @click="handleDelete(scope.row.id)"
+                  :icon="Delete"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

@@ -77,7 +77,20 @@ public class AdminService {
 
     public void update(Admin admin) {
         Account currentUser = TokenUtils.getCurrentUser();
-        if (currentUser.getPerm() >= admin.getPerm()) {
+        PermEnum currentRole = PermEnum.getRoleByPerm(currentUser.getPerm());
+        
+        // 如果当前操作者是普通管理员(ADMIN，perm 10-14)，且目标更新的是超级管理员(SUPER_ADMIN，perm 15)或另一个管理员但权限高于等于自己，则拒绝
+        if (currentRole.equals(PermEnum.ADMIN)) {
+            if (admin.getPerm() != null && admin.getPerm() >= 15) {
+                throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
+            }
+            Admin targetDb = adminMapper.selectById(admin.getId());
+            if (targetDb != null && targetDb.getPerm() >= 15) {
+                throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
+            }
+        }
+
+        if (currentUser.getPerm() >= admin.getPerm() || (currentRole.equals(PermEnum.ADMIN) && admin.getPerm() < 15)) {
             if ("__CLEAR__".equals(admin.getApiKey())) {
                 admin.setApiKey("");
             } else if (StrUtil.isNotBlank(admin.getApiKey())) {
@@ -100,6 +113,12 @@ public class AdminService {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
         if (role.equals(PermEnum.SUPER_ADMIN)) {
+            adminMapper.deleteById(id);
+        } else if (role.equals(PermEnum.ADMIN)) {
+            Admin target = adminMapper.selectById(id);
+            if (target != null && target.getPerm() >= 15) {
+                throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
+            }
             adminMapper.deleteById(id);
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);

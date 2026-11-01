@@ -23,22 +23,25 @@
         <el-table-column label="ID" prop="id" sortable />
         <el-table-column label="分类名称" prop="name"/>
         <el-table-column label="收支类型" prop="type"/>
-        <el-table-column label="操作">
+        <el-table-column label="操作" align="center" width="160">
           <template #default="scope">
-            <el-button
-                link
-                @click="handleUpdate(scope.row)"
-                :icon="Edit">
-              编辑
-            </el-button>
-            <el-button
-                link
-                type="danger"
-                @click="handleDelete(scope.row.id)"
-                :icon="Delete"
-            >
-              删除
-            </el-button>
+            <div class="table-action-group">
+              <el-button
+                  link
+                  type="primary"
+                  @click="handleUpdate(scope.row)"
+                  :icon="Edit">
+                编辑
+              </el-button>
+              <el-button
+                  link
+                  type="danger"
+                  @click="handleDelete(scope.row.id)"
+                  :icon="Delete"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
