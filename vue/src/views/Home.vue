@@ -215,7 +215,7 @@
       <template #footer>
         <div style="display: flex; justify-content: flex-end;">
           <el-button type="primary" :loading="submittingForcePwd" @click="handleForcePwdSubmit" style="width: 100%;">
-            保存新密码并进入系统
+            保存新密码并重新登录
           </el-button>
         </div>
       </template>
@@ -231,6 +231,7 @@ import { ElMessage } from "element-plus";
 import { Plus, MagicStick, Bell, Wallet, TrendCharts, Histogram } from "@element-plus/icons-vue";
 import { useDark, useTransition } from '@vueuse/core';
 import * as echarts from "echarts";
+import { clearLoginSessionCookie } from "@/utils/cookie.js";
 // Validator rules for password validation
 import { validatePasswordRule } from "@/utils/validator.js";
 
@@ -351,8 +352,13 @@ const handleForcePwdSubmit = () => {
     request.put('/updatePwd', payload).then(res => {
       submittingForcePwd.value = false;
       if (res.code === 200) {
-        ElMessage.success("密码已成功设置！您已可以使用系统全部功能。");
+        ElMessage.success("初始临时密码重置成功，请使用新密码重新登录！");
         forcePwdVisible.value = false;
+        // 密码重置后立即强制退出登录并跳转至登录页
+        localStorage.removeItem("loginToken");
+        clearLoginSessionCookie();
+        request.post("/logout").catch(() => {});
+        router.replace("/login");
       } else {
         ElMessage.error(res.msg || "修改失败，请检查原临时密码是否正确");
       }

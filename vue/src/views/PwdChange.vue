@@ -29,9 +29,13 @@
 <script setup>
 import { ElMessage } from "element-plus";
 import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
 import request from "@/utils/request.js";
 import {ArrowRight} from "@element-plus/icons-vue";
 import { validatePasswordRule } from "@/utils/validator.js";
+import { clearLoginSessionCookie } from "@/utils/cookie.js";
+
+const router = useRouter();
 
 const validatePass = (rule, value, callback) => {
   if (!value) {
@@ -70,11 +74,11 @@ const updatePwd = () => {
     if (valid) {
       request.put('/updatePwd', data.form).then(res => {
         if (res.code === 200) {
-          ElMessage.success("修改成功")
+          ElMessage.success('密码修改成功，请重新登录')
           localStorage.removeItem('loginToken')
-          setTimeout(() => {
-            location.href = '/login'
-          }, 500)
+          clearLoginSessionCookie()
+          request.post('/logout').catch(() => {})
+          router.replace('/login')
         } else {
           ElMessage.error(res.msg)
         }

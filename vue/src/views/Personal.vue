@@ -433,6 +433,7 @@ import defaultAvatar from "@/assets/avatar.jpg";
 import { useThemePalette } from "@/utils/theme.js";
 
 import { validatePasswordRule, validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
+import { clearLoginSessionCookie } from "@/utils/cookie.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -724,9 +725,9 @@ const submitPwdChange = () => {
           ElMessage.success("密码修改成功，请重新登录");
           pwdDialogVisible.value = false;
           localStorage.removeItem("loginToken");
-          setTimeout(() => {
-            location.href = "/login";
-          }, 500);
+          clearLoginSessionCookie();
+          request.post('/logout').catch(() => {});
+          router.replace('/login');
         } else {
           ElMessage.error(res.msg || "密码修改失败");
         }

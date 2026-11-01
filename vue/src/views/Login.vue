@@ -119,7 +119,7 @@
                   :class="{ active: String(data.form.perm) === '1' }"
                   @click="data.form.perm = '1'"
               >
-                个人用户
+                普通用户
               </div>
               <div
                   class="role-option"
@@ -240,6 +240,7 @@ const handleVideoTimeUpdate = (e) => {
 };
 
 onMounted(() => {
+  data.form.perm = '1';
   applyThemePalette(activeThemeKey.value, isDark.value);
   ensureVideoLooping();
 });
@@ -275,7 +276,7 @@ const data = reactive({
   form: {
     username: remembered.username || '',
     pwd: '',
-    perm: (remembered.perm && String(remembered.perm) === '10') ? '10' : '1'
+    perm: '1'
   },
   rules: {
     username: [
