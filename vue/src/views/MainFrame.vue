@@ -191,7 +191,9 @@
               />
               <div class="user-meta">
                 <span class="user-name">{{ data.user.nickname || data.user.username }}</span>
-                <span class="user-role-badge">{{ data.user.role === 'USER' ? '个人账户' : '管理员' }}</span>
+                <span class="user-role-badge" :class="{ 'is-super-admin': data.user.perm === 15 }">
+                  {{ data.user.perm === 15 ? '超级管理员' : (data.user.perm >= 10 ? '管理员' : '个人账户') }}
+                </span>
               </div>
             </div>
             <template #dropdown>
@@ -861,6 +863,12 @@ html.dark .clock-date {
 .user-role-badge {
   font-size: 11px;
   color: var(--el-text-color-secondary);
+}
+
+.user-role-badge.is-super-admin {
+  color: #ef4444 !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 /* 内容区域与子路由切换过渡动画 */

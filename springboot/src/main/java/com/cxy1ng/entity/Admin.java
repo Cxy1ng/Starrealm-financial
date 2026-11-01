@@ -15,6 +15,15 @@ public class Admin extends Account implements Serializable {
     private Integer perm;
     private String role;
     private String apiKey;
+    private Integer banned; // 0-正常 1-封禁
+
+    public Integer getBanned() {
+        return banned;
+    }
+
+    public void setBanned(Integer banned) {
+        this.banned = banned;
+    }
 
     @Override
     public String getApiKey() {

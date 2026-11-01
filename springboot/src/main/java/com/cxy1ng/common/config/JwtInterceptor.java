@@ -60,7 +60,11 @@ public class JwtInterceptor implements HandlerInterceptor {
             PermEnum role = PermEnum.getRoleByPerm(perm);
             if (userRole.equals(String.valueOf(role))) {
                 if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
-                    account = adminService.selectById(Integer.valueOf(userId));
+                    Admin adm = adminService.selectById(Integer.valueOf(userId));
+                    if (adm != null && Integer.valueOf(1).equals(adm.getBanned())) {
+                        throw new CustomException(401, "您的管理员账号已被超级管理员封禁强制下线");
+                    }
+                    account = adm;
                 } else if (role.equals(PermEnum.USER)) {
                     com.cxy1ng.entity.User u = userService.selectById(Integer.valueOf(userId));
                     if (u != null && Integer.valueOf(1).equals(u.getAccountBanned())) {

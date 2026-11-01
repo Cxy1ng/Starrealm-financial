@@ -24,18 +24,37 @@ public class AdminService {
     @Resource
     private AdminMapper adminMapper;
 
+    @Resource
+    private SiteConfigService siteConfigService;
+
+    private void fillAdminBanStatus(Admin a) {
+        if (a == null || a.getId() == null) return;
+        String val = siteConfigService.getValue("admin_ban_" + a.getId());
+        if (cn.hutool.core.util.StrUtil.isNotBlank(val) && "1".equals(val.trim())) {
+            a.setBanned(1);
+        } else {
+            a.setBanned(0);
+        }
+    }
+
     public List<Admin> selectAll(Admin admin) {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
         if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
-            return adminMapper.selectAll(admin);
+            List<Admin> list = adminMapper.selectAll(admin);
+            if (list != null) {
+                list.forEach(this::fillAdminBanStatus);
+            }
+            return list;
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
         }
     }
 
     public Admin selectById(Integer id) {
-        return adminMapper.selectById(id);
+        Admin a = adminMapper.selectById(id);
+        fillAdminBanStatus(a);
+        return a;
     }
 
     public PageInfo<Admin> selectPage(Admin admin, Integer pageNum, Integer pageSize) {
@@ -44,6 +63,9 @@ public class AdminService {
         if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
             PageHelper.startPage(pageNum, pageSize);
             List<Admin> list = adminMapper.selectAll(admin);
+            if (list != null) {
+                list.forEach(this::fillAdminBanStatus);
+            }
             return PageInfo.of(list);
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
@@ -125,6 +147,31 @@ public class AdminService {
         }
     }
 
+    public void updateBanStatus(Admin req) {
+        Account currentUser = TokenUtils.getCurrentUser();
+        PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
+        if (!PermEnum.SUPER_ADMIN.equals(role)) {
+            throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
+        }
+        if (req == null || req.getId() == null) {
+            throw new CustomException(ResultCodeEnum.PARAM_LOST_ERROR);
+        }
+        Admin target = adminMapper.selectById(req.getId());
+        if (target == null) {
+            throw new CustomException(ResultCodeEnum.USER_NOT_EXIST_ERROR);
+        }
+        if (target.getPerm() != null && target.getPerm() >= 15) {
+            throw new CustomException(400, "不可封禁超级管理员账号");
+        }
+        String key = "admin_ban_" + req.getId();
+        int banned = (req.getBanned() != null && req.getBanned() == 1) ? 1 : 0;
+        if (banned == 1) {
+            siteConfigService.putSystemValue(key, "1", "管理员账号封禁状态", currentUser.getUsername());
+        } else {
+            siteConfigService.putSystemValue(key, "0", "管理员账号封禁状态", currentUser.getUsername());
+        }
+    }
+
     public void deleteBatch(List<Integer> ids) {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
@@ -145,6 +192,10 @@ public class AdminService {
         }
         if (!account.getPwd().equals(dbAdmin.getPwd())) {
             throw new CustomException(ResultCodeEnum.USER_ACCOUNT_ERROR);
+        }
+        fillAdminBanStatus(dbAdmin);
+        if (Integer.valueOf(1).equals(dbAdmin.getBanned())) {
+            throw new CustomException(401, "您的管理员账号已被超级管理员封禁，无法登录系统后台");
         }
         if (StrUtil.isBlank(dbAdmin.getRole())) {
             dbAdmin.setRole(String.valueOf(PermEnum.getRoleByPerm(dbAdmin.getPerm())));

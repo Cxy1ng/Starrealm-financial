@@ -78,48 +78,51 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280">
+        <el-table-column label="操作" width="310" align="center" fixed="right">
           <template #default="scope">
-            <el-button
-                link
-                @click="handleUpdate(scope.row)"
-                :icon="Edit">
-              编辑
-            </el-button>
-            <el-button
-                link
-                type="primary"
-                @click="handleOpenAiAudit(scope.row)"
-                :icon="Warning"
-            >
-              AI审核
-            </el-button>
-            <el-button
-                v-if="scope.row.accountBanned === 1 || scope.row.banned === 1"
-                link
-                type="success"
-                @click="handleUnban(scope.row)"
-                :icon="Unlock"
-            >
-              解封账号
-            </el-button>
-            <el-button
-                v-else
-                link
-                type="warning"
-                @click="handleOpenBan(scope.row)"
-                :icon="Lock"
-            >
-              封禁账号
-            </el-button>
-            <el-button
-                link
-                type="danger"
-                @click="handleDelete(scope.row.id)"
-                :icon="Delete"
-            >
-              删除
-            </el-button>
+            <div class="table-action-group">
+              <el-button
+                  link
+                  type="primary"
+                  @click="handleUpdate(scope.row)"
+                  :icon="Edit">
+                编辑
+              </el-button>
+              <el-button
+                  link
+                  type="warning"
+                  @click="handleOpenAiAudit(scope.row)"
+                  :icon="Warning"
+              >
+                AI审核
+              </el-button>
+              <el-button
+                  v-if="scope.row.accountBanned === 1 || scope.row.banned === 1"
+                  link
+                  type="success"
+                  @click="handleUnban(scope.row)"
+                  :icon="Unlock"
+              >
+                解封
+              </el-button>
+              <el-button
+                  v-else
+                  link
+                  type="warning"
+                  @click="handleOpenBan(scope.row)"
+                  :icon="Lock"
+              >
+                封禁
+              </el-button>
+              <el-button
+                  link
+                  type="danger"
+                  @click="handleDelete(scope.row.id)"
+                  :icon="Delete"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

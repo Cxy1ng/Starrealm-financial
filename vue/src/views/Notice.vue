@@ -25,22 +25,25 @@
         <el-table-column label="内容" prop="content" show-overflow-tooltip/>
         <el-table-column label="发布时间" prop="time" show-overflow-tooltip/>
         <el-table-column label="发布者" prop="user" show-overflow-tooltip/>
-        <el-table-column label="操作">
+        <el-table-column label="操作" width="160" align="center" fixed="right">
           <template #default="scope">
-            <el-button
-                link
-                @click="handleUpdate(scope.row)"
-                :icon="Edit">
-              编辑
-            </el-button>
-            <el-button
-                link
-                type="danger"
-                @click="handleDelete(scope.row.id)"
-                :icon="Delete"
-            >
-              删除
-            </el-button>
+            <div class="table-action-group">
+              <el-button
+                  link
+                  type="primary"
+                  @click="handleUpdate(scope.row)"
+                  :icon="Edit">
+                编辑
+              </el-button>
+              <el-button
+                  link
+                  type="danger"
+                  @click="handleDelete(scope.row.id)"
+                  :icon="Delete"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>

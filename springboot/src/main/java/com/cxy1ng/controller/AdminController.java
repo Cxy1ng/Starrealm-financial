@@ -52,6 +52,12 @@ public class AdminController {
         return Result.success();
     }
 
+    @PutMapping("/ban")
+    public Result ban(@RequestBody Admin admin) {
+        adminService.updateBanStatus(admin);
+        return Result.success();
+    }
+
     @DeleteMapping("/delete/{id}")
     public Result deleteById(@PathVariable Integer id) {
         adminService.deleteById(id);
