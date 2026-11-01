@@ -231,6 +231,7 @@ import { ElMessage } from "element-plus";
 import { Plus, MagicStick, Bell, Wallet, TrendCharts, Histogram } from "@element-plus/icons-vue";
 import { useDark, useTransition } from '@vueuse/core';
 import * as echarts from "echarts";
+// Validator rules for password validation
 import { validatePasswordRule } from "@/utils/validator.js";
 
 const router = useRouter();

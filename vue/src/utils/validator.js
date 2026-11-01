@@ -15,24 +15,27 @@ export const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 export function validatePasswordStrength(pwd) {
   if (!pwd) return { valid: false, message: '请输入密码' };
   if (pwd.length < 8 || pwd.length > 20) {
-    return { valid: false, message: '密码长度必须在 8-20 位之间' };
+    return { valid: false, message: '密码长度必须为 8-20 位' };
   }
-  if (!/(?=.*[a-z])/.test(pwd)) {
+  if (!/[a-z]/.test(pwd)) {
     return { valid: false, message: '密码必须包含至少一个小写字母 (a-z)' };
   }
-  if (!/(?=.*[A-Z])/.test(pwd)) {
+  if (!/[A-Z]/.test(pwd)) {
     return { valid: false, message: '密码必须包含至少一个大写字母 (A-Z)' };
   }
-  if (!/(?=.*\d)/.test(pwd)) {
+  if (!/\d/.test(pwd)) {
     return { valid: false, message: '密码必须包含至少一个数字 (0-9)' };
   }
-  if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~])/.test(pwd)) {
-    return { valid: false, message: '密码必须包含至少一个特殊符号 (如 @, #, $, ! 等)' };
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pwd)) {
+    return { valid: false, message: '密码必须包含至少一个特殊符号（如 !@#$%^&* 等）' };
   }
   return { valid: true };
 }
 
-export const passwordValidator = (rule, value, callback) => {
+/**
+ * Element Plus 表单校验规则函数：强密码校验
+ */
+export const validatePasswordRule = (rule, value, callback) => {
   if (!value) {
     return callback(new Error('请输入密码'));
   }
@@ -43,77 +46,60 @@ export const passwordValidator = (rule, value, callback) => {
   callback();
 };
 
-export const phoneValidator = (rule, value, callback) => {
+/**
+ * Element Plus 表单校验规则函数：手机号格式校验
+ */
+export const validatePhoneRule = (rule, value, callback) => {
   if (!value) {
-    return callback(new Error('请输入手机号码'));
+    return callback(); // 非必填时由 required 规则控制；若填写则校验格式
   }
-  const trimmed = String(value).trim();
-  if (!PHONE_REGEX.test(trimmed)) {
-    return callback(new Error('请输入正确的11位手机号码（如13800138000）'));
-  }
-  callback();
-};
-
-export const optionalPhoneValidator = (rule, value, callback) => {
-  if (!value) {
-    return callback();
-  }
-  const trimmed = String(value).trim();
-  if (!PHONE_REGEX.test(trimmed)) {
-    return callback(new Error('请输入正确的11位手机号码'));
-  }
-  callback();
-};
-
-export const emailValidator = (rule, value, callback) => {
-  if (!value) {
-    return callback(new Error('请输入电子邮箱'));
-  }
-  const trimmed = String(value).trim();
-  if (!EMAIL_REGEX.test(trimmed)) {
-    return callback(new Error('请输入合法的邮箱地址（如 example@domain.com）'));
-  }
-  callback();
-};
-
-export const optionalEmailValidator = (rule, value, callback) => {
-  if (!value) {
-    return callback();
-  }
-  const trimmed = String(value).trim();
-  if (!EMAIL_REGEX.test(trimmed)) {
-    return callback(new Error('请输入合法的邮箱地址'));
+  if (!PHONE_REGEX.test(value)) {
+    return callback(new Error('请输入规范的11位手机号（以1开头的有效号段）'));
   }
   callback();
 };
 
 /**
- * 前端随机强密码生成器（同时满足8-20位、大小写字母、数字与特殊字符）
+ * Element Plus 表单校验规则函数：邮箱格式校验
+ */
+export const validateEmailRule = (rule, value, callback) => {
+  if (!value) {
+    return callback(); // 非必填时由 required 规则控制；若填写则校验格式
+  }
+  if (!EMAIL_REGEX.test(value)) {
+    return callback(new Error('请输入有效的邮箱地址（格式如 user@domain.com）'));
+  }
+  callback();
+};
+
+/**
+ * 前端生成符合规则的高强度临时密码
  */
 export function generateStrongPassword(length = 14) {
-  const lower = 'abcdefghijkmnpqrstuvwxyz';
-  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const digits = '23456789';
-  const symbols = '!@#$%^&*_-+=';
+  const lowers = 'abcdefghijklmnopqrstuvwxyz';
+  const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const specials = '!@#$%^&*()_+-=';
 
-  const len = Math.max(10, Math.min(20, length));
-  const chars = [
-    lower[Math.floor(Math.random() * lower.length)],
-    upper[Math.floor(Math.random() * upper.length)],
-    digits[Math.floor(Math.random() * digits.length)],
-    symbols[Math.floor(Math.random() * symbols.length)]
+  const randomPick = (chars) => chars[Math.floor(Math.random() * chars.length)];
+
+  let pwd = [
+    randomPick(lowers),
+    randomPick(uppers),
+    randomPick(digits),
+    randomPick(specials)
   ];
 
-  const all = lower + upper + digits + symbols;
-  while (chars.length < len) {
-    chars.push(all[Math.floor(Math.random() * all.length)]);
+  const all = lowers + uppers + digits + specials;
+  for (let i = 4; i < length; i++) {
+    pwd.push(randomPick(all));
   }
 
-  // 洗牌打乱
-  for (let i = chars.length - 1; i > 0; i--) {
+  // 洗牌
+  for (let i = pwd.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [chars[i], chars[j]] = [chars[j], chars[i]];
+    [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
   }
 
-  return chars.join('');
+  return pwd.join('');
 }
