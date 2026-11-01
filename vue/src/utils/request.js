@@ -11,7 +11,9 @@ export const request = axios.create({
 request.interceptors.request.use(config => {
     config.headers['Content-Type'] = 'application/json; charset=UTF-8';
     let user = JSON.parse(localStorage.getItem("loginToken") || '{}');
-    config.headers['token'] = user.token
+    if (user && user.token) {
+        config.headers['token'] = user.token;
+    }
     return config
 }, error => {
     console.error('request error: ' + error)
@@ -24,12 +26,17 @@ request.interceptors.response.use(
         if (typeof res === 'string') {
             res = res ? JSON.parse(res) : res
         }
-        if (res.code === 401 || res.code === 5012) {
-            ElMessage.error(res.msg)
-            if (res.code === 5012) {
-                localStorage.removeItem('loginToken')
+        if (res.code === 401) {
+            const currentToken = JSON.parse(localStorage.getItem("loginToken") || '{}')?.token;
+            const currentPath = router.currentRoute?.value?.path || window.location.pathname;
+            localStorage.removeItem("loginToken");
+            // 仅在用户原本处于登录状态且不在登录/注册页时提示（主动退出登录时不弹出“无效的token”）
+            if (currentToken && currentPath !== '/login' && currentPath !== '/register') {
+                ElMessage.error(res.msg);
             }
-            router.push('/login')
+            if (currentPath !== '/login' && currentPath !== '/register') {
+                router.replace('/login');
+            }
         }
         return res;
     },

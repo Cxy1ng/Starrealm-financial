@@ -31,20 +31,54 @@
         </el-table-column>
         <el-table-column label="手机号" prop="phone" />
         <el-table-column label="邮箱" prop="email" show-overflow-tooltip/>
-        <el-table-column label="生日" prop="birth" />
-        <el-table-column label="账号状态" width="120" align="center">
+        <el-table-column label="账号状态 (内容合规)" width="145" align="center">
           <template #default="scope">
             <el-tooltip
-                v-if="scope.row.banned === 1"
-                :content="'封禁原因：' + (scope.row.banReason || '违反《星界用户服务协议》') + (scope.row.banTime ? ' (' + scope.row.banTime + ')' : '')"
+                v-if="scope.row.accountBanned === 1 || scope.row.banned === 1"
+                :content="'账号封禁原因：' + (scope.row.accountBanReason || scope.row.banReason || '存钱日记/计划/简介内容违规') + (scope.row.accountBanTime ? ' (' + scope.row.accountBanTime + ')' : '')"
                 placement="top"
             >
-              <el-tag type="danger" effect="dark" size="small">已封禁</el-tag>
+              <el-tag type="danger" effect="dark" size="small">账号已封禁</el-tag>
             </el-tooltip>
-            <el-tag v-else type="success" effect="light" size="small">正常</el-tag>
+            <el-tag v-else type="success" effect="light" size="small">正常登录</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220">
+        <el-table-column label="AI 对话与 24h 违规审计" width="230" align="center">
+          <template #default="scope">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+              <el-tooltip
+                  v-if="scope.row.aiBanned === 1"
+                  :content="`第 ${scope.row.aiBanCount || scope.row.aiBanLevel || 1} 次封禁 (${scope.row.aiBanDuration || '24小时'}) | 原因：${scope.row.aiBanReason || '24h违规超限'} | 到期：${scope.row.aiBanExpireTime || '永久'}`"
+                  placement="top"
+              >
+                <el-tag type="danger" effect="dark" size="small" style="cursor: pointer;" @click="handleOpenAiAudit(scope.row)">
+                  AI封禁 · {{ scope.row.aiBanDuration || '24小时' }}
+                </el-tag>
+              </el-tooltip>
+              <el-tag
+                  v-else
+                  :type="(scope.row.aiBanCount || 0) > 0 ? 'warning' : 'primary'"
+                  effect="plain"
+                  size="small"
+                  style="cursor: pointer;"
+                  @click="handleOpenAiAudit(scope.row)"
+              >
+                AI正常{{ (scope.row.aiBanCount || 0) > 0 ? ` (累犯${scope.row.aiBanCount}次)` : '' }}
+              </el-tag>
+
+              <el-tag
+                  :type="(scope.row.violationCount24h || 0) > 0 ? 'warning' : 'info'"
+                  effect="light"
+                  size="small"
+                  style="cursor: pointer;"
+                  @click="handleOpenAiAudit(scope.row)"
+              >
+                24h违规: {{ scope.row.violationCount24h || 0 }}
+              </el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="280">
           <template #default="scope">
             <el-button
                 link
@@ -53,13 +87,21 @@
               编辑
             </el-button>
             <el-button
-                v-if="scope.row.banned === 1"
+                link
+                type="primary"
+                @click="handleOpenAiAudit(scope.row)"
+                :icon="Warning"
+            >
+              AI审核
+            </el-button>
+            <el-button
+                v-if="scope.row.accountBanned === 1 || scope.row.banned === 1"
                 link
                 type="success"
                 @click="handleUnban(scope.row)"
                 :icon="Unlock"
             >
-              解封
+              解封账号
             </el-button>
             <el-button
                 v-else
@@ -68,7 +110,7 @@
                 @click="handleOpenBan(scope.row)"
                 :icon="Lock"
             >
-              封禁
+              封禁账号
             </el-button>
             <el-button
                 link
@@ -154,10 +196,11 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="data.banVisible" title="封禁违规账号" width="460px" :close-on-click-modal="false" destroy-on-close>
+    <!-- 账号封禁弹窗：仅针对存钱日记、存钱计划、个人简介等社区内容违规 -->
+    <el-dialog v-model="data.banVisible" title="封禁违规账号（存钱日记 / 存钱计划 / 个人简介违规）" width="500px" :close-on-click-modal="false" destroy-on-close>
       <el-form :model="data.banForm" label-position="top" style="padding: 4px 10px 0;">
         <el-alert
-            title="封禁后该用户将立即被强制下线且无法登录星界平台，直至管理员解除封禁。"
+            title="注意：全账号封禁仅适用于「存钱日记」、「存钱计划」或「个人简介」出现违规违禁内容。封禁后该用户将被强制下线且无法登录。若仅需限制 AI 对话功能，请使用【AI审核】。"
             type="warning"
             :closable="false"
             show-icon
@@ -166,7 +209,7 @@
         <el-form-item label="目标账号">
           <el-input :model-value="data.banForm.username + (data.banForm.nickname ? ' (' + data.banForm.nickname + ')' : '')" disabled />
         </el-form-item>
-        <el-form-item label="快捷违规原因">
+        <el-form-item label="快捷违规原因（日记 / 计划 / 简介违规）">
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
             <el-tag
                 v-for="preset in banReasonPresets"
@@ -187,14 +230,159 @@
               :rows="3"
               maxlength="120"
               show-word-limit
-              placeholder="请输入封禁原因"
+              placeholder="请输入账号封禁原因"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="data.banVisible = false">取消</el-button>
-          <el-button type="danger" @click="confirmBan">确认封禁</el-button>
+          <el-button type="danger" @click="confirmBan">确认封禁账号</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- AI 安全审计与阶梯封禁统一审核弹窗 -->
+    <el-dialog
+        v-model="data.aiAuditVisible"
+        :title="`AI 安全审计与阶梯封禁管理 — ${data.aiAuditRow.username || ''}`"
+        width="720px"
+        :close-on-click-modal="false"
+        destroy-on-close
+    >
+      <div style="padding: 0 6px;">
+        <!-- 阶梯规则提示 -->
+        <el-alert
+            title="阶梯式 AI 封禁规则：24 小时内累计违规超过 10 次将自动封禁 AI 对话功能。第 1 次封禁 24 小时 · 第 2 次封禁 3 天 · 第 3 次封禁 1 个月 · 第 4 次永久封禁。管理员可在此统一审核、解除或降级处罚。"
+            type="info"
+            :closable="false"
+            show-icon
+            style="margin-bottom: 14px;"
+        />
+
+        <!-- 当前封禁状态概览卡片 -->
+        <div style="padding: 12px 16px; border-radius: 10px; background: var(--el-fill-color-light); margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+              <span style="font-weight: 700; font-size: 14px;">当前 AI 权限状态：</span>
+              <el-tag v-if="data.aiAuditRow.aiBanned === 1" type="danger" effect="dark" size="small">
+                已封禁（第 {{ data.aiAuditRow.aiBanLevel || 1 }} 档 · {{ data.aiAuditRow.aiBanDuration || '24小时' }}）
+              </el-tag>
+              <el-tag v-else type="success" effect="dark" size="small">正常可用</el-tag>
+              <el-tag type="warning" effect="plain" size="small">
+                累计触发封禁：{{ data.aiAuditRow.aiBanCount || 0 }} 次
+              </el-tag>
+              <el-tag type="info" effect="plain" size="small">
+                24h 内违规：{{ data.aiAuditLogs.length }} 次
+              </el-tag>
+            </div>
+            <div v-if="data.aiAuditRow.aiBanned === 1" style="font-size: 12.5px; color: var(--el-text-color-regular); line-height: 1.6;">
+              <div><strong>封禁原因：</strong>{{ data.aiAuditRow.aiBanReason || '24 小时内累计违规超过 10 次自动处分' }}</div>
+              <div>
+                <strong>封禁时间：</strong>{{ data.aiAuditRow.aiBanTime || '-' }}
+                <span style="margin: 0 8px;">|</span>
+                <strong>封禁时长：</strong>{{ data.aiAuditRow.aiBanDuration || '24小时' }}
+                <span style="margin: 0 8px;">|</span>
+                <strong>预计解封：</strong>{{ data.aiAuditRow.aiBanExpireTime || '永久' }}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <el-button
+                v-if="data.aiAuditRow.aiBanned === 1"
+                type="success"
+                size="small"
+                @click="submitAiAudit('UNBAN', false)"
+            >
+              解除当前封禁
+            </el-button>
+            <el-button
+                v-if="data.aiAuditRow.aiBanned === 1 || (data.aiAuditRow.aiBanCount || 0) > 0"
+                type="primary"
+                plain
+                size="small"
+                @click="submitAiAudit('UNBAN', true)"
+            >
+              解封并重置累犯阶梯为 0
+            </el-button>
+          </div>
+        </div>
+
+        <!-- 审核降级 / 手动调整处罚档位 -->
+        <el-card shadow="never" style="margin-bottom: 16px;">
+          <template #header>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-weight: 700; font-size: 13.5px;">管理员审核降级 / 调整 AI 封禁档位</span>
+              <span style="font-size: 12px; color: var(--el-text-color-secondary);">支持将永久/长时封禁降级为低档位，或手动执行阶梯封禁</span>
+            </div>
+          </template>
+          <el-form :model="data.aiAuditForm" label-position="top">
+            <el-form-item label="选择目标处罚档位">
+              <el-radio-group v-model="data.aiAuditForm.targetLevel">
+                <el-radio-button :value="1">第 1 档：24 小时</el-radio-button>
+                <el-radio-button :value="2">第 2 档：3 天</el-radio-button>
+                <el-radio-button :value="3">第 3 档：1 个月</el-radio-button>
+                <el-radio-button :value="4">第 4 档：永久封禁</el-radio-button>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="审核处理原因说明（将同步显示在用户 AI 输入框上方的封禁通知气泡中）">
+              <el-input
+                  v-model="data.aiAuditForm.reason"
+                  placeholder="可填写降级或处分原因，留空将自动生成规范说明"
+                  maxlength="140"
+                  show-word-limit
+              />
+            </el-form-item>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <el-button
+                  v-if="data.aiAuditRow.aiBanned === 1 && data.aiAuditForm.targetLevel < (data.aiAuditRow.aiBanLevel || 4)"
+                  type="warning"
+                  @click="submitAiAudit('DOWNGRADE')"
+              >
+                确认降级为第 {{ data.aiAuditForm.targetLevel }} 档
+              </el-button>
+              <el-button
+                  type="danger"
+                  plain
+                  @click="submitAiAudit('BAN')"
+              >
+                应用第 {{ data.aiAuditForm.targetLevel }} 档 AI 封禁
+              </el-button>
+            </div>
+          </el-form>
+        </el-card>
+
+        <!-- 24 小时内 AI 违规行为记录表格 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-weight: 700; font-size: 13.5px;">最近 24 小时内 AI 违规拦截记录（共 {{ data.aiAuditLogs.length }} 条）</span>
+          <el-button
+              v-if="data.aiAuditLogs.length > 0"
+              link
+              type="danger"
+              size="small"
+              @click="submitAiAudit('CLEAR_VIOLATIONS')"
+          >
+            清空 24h 违规记录
+          </el-button>
+        </div>
+        <el-table :data="data.aiAuditLogs" size="small" border max-height="230" empty-text="最近 24 小时内无任何 AI 违规行为记录">
+          <el-table-column label="时间" prop="time" width="155" />
+          <el-table-column label="拦截防线" prop="source" width="135" />
+          <el-table-column label="违规类型" prop="category" width="175" show-overflow-tooltip />
+          <el-table-column label="拦截摘要" prop="snippet" show-overflow-tooltip />
+          <el-table-column label="状态" width="85" align="center">
+            <template #default="scope">
+              <el-tag :type="scope.row.settled ? 'info' : 'warning'" size="small">
+                {{ scope.row.settled ? '已处分' : '计次中' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="data.aiAuditVisible = false">关闭</el-button>
         </div>
       </template>
     </el-dialog>
@@ -203,15 +391,16 @@
 
 <script setup>
 import {reactive, ref} from "vue";
-import {Delete, Edit, Female, Lock, Male, Plus, Search, Unlock} from "@element-plus/icons-vue";
+import {Delete, Edit, Female, Lock, Male, Plus, Search, Unlock, Warning} from "@element-plus/icons-vue";
 import {request} from "@/utils/request.js";
 import {ElMessage, ElMessageBox} from 'element-plus'
 
+// 账号封禁原因预设：严格对应存钱日记、存钱计划、个人简介等社区内容违规
 const banReasonPresets = [
-  '违反《星界用户服务协议》第 4.2 条：恶意提示词注入或诱导 AI 角色扮演越狱',
-  '违反《星界用户服务协议》第 4.1 条：发送涉政、色情或违禁违规内容',
-  '违反《星界用户服务协议》第 3.3 条：异常高频滥用平台公共 AI 算力配额',
-  '账号存在安全风险或异常登录行为，暂时冻结保护'
+  '存钱日记（理财日记）包含违禁、低俗或违法违规内容，违反《星界用户服务协议》',
+  '存钱计划标题或详情存在违规导流、欺诈或不良信息',
+  '个人简介或昵称包含违禁敏感词汇、冒充官方或恶意营销信息',
+  '多次在存钱日记/存钱计划/个人简介中发布违规内容，屡教不改'
 ]
 
 const data = reactive({
@@ -227,6 +416,13 @@ const data = reactive({
     username: '',
     nickname: '',
     banReason: ''
+  },
+  aiAuditVisible: false,
+  aiAuditRow: {},
+  aiAuditLogs: [],
+  aiAuditForm: {
+    targetLevel: 1,
+    reason: ''
   },
   ids:[],
   rules: {
@@ -271,6 +467,57 @@ const handleAdd = () => {
 const handleUpdate = (row) => {
   data.form = JSON.parse(JSON.stringify(row))
   data.formVisible = true
+}
+
+const handleOpenAiAudit = (row) => {
+  data.aiAuditRow = JSON.parse(JSON.stringify(row))
+  let logs = []
+  try {
+    logs = JSON.parse(row.violationLogs || '[]')
+  } catch {
+    logs = []
+  }
+  data.aiAuditLogs = Array.isArray(logs) ? logs.slice().reverse() : []
+  const currentLvl = row.aiBanLevel || 1
+  data.aiAuditForm = {
+    targetLevel: row.aiBanned === 1 && currentLvl > 1 ? currentLvl - 1 : currentLvl,
+    reason: row.aiBanReason || ''
+  }
+  data.aiAuditVisible = true
+}
+
+const submitAiAudit = (action, resetCount = false) => {
+  const userId = data.aiAuditRow.id
+  if (!userId) return
+  request.put('/user/aiBan', {
+    userId,
+    action,
+    resetCount,
+    targetLevel: data.aiAuditForm.targetLevel,
+    reason: data.aiAuditForm.reason
+  }).then(res => {
+    if (res.code === 200) {
+      ElMessage.success('AI 安全审核操作已生效')
+      request.get('/user/selectPage', {
+        params: {
+          pageNum: data.pageNum,
+          pageSize: data.pageSize,
+          username: data.username,
+        }
+      }).then(pageRes => {
+        data.tableData = pageRes.data.list
+        data.total = pageRes.data.total
+        const updated = data.tableData.find(u => u.id === userId)
+        if (updated) {
+          handleOpenAiAudit(updated)
+        } else {
+          data.aiAuditVisible = false
+        }
+      })
+    } else {
+      ElMessage.error(res.msg || '操作失败')
+    }
+  })
 }
 
 const handleOpenBan = (row) => {

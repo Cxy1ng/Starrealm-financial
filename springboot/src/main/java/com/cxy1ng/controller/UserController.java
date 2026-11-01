@@ -58,6 +58,12 @@ public class UserController {
         return Result.success();
     }
 
+    @PutMapping("/aiBan")
+    public Result auditAiBan(@RequestBody java.util.Map<String, Object> payload) {
+        userService.auditAiBan(payload);
+        return Result.success();
+    }
+
     @DeleteMapping("/delete/{id}")
     public Result deleteById(@PathVariable Integer id) {
         userService.deleteById(id);

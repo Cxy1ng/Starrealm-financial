@@ -279,13 +279,56 @@
 
     <!-- ================= 子页面底部正中央悬浮云母输入坞 (Floating Dock) ================= -->
     <div class="floating-dock-wrapper">
-      <div class="mica-composer-dock" :class="{ 'is-focused': inputFocused }">
+      <!-- 当用户的 AI 对话功能被封禁时，在输入框正上方展示不可关闭的输入框同款等宽云母气泡（含小标题、Icon、封禁用语、封禁原因、封禁时间、封禁时长与联系我们按钮） -->
+      <Transition name="ban-banner-pop">
+        <div v-if="aiBanState.banned" class="mica-ban-notice-bar">
+          <div class="ban-notice-main">
+            <div class="ban-shield-icon">
+              <el-icon :size="20"><Lock /></el-icon>
+            </div>
+            <div class="ban-notice-text">
+              <div class="ban-headline-row">
+                <span class="ban-headline">AI 智能对话功能已受限</span>
+                <span class="ban-level-pill num-font">
+                  封禁时长：{{ aiBanState.banDuration || '24小时' }}
+                </span>
+              </div>
+              <div class="ban-statement">
+                因检测到您的账户存在违反
+                <button type="button" class="legal-inline-link" @click="openLegalDoc('agreement')">《星界用户服务协议》</button>
+                的提问行为，当前 AI 智能对话功能已暂停使用。
+              </div>
+              <div class="ban-sub-reason">
+                封禁原因：{{ aiBanState.banReason || '多次发送违反《星界用户服务协议》的受限或敏感内容' }}
+              </div>
+              <div class="ban-meta-row num-font">
+                <span><el-icon style="vertical-align: -2px; margin-right: 3px"><Clock /></el-icon>封禁时间：{{ aiBanState.banTime || '刚刚' }}</span>
+                <span class="meta-divider">|</span>
+                <span>封禁时长：<strong>{{ aiBanState.banDuration || '24小时' }}</strong></span>
+                <span class="meta-divider" v-if="aiBanState.banExpireTime">|</span>
+                <span v-if="aiBanState.banExpireTime">预计解封：{{ aiBanState.banExpireTime }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ban-notice-right">
+            <ContactSupportPopover
+                variant="banner"
+                placement="top-end"
+                button-text="联系我们"
+            />
+          </div>
+        </div>
+      </Transition>
+
+      <div class="mica-composer-dock" :class="{ 'is-focused': inputFocused, 'is-disabled-dock': aiBanState.banned }">
         <!-- 自适应多行输入框 -->
         <el-input
             v-model="data.input"
             type="textarea"
+            :disabled="aiBanState.banned"
             :autosize="{ minRows: 2, maxRows: 5 }"
-            placeholder="输入您想分析的财务问题（Enter 发送，Shift + Enter 换行）..."
+            :placeholder="aiBanState.banned ? '您的 AI 对话权限已被限制，暂无法发送消息，请点击上方「联系我们」申诉解封...' : '输入您想分析的财务问题（Enter 发送，Shift + Enter 换行）...'"
             class="dock-textarea"
             @focus="inputFocused = true"
             @blur="inputFocused = false"
@@ -310,7 +353,7 @@
             </Transition>
             <span v-if="!hasStartedChat" class="dock-hint">
               <el-icon><InfoFilled /></el-icon>
-              <span>提问后上方饼图将自动收纳至此，随时点击呼出</span>
+              <span>{{ aiBanState.banned ? '您的账单记账与图表功能仍可正常使用' : '提问后上方饼图将自动收纳至此，随时点击呼出' }}</span>
             </span>
           </div>
 
@@ -319,16 +362,54 @@
                 type="primary"
                 class="embedded-send-btn"
                 :loading="isStreaming"
-                :disabled="!data.input.trim() && !isStreaming"
+                :disabled="aiBanState.banned || (!data.input.trim() && !isStreaming)"
                 @click="analyze"
             >
-              <span>{{ isStreaming ? '思考中' : '发送分析' }}</span>
-              <el-icon v-if="!isStreaming" style="margin-left: 5px"><Promotion /></el-icon>
+              <span>{{ aiBanState.banned ? '已受限' : (isStreaming ? '思考中' : '发送分析') }}</span>
+              <el-icon v-if="!isStreaming && !aiBanState.banned" style="margin-left: 5px"><Promotion /></el-icon>
             </el-button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 与登录/注册页同款的《星界用户服务协议》与《隐私保护政策》悬浮窗 -->
+    <LegalAgreementDialog
+        v-model="legalDialogVisible"
+        v-model:activeTab="legalActiveTab"
+        @agree="legalDialogVisible = false"
+    />
+
+    <!-- 误判反馈 / 联系我们弹窗（当点击拦截提示中的“提交反馈”链接时呼出） -->
+    <el-dialog
+        v-model="feedbackDialogVisible"
+        title="提交反馈 · 客户支持与申诉"
+        width="400px"
+        destroy-on-close
+    >
+      <div class="feedback-dialog-body">
+        <p class="feedback-tip">
+          如果您认为刚才的提示词拦截属于误判，或对 AI 对话限制有疑问，请通过以下方式联系我们：
+        </p>
+        <div class="feedback-info-box">
+          <div class="feedback-row">
+            <span class="fb-label">官方邮箱：</span>
+            <span class="fb-val num-font">starrealm@contact-us.com</span>
+          </div>
+          <div class="feedback-row">
+            <span class="fb-label">传真电话：</span>
+            <span class="fb-val num-font">+86 (021) 5089-7720 / FAX-7729</span>
+          </div>
+          <div class="feedback-row">
+            <span class="fb-label">工作时间：</span>
+            <span class="fb-val num-font">09:00 - 12:00 ， 14:00 - 18:00</span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="feedbackDialogVisible = false">我知道了</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -355,13 +436,25 @@ import {
   CopyDocument,
   Clock,
   Collection,
-  Plus
+  Plus,
+  Lock
 } from '@element-plus/icons-vue'
 import { useDark } from '@vueuse/core'
 import MarkdownIt from 'markdown-it'
+import ContactSupportPopover from '@/components/ContactSupportPopover.vue'
+import LegalAgreementDialog from '@/components/LegalAgreementDialog.vue'
+import { inspectUserPromptLocally } from '@/utils/aiGuardrail.js'
 
 const router = useRouter()
 const isDark = useDark()
+const legalDialogVisible = ref(false)
+const legalActiveTab = ref('agreement')
+const feedbackDialogVisible = ref(false)
+
+const openLegalDoc = (tab = 'agreement') => {
+  legalActiveTab.value = tab
+  legalDialogVisible.value = true
+}
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true, breaks: true })
 
 const escapeHtml = (str = '') =>
@@ -407,8 +500,23 @@ md.renderer.rules.table_close = () => {
 
 const renderMarkdown = (txt) => md.render(txt || '')
 
-// 处理代码块与表格的一键复制交互及成功气泡提示
+// 处理代码块与表格的一键复制交互，以及拦截提示中的《星界用户服务协议》和「提交反馈」内嵌链接点击
 const handleMarkdownBlockCopy = async (event) => {
+  const linkEl = event.target?.closest?.('a')
+  if (linkEl) {
+    const href = linkEl.getAttribute('href') || ''
+    if (href === '#xingjie-agreement') {
+      event.preventDefault()
+      openLegalDoc('agreement')
+      return
+    }
+    if (href === '#xingjie-feedback') {
+      event.preventDefault()
+      feedbackDialogVisible.value = true
+      return
+    }
+  }
+
   const btn = event.target?.closest?.('.md-copy-btn')
   if (!btn) return
   const card = btn.closest('.md-block-card')
@@ -517,13 +625,43 @@ const quickStarters = [
   }
 ]
 
-// ==================== 模型连通性状态检测 ====================
+// ==================== 模型连通性状态检测 & AI 阶梯封禁状态 ====================
 const connStatus = reactive({
   checking: false,
   connected: false,
   state: 'checking',
   message: '正在检测模型连通性...'
 })
+
+const aiBanState = reactive({
+  banned: false,
+  banLevel: 0,
+  banCount: 0,
+  banReason: '',
+  banTime: '',
+  banDuration: '',
+  banExpireTime: '',
+  violationCount24h: 0
+})
+
+const applyBanMetaFromPayload = (payload = {}) => {
+  const isBanned = payload.aiBanned === true || payload.aiBanned === 1 || payload.banned === 1
+  aiBanState.banned = isBanned
+  aiBanState.banLevel = Number(payload.aiBanLevel || 0)
+  aiBanState.banCount = Number(payload.aiBanCount || 0)
+  aiBanState.banReason = payload.aiBanReason || payload.banReason || ''
+  aiBanState.banTime = payload.aiBanTime || payload.banTime || ''
+  aiBanState.banDuration = payload.aiBanDuration || payload.banDuration || (aiBanState.banLevel === 1 ? '24小时' : aiBanState.banLevel === 2 ? '3天' : aiBanState.banLevel === 3 ? '1个月' : aiBanState.banLevel >= 4 ? '永久' : '')
+  aiBanState.banExpireTime = payload.aiBanExpireTime || payload.banExpireTime || ''
+  if (payload.violationCount24h !== undefined) {
+    aiBanState.violationCount24h = Number(payload.violationCount24h || 0)
+  }
+  if (isBanned) {
+    connStatus.connected = false
+    connStatus.state = 'error'
+    connStatus.message = `AI 对话已封禁 (${aiBanState.banDuration || '受限'})`
+  }
+}
 
 const checkConnectivity = async () => {
   connStatus.checking = true
@@ -532,9 +670,12 @@ const checkConnectivity = async () => {
   try {
     const res = await request.get('/deepseek/status')
     if (res.code === 200 && res.data) {
-      connStatus.connected = !!res.data.connected
-      connStatus.state = res.data.state || (res.data.connected ? 'online' : 'error')
-      connStatus.message = res.data.message || (res.data.connected ? '在线' : '未连接')
+      applyBanMetaFromPayload(res.data)
+      if (!aiBanState.banned) {
+        connStatus.connected = !!res.data.connected
+        connStatus.state = res.data.state || (res.data.connected ? 'online' : 'error')
+        connStatus.message = res.data.message || (res.data.connected ? '在线' : '未连接')
+      }
     } else {
       connStatus.connected = false
       connStatus.state = 'error'
@@ -690,11 +831,45 @@ const extractArchiveTitle = (messages = []) => {
   return firstLine.length > 26 ? firstLine.slice(0, 26) + '...' : firstLine
 }
 
-// 持久化当前正在进行的会话状态，保证切换到其他子页面再切回来时内容完全保留不丢失
-const persistActiveSessionState = () => {
+// 同步当前用户的历史对话存档与当前活跃会话到后端数据库（即使前后端重新编译重启也永不丢失）
+let syncTimer = null
+const syncChatStateToBackend = (immediate = false) => {
+  const doSync = () => {
+    const tokenObj = JSON.parse(localStorage.getItem('loginToken') || '{}')
+    if (!tokenObj || !tokenObj.token) return
+    const cleanActive = (hasStartedChat.value && chatList.value.length > 0)
+      ? {
+          sessionId: currentSessionId.value,
+          hasStartedChat: hasStartedChat.value,
+          messages: chatList.value.map(m => ({
+            role: m.role,
+            content: m.content || '',
+            time: m.time || '',
+            waitingFirstToken: false,
+            streaming: false
+          }))
+        }
+      : null
+    request.post('/deepseek/chatState', {
+      historyList: chatHistoryList.value,
+      activeSession: cleanActive
+    }).catch(() => {})
+  }
+  if (immediate) {
+    if (syncTimer) clearTimeout(syncTimer)
+    doSync()
+  } else {
+    if (syncTimer) clearTimeout(syncTimer)
+    syncTimer = setTimeout(doSync, 350)
+  }
+}
+
+// 持久化当前正在进行的会话状态，保证切换到其他子页面或重新编译后内容完全保留不丢失
+const persistActiveSessionState = (syncRemote = true) => {
   const { activeKey } = currentUserKey()
   if (!hasStartedChat.value || chatList.value.length === 0) {
     localStorage.removeItem(activeKey)
+    if (syncRemote) syncChatStateToBackend()
     return
   }
   const cleanMessages = chatList.value.map(m => ({
@@ -709,9 +884,10 @@ const persistActiveSessionState = () => {
     hasStartedChat: hasStartedChat.value,
     messages: cleanMessages
   }))
+  if (syncRemote) syncChatStateToBackend()
 }
 
-// 当生成第一条回复后（以及后续每轮回复后）自动写入/更新历史存档
+// 当生成第一条回复后（以及后续每轮回复后）自动写入/更新历史存档并同步至后端数据库
 const saveCurrentChatToHistory = () => {
   if (chatList.value.length === 0) return
   const hasAnyReply = chatList.value.some(m => m.role === 'assistant' && (m.content || '').trim().length > 0)
@@ -745,10 +921,11 @@ const saveCurrentChatToHistory = () => {
     if (chatHistoryList.value.length > 30) chatHistoryList.value.pop()
   }
   localStorage.setItem(historyKey, JSON.stringify(chatHistoryList.value))
-  persistActiveSessionState()
+  persistActiveSessionState(false)
+  syncChatStateToBackend(true)
 }
 
-const restoreHistoryAndActiveSession = () => {
+const restoreHistoryAndActiveSession = async () => {
   const { historyKey, activeKey } = currentUserKey()
   try {
     chatHistoryList.value = JSON.parse(localStorage.getItem(historyKey) || '[]')
@@ -766,6 +943,43 @@ const restoreHistoryAndActiveSession = () => {
   } catch {
     // ignore
   }
+
+  // 从后端数据库拉取持久化存档（解决前后端重新编译或跨浏览器丢失问题）
+  try {
+    const res = await request.get('/deepseek/chatState')
+    if (res.code === 200 && res.data) {
+      applyBanMetaFromPayload(res.data)
+      const remoteHistory = Array.isArray(res.data.historyList) ? res.data.historyList : []
+      if (remoteHistory.length > 0) {
+        // 合并云端与本地历史存档（按 id 去重）
+        const mergedMap = new Map()
+        remoteHistory.forEach(item => {
+          if (item && item.id) mergedMap.set(item.id, item)
+        })
+        chatHistoryList.value.forEach(item => {
+          if (item && item.id && !mergedMap.has(item.id)) {
+            mergedMap.set(item.id, item)
+          }
+        })
+        chatHistoryList.value = Array.from(mergedMap.values()).slice(0, 30)
+        localStorage.setItem(historyKey, JSON.stringify(chatHistoryList.value))
+      } else if (chatHistoryList.value.length > 0) {
+        // 本地有旧存档而后端还没有时，自动上传备份到后端
+        syncChatStateToBackend(true)
+      }
+
+      const remoteActive = res.data.activeSession
+      if ((!hasStartedChat.value || chatList.value.length === 0) && remoteActive && Array.isArray(remoteActive.messages) && remoteActive.messages.length > 0) {
+        currentSessionId.value = remoteActive.sessionId || Date.now()
+        chatList.value = remoteActive.messages
+        hasStartedChat.value = true
+        localStorage.setItem(activeKey, JSON.stringify(remoteActive))
+        nextTick(() => scrollToBottom(true))
+      }
+    }
+  } catch {
+    // ignore
+  }
 }
 
 const loadHistorySession = (item) => {
@@ -774,7 +988,7 @@ const loadHistorySession = (item) => {
   chatList.value = JSON.parse(JSON.stringify(item.messages || []))
   hasStartedChat.value = true
   showHistoryDrawer.value = false
-  persistActiveSessionState()
+  persistActiveSessionState(true)
   scrollToBottom(true)
 }
 
@@ -787,6 +1001,7 @@ const startNewSession = () => {
   showChartOverlay.value = false
   const { activeKey } = currentUserKey()
   localStorage.removeItem(activeKey)
+  syncChatStateToBackend(true)
   nextTick(() => {
     renderChartsOnPair(inlinePie1Ref.value, inlinePie2Ref.value)
   })
@@ -800,6 +1015,7 @@ const deleteHistorySession = (id, event) => {
   if (currentSessionId.value === id) {
     currentSessionId.value = null
   }
+  syncChatStateToBackend(true)
 }
 
 const copyFullMessage = async (text) => {
@@ -857,11 +1073,19 @@ const resetToInitialChart = () => {
 }
 
 const useQuickStarter = (promptText) => {
+  if (aiBanState.banned) {
+    ElMessage.error('您的 AI 对话功能已被封禁，暂无法发起提问')
+    return
+  }
   data.input = promptText
   analyze()
 }
 
 const analyze = async () => {
+  if (aiBanState.banned) {
+    ElMessage.error('您的 AI 智能对话功能处于封禁期，无法发送消息')
+    return
+  }
   const userText = data.input.trim()
   if (!userText || isStreaming.value) {
     if (!userText) ElMessage.warning('请输入您想分析的财务问题')
@@ -883,6 +1107,36 @@ const analyze = async () => {
     time: nowTime()
   })
   persistActiveSessionState()
+
+  // 1.5 前端本地合规拦截检查（直接拦截并静默记录 24h 违规档案，不消耗 API 算力）
+  const localGuard = inspectUserPromptLocally(userText)
+  if (localGuard.blocked) {
+    const blockedMsg = reactive({
+      role: 'assistant',
+      content: localGuard.reply,
+      time: nowTime(),
+      waitingFirstToken: false,
+      streaming: false
+    })
+    chatList.value.push(blockedMsg)
+    scrollToBottom(true)
+
+    try {
+      const vioRes = await request.post('/deepseek/reportViolation', {
+        category: localGuard.category,
+        snippet: localGuard.snippet,
+        source: '前端拦截'
+      })
+      if (vioRes.code === 200 && vioRes.data) {
+        applyBanMetaFromPayload(vioRes.data)
+      }
+    } catch {
+      // ignore
+    }
+    saveCurrentChatToHistory()
+    scrollToBottom(true)
+    return
+  }
 
   // 2. 插入带类 Telegram 输入中等待动画的 AI 气泡
   const aiMsg = reactive({
@@ -980,6 +1234,9 @@ const analyze = async () => {
 
         try {
           const parsed = JSON.parse(payloadStr)
+          if (parsed.violationMeta) {
+            applyBanMetaFromPayload(parsed.violationMeta)
+          }
           const delta = parsed.choices?.[0]?.delta?.content
           if (delta) {
             // 将后端到达的文本拆分为单字符推入平滑缓冲队列
@@ -1020,6 +1277,7 @@ const analyze = async () => {
     connStatus.connected = false
     connStatus.state = 'error'
     connStatus.message = '未就绪 · 请检查密钥'
+    checkConnectivity()
   } finally {
     isStreaming.value = false
     // 生成第一条（及后续每条）回复完成后，立即自动生成/更新历史存档（并以回复内容首行作为标题）
@@ -1853,6 +2111,232 @@ html.dark .floating-chart-pane {
   transform: translateX(-50%);
   width: min(820px, 94%);
   z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 输入框正上方同款等宽不可关闭的 AI 封禁通知气泡 */
+.mica-ban-notice-bar {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgba(255, 250, 250, 0.92);
+  backdrop-filter: blur(26px) saturate(190%);
+  -webkit-backdrop-filter: blur(26px) saturate(190%);
+  border: 1.5px solid rgba(239, 68, 68, 0.38);
+  box-shadow: 0 14px 36px -8px rgba(239, 68, 68, 0.18),
+              0 4px 12px -2px rgba(15, 23, 42, 0.08);
+}
+
+html.dark .mica-ban-notice-bar {
+  background: rgba(28, 16, 24, 0.92);
+  border-color: rgba(248, 113, 113, 0.42);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.65),
+              0 0 0 1px rgba(248, 113, 113, 0.16);
+}
+
+.ban-notice-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ban-shield-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(245, 158, 11, 0.16));
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  margin-top: 2px;
+}
+
+html.dark .ban-shield-icon {
+  color: #f87171;
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.22), rgba(251, 191, 36, 0.16));
+  border-color: rgba(248, 113, 113, 0.38);
+}
+
+.ban-notice-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ban-headline-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ban-headline {
+  font-size: 14px;
+  font-weight: 800;
+  color: #dc2626;
+  letter-spacing: 0.2px;
+}
+
+html.dark .ban-headline {
+  color: #fca5a5;
+}
+
+.ban-level-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+html.dark .ban-level-pill {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.ban-count-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1.5px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+html.dark .ban-count-pill {
+  color: #fcd34d;
+}
+
+.ban-statement {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
+}
+
+.legal-inline-link {
+  border: none;
+  background: transparent;
+  padding: 0 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--el-color-primary, #1677ff);
+  cursor: pointer;
+}
+
+.legal-inline-link:hover {
+  text-decoration: underline;
+}
+
+.feedback-dialog-body {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--el-text-color-regular);
+}
+
+.feedback-tip {
+  margin: 0 0 12px 0;
+}
+
+.feedback-info-box {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(var(--theme-rgb), 0.06);
+  border: 1px solid rgba(var(--theme-rgb), 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fb-label {
+  color: var(--el-text-color-secondary);
+  font-weight: 600;
+}
+
+.fb-val {
+  color: var(--el-color-primary);
+  font-weight: 700;
+  user-select: text;
+}
+
+.ban-sub-reason {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+html.dark .ban-sub-reason {
+  color: #fca5a5;
+}
+
+.ban-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+}
+
+.ban-meta-row strong {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+html.dark .ban-meta-row strong {
+  color: #f87171;
+}
+
+.meta-divider {
+  opacity: 0.4;
+}
+
+.ban-notice-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ban-banner-pop-enter-active,
+.ban-banner-pop-leave-active {
+  transition: all 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ban-banner-pop-enter-from,
+.ban-banner-pop-leave-to {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+}
+
+.mica-composer-dock.is-banned {
+  border-color: rgba(239, 68, 68, 0.28);
+  opacity: 0.82;
 }
 
 .mica-composer-dock {

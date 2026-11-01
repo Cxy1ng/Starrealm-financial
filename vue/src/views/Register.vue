@@ -132,6 +132,11 @@
       </div>
     </div>
 
+    <!-- 注册界面右下角低调精致的耳机 Icon / 联系我们气泡入口 -->
+    <div class="auth-corner-support">
+      <ContactSupportPopover variant="corner" placement="top-end" button-text="联系我们" />
+    </div>
+
     <LegalAgreementDialog
         v-model="legalDialogVisible"
         v-model:activeTab="legalActiveTab"
@@ -149,6 +154,7 @@ import { useDark } from "@vueuse/core";
 import { request } from "@/utils/request.js";
 import ParticleBackground from "@/components/ParticleBackground.vue";
 import LegalAgreementDialog from "@/components/LegalAgreementDialog.vue";
+import ContactSupportPopover from "@/components/ContactSupportPopover.vue";
 import { useThemePalette } from "@/utils/theme.js";
 import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
@@ -691,6 +697,13 @@ html.dark .xingjie-logo-svg {
 
 .auth-link:hover {
   text-decoration: underline;
+}
+
+.auth-corner-support {
+  position: fixed;
+  right: 26px;
+  bottom: 22px;
+  z-index: 30;
 }
 
 @media (max-width: 860px) {

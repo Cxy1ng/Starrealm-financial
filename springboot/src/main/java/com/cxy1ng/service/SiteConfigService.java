@@ -10,6 +10,7 @@ import com.cxy1ng.exception.CustomException;
 import com.cxy1ng.mapper.SiteConfigMapper;
 import com.cxy1ng.utils.ApiKeyCryptoUtil;
 import com.cxy1ng.utils.TokenUtils;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,14 @@ public class SiteConfigService {
 
     @Resource
     private SiteConfigMapper siteConfigMapper;
+
+    @PostConstruct
+    public void initColumnCapacity() {
+        try {
+            siteConfigMapper.ensureLongTextColumn();
+        } catch (Exception ignored) {
+        }
+    }
 
     private boolean isSecretKey(String key) {
         return key != null && (key.endsWith("_key") || key.endsWith("_secret") || key.contains("api_key"));
@@ -38,19 +47,53 @@ public class SiteConfigService {
     }
 
     /**
-     * 管理员查询全部网站公共配置（敏感 Key 自动脱敏）
+     * 管理员查询全部网站公共配置（敏感 Key 自动脱敏，过滤内部系统状态键）
      */
     public List<SiteConfig> selectAllMasked() {
         checkAdminPerm();
-        List<SiteConfig> list = siteConfigMapper.selectAll();
-        for (SiteConfig item : list) {
+        List<SiteConfig> all = siteConfigMapper.selectAll();
+        List<SiteConfig> list = new java.util.ArrayList<>();
+        for (SiteConfig item : all) {
+            String k = item.getConfigKey();
+            if (k != null && (k.startsWith("user_ban_") || k.startsWith("account_ban_") || k.startsWith("ai_ban_") || k.startsWith("user_violations_") || k.startsWith("ai_chat_state_"))) {
+                continue;
+            }
             boolean hasVal = StrUtil.isNotBlank(item.getConfigValue());
             item.setHasValue(hasVal);
-            if (isSecretKey(item.getConfigKey()) && hasVal) {
+            if (isSecretKey(k) && hasVal) {
                 item.setConfigValue(ApiKeyCryptoUtil.mask(item.getConfigValue()));
             }
+            list.add(item);
         }
         return list;
+    }
+
+    /**
+     * 内部服务直接写入或更新单条系统状态键值（无需管理员权限，供 AI 历史存档、24h 违规记录与自动封禁调用）
+     */
+    public void putSystemValue(String key, String rawVal, String description, String operator) {
+        if (StrUtil.isBlank(key)) return;
+        String now = DateUtil.now();
+        String op = StrUtil.isNotBlank(operator) ? operator : "system";
+        String valueToStore = rawVal != null ? rawVal : "";
+        SiteConfig existing = siteConfigMapper.selectByKey(key);
+        if (existing == null) {
+            SiteConfig created = new SiteConfig();
+            created.setConfigKey(key);
+            created.setConfigValue(valueToStore);
+            created.setDescription(StrUtil.isNotBlank(description) ? description : key);
+            created.setUpdatedTime(now);
+            created.setUpdatedBy(op);
+            siteConfigMapper.insert(created);
+        } else {
+            existing.setConfigValue(valueToStore);
+            if (StrUtil.isNotBlank(description)) {
+                existing.setDescription(description);
+            }
+            existing.setUpdatedTime(now);
+            existing.setUpdatedBy(op);
+            siteConfigMapper.updateByKey(existing);
+        }
     }
 
     /**

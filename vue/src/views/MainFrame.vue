@@ -334,7 +334,7 @@ const toggleRightAside = () => {
 
 const logout = () => {
   localStorage.removeItem("loginToken");
-  router.push("/login");
+  router.replace("/login");
 };
 
 const updateUser = () => {

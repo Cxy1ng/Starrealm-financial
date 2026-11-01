@@ -144,6 +144,7 @@
               <div
                   v-if="msg.role === 'assistant'"
                   class="markdown-chat"
+                  @click="handleSidebarMarkdownClick($event)"
                   v-html="renderMarkdown(msg.content)"
               ></div>
               <div v-else class="user-text">{{ msg.content }}</div>
@@ -182,25 +183,31 @@
       <div class="chat-input-bar">
         <el-input
             v-model="chatInput"
-            placeholder="输入理财或汇率问题，按 Enter 发送..."
-            :disabled="isTyping"
+            :placeholder="aiBanned ? '您的 AI 对话功能已被封禁，暂无法发送消息' : '输入理财或汇率问题，按 Enter 发送...'"
+            :disabled="isTyping || aiBanned"
             @keydown.enter.exact.prevent="sendMessage"
             clearable
         />
         <el-button
             type="primary"
             :loading="isTyping"
-            :disabled="!chatInput.trim()"
+            :disabled="!chatInput.trim() || aiBanned"
             @click="sendMessage"
             class="send-btn"
         >
-          发送
+          {{ aiBanned ? '已封禁' : '发送' }}
         </el-button>
       </div>
       <div class="sidebar-ephemeral-notice">
         会话不会保存，请及时复制重要内容；如需长久存档请使用「AI 智能分析」
       </div>
     </div>
+
+    <LegalAgreementDialog
+        v-model="legalDialogVisible"
+        v-model:activeTab="legalActiveTab"
+        @agree="legalDialogVisible = false"
+    />
   </div>
 </template>
 
@@ -221,6 +228,25 @@ import {
 } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import request from '@/utils/request.js'
+import LegalAgreementDialog from '@/components/LegalAgreementDialog.vue'
+import { inspectUserPromptLocally } from '@/utils/aiGuardrail.js'
+
+const legalDialogVisible = ref(false)
+const legalActiveTab = ref('agreement')
+
+const handleSidebarMarkdownClick = (event) => {
+  const linkEl = event.target?.closest?.('a')
+  if (!linkEl) return
+  const href = linkEl.getAttribute('href') || ''
+  if (href === '#xingjie-agreement') {
+    event.preventDefault()
+    legalActiveTab.value = 'agreement'
+    legalDialogVisible.value = true
+  } else if (href === '#xingjie-feedback') {
+    event.preventDefault()
+    ElMessage.info('申诉与反馈请联系官方邮箱：starrealm@contact-us.com（工作时间 09:00-12:00, 14:00-18:00）')
+  }
+}
 
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 const renderMarkdown = (text) => md.render(text || '')
@@ -306,6 +332,7 @@ const swapCurrencies = () => {
 }
 
 // ==================== 下半部分：DeepSeek 连通性与流式客服聊天 ====================
+const aiBanned = ref(false)
 const connStatus = reactive({
   checking: false,
   connected: false,
@@ -320,6 +347,7 @@ const checkConnectivity = async () => {
   try {
     const res = await request.get('/deepseek/status')
     if (res.code === 200 && res.data) {
+      aiBanned.value = !!res.data.aiBanned
       connStatus.connected = !!res.data.connected
       connStatus.state = res.data.state || (res.data.connected ? 'online' : 'error')
       connStatus.message = res.data.message || (res.data.connected ? '在线' : '未连接')
@@ -410,6 +438,10 @@ const sendQuickPrompt = (text) => {
 }
 
 const sendMessage = async () => {
+  if (aiBanned.value) {
+    ElMessage.error('您的 AI 对话功能处于封禁期，无法发送消息')
+    return
+  }
   const text = chatInput.value.trim()
   if (!text || isTyping.value) return
 
@@ -420,6 +452,38 @@ const sendMessage = async () => {
     content: text,
     time: nowTimeStr()
   })
+
+  // 前端零 API 消耗本地破甲与合规拦截
+  const localGuard = inspectUserPromptLocally(text)
+  if (localGuard.blocked) {
+    const blockedReply = reactive({
+      role: 'assistant',
+      content: localGuard.reply,
+      time: nowTimeStr(),
+      waitingFirstToken: false,
+      streaming: false
+    })
+    messages.value.push(blockedReply)
+    scrollToBottom(true)
+    try {
+      const vioRes = await request.post('/deepseek/reportViolation', {
+        category: localGuard.category,
+        snippet: localGuard.snippet,
+        source: '侧边栏拦截'
+      })
+      if (vioRes.code === 200 && vioRes.data) {
+        if (vioRes.data.aiBanned === 1 || vioRes.data.aiBanned === true) {
+          aiBanned.value = true
+          connStatus.connected = false
+          connStatus.state = 'error'
+          connStatus.message = `AI 对话已封禁 (${vioRes.data.aiBanDuration || '受限'})`
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return
+  }
 
   const aiMsg = reactive({
     role: 'assistant',

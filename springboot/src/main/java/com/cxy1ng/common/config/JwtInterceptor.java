@@ -55,9 +55,11 @@ public class JwtInterceptor implements HandlerInterceptor {
                     account = adminService.selectById(Integer.valueOf(userId));
                 } else if (role.equals(PermEnum.USER)) {
                     com.cxy1ng.entity.User u = userService.selectById(Integer.valueOf(userId));
-                    if (u != null && Integer.valueOf(1).equals(u.getBanned())) {
-                        String reason = cn.hutool.core.util.StrUtil.isNotBlank(u.getBanReason()) ? u.getBanReason() : "违反《星界用户服务协议》相关条款";
-                        throw new CustomException(ResultCodeEnum.USER_BANNED_ERROR.code, "账号已被封禁，原因：" + reason);
+                    if (u != null && Integer.valueOf(1).equals(u.getAccountBanned())) {
+                        String reason = cn.hutool.core.util.StrUtil.isNotBlank(u.getAccountBanReason())
+                                ? u.getAccountBanReason()
+                                : "因存钱日记、存钱计划或个人简介内容违规，账号已被封禁";
+                        throw new CustomException(401, "您的账号已被封禁强制下线：" + reason);
                     }
                     account = u;
                 }

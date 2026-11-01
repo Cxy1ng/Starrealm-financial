@@ -21,7 +21,7 @@ public enum ResultCodeEnum {
     EMPTY_FILE_ERROR(5009,"文件为空"),
     UNSUPPORTED_FILE_ERROR(5010, "不支持的文件格式"),
     PLAN_EXPIRED_ERROR(5011, "该存钱计划已结束过期，已停止存钱与明细变更"),
-    USER_BANNED_ERROR(5012, "该账号因违反《星界用户服务协议》已被封禁");
+    USER_BANNED_ERROR(5012, "您的 AI 智能对话权限因违反《星界用户服务协议》已被封禁");
 
 
     public int code;

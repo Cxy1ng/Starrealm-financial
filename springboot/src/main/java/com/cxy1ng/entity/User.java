@@ -23,6 +23,114 @@ public class User extends Account implements Serializable {
     private Integer banned;
     private String banReason;
     private String banTime;
+    private Integer accountBanned;
+    private String accountBanReason;
+    private String accountBanTime;
+    private Integer aiBanned;
+    private Integer aiBanLevel;
+    private Integer aiBanCount;
+    private String aiBanReason;
+    private String aiBanTime;
+    private String aiBanDuration;
+    private String aiBanExpireTime;
+    private Integer violationCount24h;
+    private String violationLogs;
+
+    public Integer getAccountBanned() {
+        return accountBanned;
+    }
+
+    public void setAccountBanned(Integer accountBanned) {
+        this.accountBanned = accountBanned;
+    }
+
+    public String getAccountBanReason() {
+        return accountBanReason;
+    }
+
+    public void setAccountBanReason(String accountBanReason) {
+        this.accountBanReason = accountBanReason;
+    }
+
+    public String getAccountBanTime() {
+        return accountBanTime;
+    }
+
+    public void setAccountBanTime(String accountBanTime) {
+        this.accountBanTime = accountBanTime;
+    }
+
+    public Integer getAiBanned() {
+        return aiBanned;
+    }
+
+    public void setAiBanned(Integer aiBanned) {
+        this.aiBanned = aiBanned;
+    }
+
+    public Integer getAiBanLevel() {
+        return aiBanLevel;
+    }
+
+    public void setAiBanLevel(Integer aiBanLevel) {
+        this.aiBanLevel = aiBanLevel;
+    }
+
+    public Integer getAiBanCount() {
+        return aiBanCount;
+    }
+
+    public void setAiBanCount(Integer aiBanCount) {
+        this.aiBanCount = aiBanCount;
+    }
+
+    public String getAiBanReason() {
+        return aiBanReason;
+    }
+
+    public void setAiBanReason(String aiBanReason) {
+        this.aiBanReason = aiBanReason;
+    }
+
+    public String getAiBanTime() {
+        return aiBanTime;
+    }
+
+    public void setAiBanTime(String aiBanTime) {
+        this.aiBanTime = aiBanTime;
+    }
+
+    public String getAiBanDuration() {
+        return aiBanDuration;
+    }
+
+    public void setAiBanDuration(String aiBanDuration) {
+        this.aiBanDuration = aiBanDuration;
+    }
+
+    public String getAiBanExpireTime() {
+        return aiBanExpireTime;
+    }
+
+    public void setAiBanExpireTime(String aiBanExpireTime) {
+        this.aiBanExpireTime = aiBanExpireTime;
+    }
+
+    public Integer getViolationCount24h() {
+        return violationCount24h;
+    }
+
+    public void setViolationCount24h(Integer violationCount24h) {
+        this.violationCount24h = violationCount24h;
+    }
+
+    public String getViolationLogs() {
+        return violationLogs;
+    }
+
+    public void setViolationLogs(String violationLogs) {
+        this.violationLogs = violationLogs;
+    }
 
     public Integer getBanned() {
         return banned;

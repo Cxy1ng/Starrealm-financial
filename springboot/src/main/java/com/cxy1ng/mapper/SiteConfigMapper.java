@@ -20,4 +20,7 @@ public interface SiteConfigMapper {
 
     @Update("UPDATE site_config SET config_value = #{configValue}, description = COALESCE(#{description}, description), updated_time = #{updatedTime}, updated_by = #{updatedBy} WHERE config_key = #{configKey}")
     int updateByKey(SiteConfig siteConfig);
+
+    @Update("ALTER TABLE site_config MODIFY COLUMN config_value LONGTEXT NULL")
+    void ensureLongTextColumn();
 }

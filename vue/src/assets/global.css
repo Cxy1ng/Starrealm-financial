@@ -470,3 +470,75 @@ html.dark .el-drawer {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(var(--theme-rgb), 0.55);
 }
+
+/* ================= 全局 UI 防误触框选与防拖拽规范 ================= */
+/* 登录注册界面、左侧边栏、顶部工具栏、按钮、下拉菜单、标签、图标与图片等界面控件禁止拖拽与文字框选 */
+.auth-container,
+.brand-showcase,
+.mica-auth-card,
+.antd-sider,
+.antd-header,
+.stage-header,
+.chart-showcase-panel,
+.dock-inner-toolbar,
+.quick-prompts,
+.legal-tab-bar,
+.auth-palette-panel,
+button,
+.el-button,
+.el-menu,
+.el-menu-item,
+.el-sub-menu__title,
+.el-breadcrumb,
+.el-dropdown,
+.el-dropdown-menu,
+.el-dropdown-menu__item,
+.el-select-dropdown,
+.el-select-dropdown__item,
+.el-tag,
+.el-tabs__header,
+.el-pagination,
+.el-checkbox__label,
+.el-radio__label,
+.el-form-item__label,
+.el-dialog__header,
+.el-drawer__header,
+.el-avatar,
+.el-icon,
+svg,
+img,
+video {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+img,
+svg,
+video,
+a {
+  -webkit-user-drag: none;
+}
+
+/* 明确保留需要框选复制的场景：联系我们气泡、用户服务协议/隐私政策正文、AI 对话消息正文、代码块、表格内容与输入框 */
+input,
+textarea,
+.el-input__inner,
+.el-textarea__inner,
+.support-card-body,
+.support-card-body *,
+.legal-doc-body,
+.legal-doc-body *,
+.feedback-info-box,
+.feedback-info-box *,
+.markdown-body,
+.markdown-body *,
+.markdown-chat,
+.markdown-chat *,
+.user-query-text,
+.user-text,
+pre,
+code {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
