@@ -16,6 +16,24 @@ public class Admin extends Account implements Serializable {
     private String role;
     private String apiKey;
     private Integer banned; // 0-正常 1-封禁
+    private Integer needChangePwd; // 1-临时密码需重置
+    private String tempPassword; // 仅在超级管理员创建成功时回传展示一次
+
+    public Integer getNeedChangePwd() {
+        return needChangePwd;
+    }
+
+    public void setNeedChangePwd(Integer needChangePwd) {
+        this.needChangePwd = needChangePwd;
+    }
+
+    public String getTempPassword() {
+        return tempPassword;
+    }
+
+    public void setTempPassword(String tempPassword) {
+        this.tempPassword = tempPassword;
+    }
 
     public Integer getBanned() {
         return banned;

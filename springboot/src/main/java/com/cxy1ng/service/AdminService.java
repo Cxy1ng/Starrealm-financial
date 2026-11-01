@@ -35,6 +35,12 @@ public class AdminService {
         } else {
             a.setBanned(0);
         }
+        String needPwdVal = siteConfigService.getValue("admin_need_change_pwd_" + a.getId());
+        if (cn.hutool.core.util.StrUtil.isNotBlank(needPwdVal) && "1".equals(needPwdVal.trim())) {
+            a.setNeedChangePwd(1);
+        } else {
+            a.setNeedChangePwd(0);
+        }
     }
 
     public List<Admin> selectAll(Admin admin) {
@@ -72,7 +78,7 @@ public class AdminService {
         }
     }
 
-    public void insert(Admin admin) {
+    public String insert(Admin admin) {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
         if (role.equals(PermEnum.SUPER_ADMIN)) {
@@ -86,11 +92,18 @@ public class AdminService {
             if (StrUtil.isBlank(admin.getNickname())) {
                 admin.setNickname(admin.getUsername());
             }
-            if (ObjectUtil.isEmpty(admin.getPwd())) {
-                admin.setPwd(Constants.ADMIN_DEFAULT_PASSWORD);
+            // 自动生成符合强密码规则的随机临时密码（8-20位，含大写、小写、数字、特殊符号）
+            String tempPwd = com.cxy1ng.utils.PasswordValidator.generateStrongTempPassword();
+            admin.setPwd(tempPwd);
+            if (admin.getPerm() == null) {
+                admin.setPerm(PermEnum.ADMIN.getMinPerm());
             }
-            admin.setPerm(PermEnum.ADMIN.getMinPerm());
             adminMapper.insert(admin);
+            Admin created = adminMapper.selectByUsername(admin.getUsername());
+            if (created != null && created.getId() != null) {
+                siteConfigService.putSystemValue("admin_need_change_pwd_" + created.getId(), "1", "管理员需首次登录重置密码", currentUser.getUsername());
+            }
+            return tempPwd;
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
         }
@@ -216,7 +229,12 @@ public class AdminService {
         if (!account.getPwd().equals(dbAdmin.getPwd())) {
             throw new CustomException(ResultCodeEnum.PARAM_PASSWORD_ERROR);
         }
+        if (!com.cxy1ng.utils.PasswordValidator.isValid(account.getNewPwd())) {
+            throw new CustomException(400, "新密码必须为8-20位，且同时包含大写字母、小写字母、数字和至少一个特殊符号");
+        }
         dbAdmin.setPwd(account.getNewPwd());
         adminMapper.update(dbAdmin);
+        // 清除临时密码重置标记
+        siteConfigService.putSystemValue("admin_need_change_pwd_" + dbAdmin.getId(), "0", "管理员初始临时密码已重置", account.getUsername());
     }
 }

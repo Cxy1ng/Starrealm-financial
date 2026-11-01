@@ -11,6 +11,15 @@ public class Account {
     private String role;
     private String apiKey;
     private Boolean hasApiKey;
+    private Integer needChangePwd;
+
+    public Integer getNeedChangePwd() {
+        return needChangePwd;
+    }
+
+    public void setNeedChangePwd(Integer needChangePwd) {
+        this.needChangePwd = needChangePwd;
+    }
 
     public String getApiKey() {
         return apiKey;

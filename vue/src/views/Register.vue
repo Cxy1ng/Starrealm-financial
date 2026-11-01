@@ -157,6 +157,7 @@ import LegalAgreementDialog from "@/components/LegalAgreementDialog.vue";
 import ContactSupportPopover from "@/components/ContactSupportPopover.vue";
 import { useThemePalette } from "@/utils/theme.js";
 import { hasAgreedLegalTerms, setAgreedLegalTerms } from "@/utils/cookie.js";
+import { validatePasswordRule, validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
 import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
 const router = useRouter();
@@ -166,7 +167,7 @@ const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
-const agreedTerms = ref(hasAgreedLegalTerms());
+const agreedTerms = ref(false);
 const legalDialogVisible = ref(false);
 const legalActiveTab = ref('agreement');
 
@@ -255,7 +256,8 @@ const data = reactive({
       { required: true, message: '请输入有效的用户名', trigger: 'blur' }
     ],
     pwd: [
-      { required: true, message: '请输入有效的密码', trigger: 'blur' }
+      { required: true, message: '请输入密码', trigger: 'blur' },
+      { validator: validatePasswordRule, trigger: 'blur' }
     ],
     confirmPwd: [
       { validator: validatePass, trigger: 'blur' }

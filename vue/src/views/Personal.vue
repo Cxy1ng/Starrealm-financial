@@ -432,6 +432,8 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import defaultAvatar from "@/assets/avatar.jpg";
 import { useThemePalette } from "@/utils/theme.js";
 
+import { validatePasswordRule, validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
+
 const route = useRoute();
 const router = useRouter();
 const emit = defineEmits(["updateUser"]);
@@ -447,7 +449,9 @@ const data = reactive({
   form: {},
   formVisible: false,
   rules: {
-    username: [{ required: true, message: "请输入有效的用户名", trigger: "blur" }]
+    username: [{ required: true, message: "请输入有效的用户名", trigger: "blur" }],
+    phone: [{ validator: validatePhoneRule, trigger: "blur" }],
+    email: [{ validator: validateEmailRule, trigger: "blur" }]
   }
 });
 
@@ -581,18 +585,21 @@ const handleDialogAvatarSuccess = (res) => {
 };
 
 const updateUserProfile = () => {
-  const api = getUpdateEndpoint();
-  if (!api) return;
-  const payload = { ...editForm, apiKey: null };
-  request.put(api, payload).then((res) => {
-    if (res.code === 200) {
-      ElMessage.success("个人资料已保存");
-      loadProfile();
-      syncLocalStorageUser(editForm);
-      data.formVisible = false;
-    } else {
-      ElMessage.error(res.msg || "保存失败");
-    }
+  formRef.value?.validate((valid) => {
+    if (!valid) return;
+    const api = getUpdateEndpoint();
+    if (!api) return;
+    const payload = { ...editForm, apiKey: null };
+    request.put(api, payload).then((res) => {
+      if (res.code === 200) {
+        ElMessage.success("个人资料已保存");
+        loadProfile();
+        syncLocalStorageUser(editForm);
+        data.formVisible = false;
+      } else {
+        ElMessage.error(res.msg || "保存失败");
+      }
+    });
   });
 };
 
@@ -684,7 +691,10 @@ const validateConfirmPwd = (rule, value, callback) => {
 
 const pwdRules = {
   pwd: [{ required: true, message: "请输入当前旧密码", trigger: "blur" }],
-  newPwd: [{ required: true, message: "请输入新密码", trigger: "blur" }],
+  newPwd: [
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { validator: validatePasswordRule, trigger: "blur" }
+  ],
   confirmPwd: [{ validator: validateConfirmPwd, trigger: "blur" }]
 };
 

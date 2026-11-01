@@ -158,6 +158,68 @@
         </el-timeline-item>
       </el-timeline>
     </el-card>
+
+    <!-- 初始临时密码强制修改弹窗（禁止遮罩点击关闭、禁止ESC关闭） -->
+    <el-dialog
+        v-model="forcePwdVisible"
+        title="初始临时密码强制重置"
+        width="460px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :show-close="false"
+        align-center
+        destroy-on-close
+    >
+      <div style="margin-bottom: 14px;">
+        <el-alert
+            title="安全检测提示：当前管理员账号使用的是系统生成的初始临时密码。为了保障后台数据安全，您必须首先设置符合安全要求的新密码后方可正常使用系统。"
+            type="warning"
+            :closable="false"
+            show-icon
+        />
+      </div>
+      <el-form
+          ref="forcePwdFormRef"
+          :model="forcePwdForm"
+          :rules="forcePwdRules"
+          label-position="top"
+      >
+        <el-form-item label="当前临时密码" prop="pwd">
+          <el-input
+              v-model="forcePwdForm.pwd"
+              type="password"
+              placeholder="请输入当前登录使用的临时密码"
+              show-password
+              autocomplete="off"
+          />
+        </el-form-item>
+        <el-form-item label="设置新密码" prop="newPwd">
+          <el-input
+              v-model="forcePwdForm.newPwd"
+              type="password"
+              placeholder="8-20位，含大小写字母、数字及特殊符号"
+              show-password
+              autocomplete="new-password"
+          />
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPwd">
+          <el-input
+              v-model="forcePwdForm.confirmPwd"
+              type="password"
+              placeholder="请再次输入新密码"
+              show-password
+              autocomplete="new-password"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="display: flex; justify-content: flex-end;">
+          <el-button type="primary" :loading="submittingForcePwd" @click="handleForcePwdSubmit" style="width: 100%;">
+            保存新密码并进入系统
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -169,6 +231,7 @@ import { ElMessage } from "element-plus";
 import { Plus, MagicStick, Bell, Wallet, TrendCharts, Histogram } from "@element-plus/icons-vue";
 import { useDark, useTransition } from '@vueuse/core';
 import * as echarts from "echarts";
+import { validatePasswordRule } from "@/utils/validator.js";
 
 const router = useRouter();
 const isDark = useDark();
@@ -229,6 +292,74 @@ const data = reactive({
   incomeList: [],
   colorList: ['#1677ff', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6']
 });
+
+// ==================== 初始临时密码强制修改逻辑 ====================
+const forcePwdVisible = ref(false);
+const submittingForcePwd = ref(false);
+const forcePwdFormRef = ref();
+const forcePwdForm = reactive({
+  pwd: "",
+  newPwd: "",
+  confirmPwd: ""
+});
+
+const validateForceConfirmPwd = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error("请再次输入新密码确认"));
+  } else if (value !== forcePwdForm.newPwd) {
+    callback(new Error("两次输入的新密码不一致"));
+  } else {
+    callback();
+  }
+};
+
+const forcePwdRules = {
+  pwd: [{ required: true, message: "请输入当前临时密码", trigger: "blur" }],
+  newPwd: [
+    { required: true, message: "请输入设置的新密码", trigger: "blur" },
+    { validator: validatePasswordRule, trigger: "blur" }
+  ],
+  confirmPwd: [{ validator: validateForceConfirmPwd, trigger: "blur" }]
+};
+
+const checkNeedChangePwd = () => {
+  if (data.user?.perm >= 10 && data.user?.id) {
+    request.get('/admin/selectById/' + data.user.id).then(res => {
+      if (res.code === 200 && res.data) {
+        if (res.data.needChangePwd === 1) {
+          forcePwdVisible.value = true;
+        }
+      }
+    });
+  }
+};
+checkNeedChangePwd();
+
+const handleForcePwdSubmit = () => {
+  forcePwdFormRef.value?.validate((valid) => {
+    if (!valid) return;
+    submittingForcePwd.value = true;
+    const payload = {
+      id: data.user.id,
+      perm: data.user.perm,
+      role: data.user.role,
+      username: data.user.username,
+      pwd: forcePwdForm.pwd,
+      newPwd: forcePwdForm.newPwd
+    };
+    request.put('/updatePwd', payload).then(res => {
+      submittingForcePwd.value = false;
+      if (res.code === 200) {
+        ElMessage.success("密码已成功设置！您已可以使用系统全部功能。");
+        forcePwdVisible.value = false;
+      } else {
+        ElMessage.error(res.msg || "修改失败，请检查原临时密码是否正确");
+      }
+    }).catch(() => {
+      submittingForcePwd.value = false;
+    });
+  });
+};
 
 const loadNotice = () => {
   request.get('/notice/selectAll').then(res => {

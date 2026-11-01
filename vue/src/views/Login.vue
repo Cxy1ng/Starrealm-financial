@@ -133,7 +133,7 @@
 
           <div class="remember-cookie-row">
             <el-checkbox v-model="rememberMe" size="small">
-              <span class="consent-text">7 天内记住登录状态（Cookie 安全免签）</span>
+              <span class="consent-text">7 天内自动登录</span>
             </el-checkbox>
           </div>
 
@@ -197,8 +197,8 @@ const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
-const agreedTerms = ref(hasAgreedLegalTerms());
-const rememberMe = ref(true);
+const agreedTerms = ref(false);
+const rememberMe = ref(false);
 const legalDialogVisible = ref(false);
 const legalActiveTab = ref('agreement');
 
@@ -275,7 +275,7 @@ const data = reactive({
   form: {
     username: remembered.username || '',
     pwd: '',
-    perm: remembered.perm || '1'
+    perm: (remembered.perm && String(remembered.perm) === '10') ? '10' : '1'
   },
   rules: {
     username: [

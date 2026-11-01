@@ -42,8 +42,8 @@ public class AdminController {
 
     @PostMapping("/insert")
     public Result insert(@RequestBody Admin admin) {
-        adminService.insert(admin);
-        return Result.success();
+        String tempPwd = adminService.insert(admin);
+        return Result.success(tempPwd);
     }
 
     @PutMapping("/update")

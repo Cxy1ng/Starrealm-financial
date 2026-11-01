@@ -31,6 +31,7 @@ import { ElMessage } from "element-plus";
 import { ref, reactive } from "vue";
 import request from "@/utils/request.js";
 import {ArrowRight} from "@element-plus/icons-vue";
+import { validatePasswordRule } from "@/utils/validator.js";
 
 const validatePass = (rule, value, callback) => {
   if (!value) {
@@ -52,6 +53,7 @@ const data = reactive({
     ],
     newPwd: [
       { required: true, message: '请输入新密码', trigger: 'blur' },
+      { validator: validatePasswordRule, trigger: 'blur' },
     ],
     confirmPwd: [
       { validator: validatePass, trigger: 'blur' },

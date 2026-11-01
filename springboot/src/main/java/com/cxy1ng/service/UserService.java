@@ -503,6 +503,9 @@ public class UserService {
         if (ObjectUtil.isNotNull(dbUser)) {
             throw new CustomException(ResultCodeEnum.USER_EXIST_ERROR);
         }
+        if (!com.cxy1ng.utils.PasswordValidator.isValid(account.getPwd())) {
+            throw new CustomException(400, "密码必须为8-20位，且同时包含大写字母、小写字母、数字和至少一个特殊符号");
+        }
         User user = new User();
         user.setUsername(account.getUsername());
         user.setNickname(StrUtil.isNotBlank(account.getUsername()) ? account.getUsername() : "新用户");
@@ -519,6 +522,9 @@ public class UserService {
         }
         if (!account.getPwd().equals(dbUser.getPwd())) {
             throw new CustomException(ResultCodeEnum.PARAM_PASSWORD_ERROR);
+        }
+        if (!com.cxy1ng.utils.PasswordValidator.isValid(account.getNewPwd())) {
+            throw new CustomException(400, "新密码必须为8-20位，且同时包含大写字母、小写字母、数字和至少一个特殊符号");
         }
         dbUser.setPwd(account.getNewPwd());
         this.update(dbUser);

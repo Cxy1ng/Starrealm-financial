@@ -397,6 +397,7 @@ import {reactive, ref} from "vue";
 import {Delete, Edit, Female, Lock, Male, Plus, Search, Unlock, Warning} from "@element-plus/icons-vue";
 import {request} from "@/utils/request.js";
 import {ElMessage, ElMessageBox} from 'element-plus'
+import { validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
 
 // 账号封禁原因预设：严格对应存钱日记、存钱计划、个人简介等社区内容违规
 const banReasonPresets = [
@@ -433,10 +434,12 @@ const data = reactive({
       { required: true, message: '请输入有效的用户名', trigger: 'blur' }
     ],
     phone: [
-      { required: true, message: '请输入有效的手机号', trigger: 'blur' }
+      { required: true, message: '请输入有效的手机号', trigger: 'blur' },
+      { validator: validatePhoneRule, trigger: 'blur' }
     ],
     email: [
-      { required: true, message: '请输入有效的邮箱地址', trigger: 'blur' }
+      { required: true, message: '请输入有效的邮箱地址', trigger: 'blur' },
+      { validator: validateEmailRule, trigger: 'blur' }
     ]
   }
 })
