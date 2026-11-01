@@ -13,5 +13,13 @@ Thumbs.db
 # Uploaded local runtime files
 files/
 
+# Local private configs & secrets (never commit to GitHub)
+**/application-local.yml
+**/application-local.properties
+.env
+.env.*
+*.pem
+*.key
+
 # Logs & Temp
 *.log

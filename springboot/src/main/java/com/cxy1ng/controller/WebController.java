@@ -9,10 +9,14 @@ import com.cxy1ng.entity.Account;
 import com.cxy1ng.service.AdminService;
 import com.cxy1ng.service.UserService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class WebController {
+
+    private static final String AUTH_COOKIE_NAME = "sr_auth_token";
 
     @Resource
     private UserService userService;
@@ -26,7 +30,7 @@ public class WebController {
     }
 
     @PostMapping("/login")
-    public Result login(@RequestBody Account account) {
+    public Result login(@RequestBody Account account, HttpServletResponse response) {
         if (ObjectUtil.isEmpty(account.getUsername()) || ObjectUtil.isEmpty(account.getPwd()) || ObjectUtil.isEmpty(account.getPerm())) {
             return Result.error(ResultCodeEnum.PARAM_LOST_ERROR);
         }
@@ -40,7 +44,26 @@ public class WebController {
         } else {
             return Result.error(ResultCodeEnum.PARAM_ERROR);
         }
+        if (account != null && StrUtil.isNotBlank(account.getToken()) && response != null) {
+            Cookie authCookie = new Cookie(AUTH_COOKIE_NAME, account.getToken());
+            authCookie.setHttpOnly(true);
+            authCookie.setPath("/");
+            authCookie.setMaxAge(7 * 24 * 60 * 60);
+            response.addCookie(authCookie);
+        }
         return Result.success(account);
+    }
+
+    @PostMapping("/logout")
+    public Result logout(HttpServletResponse response) {
+        if (response != null) {
+            Cookie clearCookie = new Cookie(AUTH_COOKIE_NAME, "");
+            clearCookie.setHttpOnly(true);
+            clearCookie.setPath("/");
+            clearCookie.setMaxAge(0);
+            response.addCookie(clearCookie);
+        }
+        return Result.success();
     }
 
     @PostMapping("/register")

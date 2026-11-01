@@ -156,6 +156,7 @@ import ParticleBackground from "@/components/ParticleBackground.vue";
 import LegalAgreementDialog from "@/components/LegalAgreementDialog.vue";
 import ContactSupportPopover from "@/components/ContactSupportPopover.vue";
 import { useThemePalette } from "@/utils/theme.js";
+import { hasAgreedLegalTerms, setAgreedLegalTerms } from "@/utils/cookie.js";
 import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
 const router = useRouter();
@@ -165,7 +166,7 @@ const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
-const agreedTerms = ref(false);
+const agreedTerms = ref(hasAgreedLegalTerms());
 const legalDialogVisible = ref(false);
 const legalActiveTab = ref('agreement');
 
@@ -176,7 +177,7 @@ const openLegalDoc = (tab) => {
 
 const handleAgreeLegal = () => {
   agreedTerms.value = true;
-  localStorage.setItem('xingjie_agreed_terms', '1');
+  setAgreedLegalTerms();
   legalDialogVisible.value = false;
 };
 
@@ -267,7 +268,7 @@ const register = () => {
     ElMessage.warning('注册前请先阅读并勾选同意《星界用户服务协议》与《隐私保护政策》');
     return;
   }
-  localStorage.setItem('xingjie_agreed_terms', '1');
+  setAgreedLegalTerms();
   formRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;

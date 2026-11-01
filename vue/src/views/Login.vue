@@ -131,6 +131,12 @@
             </div>
           </el-form-item>
 
+          <div class="remember-cookie-row">
+            <el-checkbox v-model="rememberMe" size="small">
+              <span class="consent-text">7 天内记住登录状态（Cookie 安全免签）</span>
+            </el-checkbox>
+          </div>
+
           <div class="legal-consent-row">
             <el-checkbox v-model="agreedTerms" size="small">
               <span class="consent-text">我已阅读并同意</span>
@@ -176,6 +182,12 @@ import ParticleBackground from "@/components/ParticleBackground.vue";
 import LegalAgreementDialog from "@/components/LegalAgreementDialog.vue";
 import ContactSupportPopover from "@/components/ContactSupportPopover.vue";
 import { useThemePalette } from "@/utils/theme.js";
+import {
+  hasAgreedLegalTerms,
+  setAgreedLegalTerms,
+  saveLoginSessionCookie,
+  readRememberedAccountFromCookie
+} from "@/utils/cookie.js";
 import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
 const router = useRouter();
@@ -185,7 +197,8 @@ const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
-const agreedTerms = ref(localStorage.getItem('xingjie_agreed_terms') === '1');
+const agreedTerms = ref(hasAgreedLegalTerms());
+const rememberMe = ref(true);
 const legalDialogVisible = ref(false);
 const legalActiveTab = ref('agreement');
 
@@ -196,7 +209,7 @@ const openLegalDoc = (tab) => {
 
 const handleAgreeLegal = () => {
   agreedTerms.value = true;
-  localStorage.setItem('xingjie_agreed_terms', '1');
+  setAgreedLegalTerms();
   legalDialogVisible.value = false;
 };
 
@@ -257,8 +270,13 @@ const selectAccentTheme = (themeKey, event) => {
   });
 };
 
+const remembered = readRememberedAccountFromCookie();
 const data = reactive({
-  form: { perm: '1' },
+  form: {
+    username: remembered.username || '',
+    pwd: '',
+    perm: remembered.perm || '1'
+  },
   rules: {
     username: [
       { required: true, message: '请输入用户名', trigger: 'blur' }
@@ -274,7 +292,7 @@ const login = () => {
     ElMessage.warning('请先阅读并勾选同意《星界用户服务协议》与《隐私保护政策》');
     return;
   }
-  localStorage.setItem('xingjie_agreed_terms', '1');
+  setAgreedLegalTerms();
   formRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
@@ -282,6 +300,7 @@ const login = () => {
         loading.value = false;
         if (res.code === 200) {
           localStorage.setItem('loginToken', JSON.stringify(res.data));
+          saveLoginSessionCookie(res.data, rememberMe.value, data.form.perm);
           ElMessage.success('登录成功，欢迎回来！');
           router.push('/main/home');
         } else {
@@ -710,6 +729,13 @@ html.dark .xingjie-logo-svg {
   background: var(--el-color-primary);
   color: #ffffff;
   box-shadow: 0 2px 6px rgba(var(--theme-rgb), 0.28);
+}
+
+.remember-cookie-row {
+  display: flex;
+  align-items: center;
+  margin: -4px 0 6px;
+  font-size: 12px;
 }
 
 .legal-consent-row {

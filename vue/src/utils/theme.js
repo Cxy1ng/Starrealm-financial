@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { saveThemePreferencesToCookie, readThemePreferencesFromCookie } from './cookie.js'
 
 export const THEME_PRESETS = [
   {
@@ -119,7 +120,8 @@ export const THEME_PRESETS = [
   }
 ]
 
-const savedKey = typeof localStorage !== 'undefined' ? (localStorage.getItem('dsh_accent_theme') || 'blue') : 'blue'
+const cookiePrefs = readThemePreferencesFromCookie()
+const savedKey = cookiePrefs.themeKey || (typeof localStorage !== 'undefined' ? (localStorage.getItem('dsh_accent_theme') || 'blue') : 'blue')
 const activeThemeKey = ref(THEME_PRESETS.some(t => t.key === savedKey) ? savedKey : 'blue')
 
 function mixHex(hex1, hex2, weight) {
@@ -143,6 +145,7 @@ export function applyThemePalette(themeKey, isDarkMode = null) {
 
   const root = document.documentElement
   const dark = isDarkMode !== null ? isDarkMode : root.classList.contains('dark')
+  saveThemePreferencesToCookie({ themeKey: preset.key, isDark: dark })
   const baseColor = dark ? preset.darkPrimary : preset.primary
   const mixTarget = dark ? preset.darkBg : '#ffffff'
 
@@ -200,7 +203,7 @@ export const FONT_SIZE_PRESETS = [
   { key: '18px', label: '特大关怀 (18px)', size: '18px', scale: 18 / 14 }
 ]
 
-const savedFontSize = typeof localStorage !== 'undefined' ? (localStorage.getItem('star_realm_font_size') || '14px') : '14px'
+const savedFontSize = cookiePrefs.fontSize || (typeof localStorage !== 'undefined' ? (localStorage.getItem('star_realm_font_size') || '14px') : '14px')
 export const activeFontSize = ref(FONT_SIZE_PRESETS.some(f => f.key === savedFontSize) ? savedFontSize : '14px')
 
 export function applyGlobalFontSize(sizeKey = activeFontSize.value) {
@@ -209,6 +212,7 @@ export function applyGlobalFontSize(sizeKey = activeFontSize.value) {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('star_realm_font_size', preset.key)
   }
+  saveThemePreferencesToCookie({ fontSize: preset.key })
   if (typeof document === 'undefined') return
   const root = document.documentElement
   const px = parseInt(preset.size, 10) || 14

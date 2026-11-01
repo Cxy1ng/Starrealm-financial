@@ -253,10 +253,12 @@ import {
   User
 } from "@element-plus/icons-vue";
 import { useDark } from "@vueuse/core";
+import request from "@/utils/request.js";
 import Exchange from "@/views/Exchange.vue";
 import ParticleBackground from "@/components/ParticleBackground.vue";
 import avatarFallback from "@/assets/avatar.jpg";
 import { useThemePalette } from "@/utils/theme.js";
+import { clearLoginSessionCookie, getLoginSessionFromCookie } from "@/utils/cookie.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -266,8 +268,14 @@ const showExchangeDrawer = ref(false);
 
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
+const initialStoredUser = JSON.parse(localStorage.getItem("loginToken") || "{}");
+const initialCookieUser = (!initialStoredUser || !initialStoredUser.id) ? getLoginSessionFromCookie() : null;
+if (initialCookieUser && initialCookieUser.token) {
+  localStorage.setItem("loginToken", JSON.stringify(initialCookieUser));
+}
+
 const data = reactive({
-  user: JSON.parse(localStorage.getItem("loginToken") || "{}")
+  user: initialStoredUser?.id ? initialStoredUser : (initialCookieUser || {})
 });
 
 if (!data.user || !data.user.id) {
@@ -276,7 +284,7 @@ if (!data.user || !data.user.id) {
 
 const currentTitle = computed(() => {
   const raw = route.meta?.title || "当前页面";
-  return raw.replace(/^(星界|智汇账本)\s*-\s*/, "");
+  return raw.replace(/^星界\s*-\s*/, "");
 });
 
 // 聚光灯从点击位置发散至全屏的实时渲染切换效果 (View Transitions API + Web Animations clipPath)
@@ -334,11 +342,14 @@ const toggleRightAside = () => {
 
 const logout = () => {
   localStorage.removeItem("loginToken");
+  clearLoginSessionCookie();
+  request.post("/logout").catch(() => {});
   router.replace("/login");
 };
 
 const updateUser = () => {
-  data.user = JSON.parse(localStorage.getItem("loginToken") || "{}");
+  const stored = JSON.parse(localStorage.getItem("loginToken") || "{}");
+  data.user = stored.token ? stored : (getLoginSessionFromCookie() || {});
 };
 
 // 侧边导航底部实时数字时钟（setup 阶段立即初始化，保证首帧即渲染时间与日期）

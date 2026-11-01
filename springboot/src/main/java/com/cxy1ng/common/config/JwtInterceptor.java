@@ -40,6 +40,14 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (ObjectUtil.isEmpty(token)) {
             token = request.getParameter(Constants.TOKEN);
         }
+        if (ObjectUtil.isEmpty(token) && request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("sr_auth_token".equals(cookie.getName()) && ObjectUtil.isNotEmpty(cookie.getValue())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
         if (ObjectUtil.isEmpty(token)) {
             throw new CustomException(ResultCodeEnum.TOKEN_INVALID_ERROR);
         }
