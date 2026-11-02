@@ -216,24 +216,34 @@ export function detectSensitiveTopic(rawText) {
  */
 export function inspectUserPromptLocally(rawText) {
   if (!rawText || !rawText.trim()) {
-    return { passed: true, violationType: null, message: null }
+    return { blocked: false, passed: true, violationType: null, message: null }
   }
 
   if (detectPromptInjection(rawText)) {
+    const msg = '检测到您的输入包含越狱指令、人设篡改或非财务咨询引导，已被星界安全护栏拦截。请聚焦于个人收支、预算规划或账单诊断等财务话题。'
     return {
+      blocked: true,
       passed: false,
+      category: '违反《星界用户服务协议》受限指令',
+      snippet: (rawText || '').slice(0, 140),
+      reply: msg,
       violationType: 'INJECTION',
-      message: '检测到您的输入包含越狱指令、人设篡改或非财务咨询引导，已被星界安全护栏拦截。请聚焦于个人收支、预算规划或账单诊断等财务话题。'
+      message: msg
     }
   }
 
   if (detectSensitiveTopic(rawText)) {
+    const msg = '检测到您的提问涉及敏感或违禁话题，已被系统合规护栏拦截。星界 AI 仅提供健康合规的个人财务咨询与智能记账支持。'
     return {
+      blocked: true,
       passed: false,
+      category: '违反《星界用户服务协议》敏感内容',
+      snippet: (rawText || '').slice(0, 140),
+      reply: msg,
       violationType: 'SENSITIVE',
-      message: '检测到您的提问涉及敏感或违禁话题，已被系统合规护栏拦截。星界 AI 仅提供健康合规的个人财务咨询与智能记账支持。'
+      message: msg
     }
   }
 
-  return { passed: true, violationType: null, message: null }
+  return { blocked: false, passed: true, violationType: null, message: null }
 }

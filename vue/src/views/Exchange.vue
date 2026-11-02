@@ -453,7 +453,22 @@ const sendMessage = async () => {
     time: nowTimeStr()
   })
 
-  // 前端零 API 消耗本地破甲与合规拦截
+  // 优先检查当前用户是否已配置个人 DeepSeek API Key（未配置则直接提示，不触发敏感词判定）
+  const currentUser = JSON.parse(localStorage.getItem('loginToken') || '{}')
+  if (!currentUser.hasApiKey) {
+    const noKeyReply = reactive({
+      role: 'assistant',
+      content: '当前账户尚未配置个人 DeepSeek API Key。请前往【个人中心 & 安全设置】填入并保存您的专属密钥后再进行咨询。',
+      time: nowTimeStr(),
+      waitingFirstToken: false,
+      streaming: false
+    })
+    messages.value.push(noKeyReply)
+    scrollToBottom(true)
+    return
+  }
+
+  // 确认配置 Key 后，进行前端本地合规拦截
   const localGuard = inspectUserPromptLocally(text)
   if (localGuard.blocked) {
     const blockedReply = reactive({

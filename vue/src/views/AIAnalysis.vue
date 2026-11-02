@@ -1108,7 +1108,23 @@ const analyze = async () => {
   })
   persistActiveSessionState()
 
-  // 1.5 前端本地合规拦截检查（直接拦截并静默记录 24h 违规档案，不消耗 API 算力）
+  // 1.2 优先检查当前用户是否已配置个人 DeepSeek API Key（未配置则直接提示，不触发敏感词判定）
+  const currentUser = JSON.parse(localStorage.getItem('loginToken') || '{}')
+  if (!currentUser.hasApiKey) {
+    const noKeyMsg = reactive({
+      role: 'assistant',
+      content: '当前账户尚未配置个人 DeepSeek API Key。请前往【个人中心 & 安全设置】填入并保存您的专属密钥后即可开始智能对话与财务诊断。',
+      time: nowTime(),
+      waitingFirstToken: false,
+      streaming: false
+    })
+    chatList.value.push(noKeyMsg)
+    saveCurrentChatToHistory()
+    scrollToBottom(true)
+    return
+  }
+
+  // 1.5 确认配置 Key 后，进行前端本地合规拦截检查（直接拦截并静默记录 24h 违规档案，不消耗 API 算力）
   const localGuard = inspectUserPromptLocally(userText)
   if (localGuard.blocked) {
     const blockedMsg = reactive({

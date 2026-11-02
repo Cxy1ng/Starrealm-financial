@@ -375,11 +375,17 @@ public class DeepseekController {
         // 0. 校验该用户的 AI 对话功能是否已被封禁
         ensureUserAiNotBanned(currentUser);
 
+        // 1. 优先校验当前用户是否已配置个人专属 API Key（若未配置 Key，直接阻断并提示，不触发敏感词判定与违规记录）
+        String plainApiKey = resolvePlainApiKey();
+        if (StrUtil.isBlank(plainApiKey)) {
+            throw new CustomException(ResultCodeEnum.PARAM_ERROR.code, "尚未配置个人 DeepSeek API Key，请前往【个人中心 & 安全设置】填写您的专属密钥");
+        }
+
         Object rawMessages = payload.get("messages");
         String rawPrompt = String.valueOf(payload.getOrDefault("prompt", ""));
         List<?> inputList = (rawMessages instanceof List<?> list) ? list : null;
 
-        // 1. 前置防破甲攻击与涉黄/涉政话题拦截检查（在消耗任何大模型 API Key 算力前直接拦截并记录违规）
+        // 2. 确认已配置 Key 后，进行防破甲攻击与涉黄/涉政话题拦截检查
         String[] violation = detectSecurityViolation(inputList, rawPrompt);
         if (violation != null) {
             String category = violation[0];
@@ -407,10 +413,6 @@ public class DeepseekController {
             return blockedEmitter;
         }
 
-        String plainApiKey = resolvePlainApiKey();
-        if (StrUtil.isBlank(plainApiKey)) {
-            throw new CustomException(ResultCodeEnum.PARAM_ERROR.code, "尚未配置个人 DeepSeek API Key，请前往【个人中心 & 安全设置】填写您的专属密钥");
-        }
         String baseUrl = resolveBaseUrl();
 
         // 2. 构造首尾加固的防注入消息列表
@@ -503,6 +505,13 @@ public class DeepseekController {
         Account currentUser = TokenUtils.getCurrentUser();
         ensureUserAiNotBanned(currentUser);
 
+        // 1. 优先校验当前用户是否已配置个人 API Key（未配置则直接提示，不触发敏感词判定）
+        String plainApiKey = resolvePlainApiKey();
+        if (StrUtil.isBlank(plainApiKey)) {
+            throw new CustomException(ResultCodeEnum.PARAM_ERROR.code, "尚未配置 DeepSeek API Key，请先前往【个人中心 & 安全设置】页面填写并保存您的专属密钥");
+        }
+
+        // 2. 确认已配置 Key 后，再进行敏感词与破甲检测
         String rawPrompt = String.valueOf(payload.getOrDefault("prompt", ""));
         String[] violation = detectSecurityViolation(null, rawPrompt);
         if (violation != null) {
@@ -510,11 +519,6 @@ public class DeepseekController {
                 userService.recordAiViolation(currentUser.getId(), violation[0], violation[2], "后端安全防线拦截");
             }
             return violation[1];
-        }
-
-        String plainApiKey = resolvePlainApiKey();
-        if (StrUtil.isBlank(plainApiKey)) {
-            throw new CustomException(ResultCodeEnum.PARAM_ERROR.code, "尚未配置 DeepSeek API Key，请先前往【个人设置】页面填写并加密保存您的 API 密钥");
         }
         String baseUrl = resolveBaseUrl();
 
