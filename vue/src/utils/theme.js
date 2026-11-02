@@ -198,9 +198,9 @@ export function applyThemePalette(themeKey, isDarkMode = null) {
 
 export const FONT_SIZE_PRESETS = [
   { key: '14px', label: '标准 (14px)', size: '14px', scale: 1 },
-  { key: '15px', label: '舒适中号 (15px)', size: '15px', scale: 15 / 14 },
-  { key: '16px', label: '大字护眼 (16px)', size: '16px', scale: 16 / 14 },
-  { key: '18px', label: '特大关怀 (18px)', size: '18px', scale: 18 / 14 }
+  { key: '15px', label: '舒适中号 (15px)', size: '15px', scale: 1.07 },
+  { key: '16px', label: '大字护眼 (16px)', size: '16px', scale: 1.15 },
+  { key: '18px', label: '特大关怀 (18px)', size: '18px', scale: 1.25 }
 ]
 
 const savedFontSize = cookiePrefs.fontSize || (typeof localStorage !== 'undefined' ? (localStorage.getItem('star_realm_font_size') || '14px') : '14px')
@@ -218,13 +218,24 @@ export function applyGlobalFontSize(sizeKey = activeFontSize.value) {
   const px = parseInt(preset.size, 10) || 14
   root.setAttribute('data-font-size', preset.key)
   root.style.setProperty('--app-base-font-size', `${px}px`)
-  root.style.setProperty('--app-font-scale', String(preset.scale))
+  const scale = Number(preset.scale || (px / 14)).toFixed(3)
+  root.style.setProperty('--app-font-scale', scale)
   root.style.setProperty('--el-font-size-base', `${px}px`)
   root.style.setProperty('--el-font-size-small', `${Math.max(12, px - 1)}px`)
   root.style.setProperty('--el-font-size-extra-small', `${Math.max(11, px - 2)}px`)
   root.style.setProperty('--el-font-size-medium', `${px + 2}px`)
   root.style.setProperty('--el-font-size-large', `${px + 4}px`)
   root.style.setProperty('--el-font-size-extra-large', `${px + 6}px`)
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('font-size-change', { detail: { sizeKey: preset.key, scale: Number(scale), px } }))
+  }
+}
+
+export function getChartFontScale() {
+  if (typeof document === 'undefined') return 1
+  const s = parseFloat(document.documentElement.style.getPropertyValue('--app-font-scale'))
+  return !isNaN(s) && s > 0 ? s : (FONT_SIZE_PRESETS.find(f => f.key === activeFontSize.value)?.scale || 1)
 }
 
 if (typeof document !== 'undefined') {
@@ -240,6 +251,7 @@ export function useThemePalette() {
     applyThemePalette,
     fontSizePresets: FONT_SIZE_PRESETS,
     activeFontSize,
-    applyGlobalFontSize
+    applyGlobalFontSize,
+    getChartFontScale
   }
 }

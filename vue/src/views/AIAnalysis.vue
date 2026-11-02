@@ -444,6 +444,7 @@ import MarkdownIt from 'markdown-it'
 import ContactSupportPopover from '@/components/ContactSupportPopover.vue'
 import LegalAgreementDialog from '@/components/LegalAgreementDialog.vue'
 import { inspectUserPromptLocally } from '@/utils/aiGuardrail.js'
+import { getChartFontScale } from '@/utils/theme.js'
 
 const router = useRouter()
 const isDark = useDark()
@@ -696,24 +697,27 @@ const inlinePie2Ref = ref(null)
 const modalPie1Ref = ref(null)
 const modalPie2Ref = ref(null)
 
-const buildPieOption = (titleText, subText, dark, list, palette) => ({
+const buildPieOption = (titleText, subText, dark, list, palette) => {
+  const scale = getChartFontScale();
+  return {
   title: {
     text: titleText,
     subtext: subText,
     left: 'left',
-    textStyle: { fontSize: 15, fontWeight: 700, color: dark ? '#f1f5f9' : '#0f172a' },
-    subtextStyle: { fontSize: 12, color: dark ? '#94a3b8' : '#64748b' }
+    textStyle: { fontSize: Math.round(15 * scale), fontWeight: 700, color: dark ? '#f1f5f9' : '#0f172a' },
+    subtextStyle: { fontSize: Math.round(12 * scale), color: dark ? '#94a3b8' : '#64748b' }
   },
   color: palette,
   backgroundColor: 'transparent',
   tooltip: {
     trigger: 'item',
+    textStyle: { fontSize: Math.round(13 * scale) },
     formatter: '{b}: ¥{c} ({d}%)'
   },
   legend: {
     orient: 'horizontal',
     bottom: 0,
-    textStyle: { color: dark ? '#cbd5e1' : '#475569', fontSize: 12 }
+    textStyle: { color: dark ? '#cbd5e1' : '#475569', fontSize: Math.round(12 * scale) }
   },
   series: [
     {
@@ -740,7 +744,7 @@ const buildPieOption = (titleText, subText, dark, list, palette) => ({
       emphasis: {
         label: {
           show: true,
-          fontSize: 16,
+          fontSize: Math.round(16 * scale),
           fontWeight: 'bold',
           color: dark ? '#ffffff' : '#0f172a'
         }
@@ -752,7 +756,8 @@ const buildPieOption = (titleText, subText, dark, list, palette) => ({
       }))
     }
   ]
-})
+  }
+}
 
 const renderChartsOnPair = (dom1, dom2) => {
   if (!dom1 || !dom2) return
@@ -1320,16 +1325,27 @@ watch(isDark, () => {
   })
 })
 
+const handleFontSizeChangeForCharts = () => {
+  nextTick(() => {
+    renderChartsOnPair(inlinePie1Ref.value, inlinePie2Ref.value)
+    if (showChartOverlay.value) {
+      renderChartsOnPair(modalPie1Ref.value, modalPie2Ref.value)
+    }
+  })
+}
+
 onMounted(() => {
   restoreHistoryAndActiveSession()
   checkConnectivity()
   fetchBillCountsAndRender()
   window.addEventListener('resize', handleResize)
+  window.addEventListener('font-size-change', handleFontSizeChangeForCharts)
 })
 
 onBeforeUnmount(() => {
   persistActiveSessionState()
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('font-size-change', handleFontSizeChangeForCharts)
 })
 </script>
 

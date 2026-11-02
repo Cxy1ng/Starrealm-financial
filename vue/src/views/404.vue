@@ -22,10 +22,11 @@ import { getLoginSessionFromCookie } from "@/utils/cookie.js";
 
 const router = useRouter();
 const isDark = useDark();
-const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
+const { presets, activeThemeKey, applyThemePalette, activeFontSize, applyGlobalFontSize } = useThemePalette();
 
 onMounted(() => {
   applyThemePalette(activeThemeKey.value, isDark.value);
+  applyGlobalFontSize(activeFontSize.value);
 });
 
 const isLoggedIn = computed(() => {

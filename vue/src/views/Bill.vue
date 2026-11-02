@@ -27,13 +27,13 @@
           placeholder="请选择查询结束日期"
           :disabled-date="disabledDate"
           :shortcuts="shortcuts"/>
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button @click="reset">清空</el-button>
+      <el-button type="primary" :icon="Search" @click="load">查询</el-button>
+      <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
     </el-card>
     <el-card style="margin-top: 5px">
       <div class="bill-toolbar">
-        <el-button type="info" @click="handleAdd" v-if="data.user.role === 'USER'">记一笔</el-button>
-        <el-button type="danger" @click="delBatch">批量删除</el-button>
+        <el-button type="success" :icon="Plus" @click="handleAdd" v-if="data.user.role === 'USER'">记一笔</el-button>
+        <el-button type="danger" :icon="Delete" @click="delBatch">批量删除</el-button>
         <el-upload
             v-if="data.user.role === 'USER'"
             class="bill-upload-inline"
@@ -44,7 +44,7 @@
         >
           <el-button type="success">导入</el-button>
         </el-upload>
-        <el-button type="warning" @click="exportData" v-if="data.user.role === 'USER'">导出</el-button>
+        <el-button class="btn-toolbar-export" :icon="Download" @click="exportData" v-if="data.user.role === 'USER'">导出</el-button>
       </div>
     </el-card>
     <el-card style="margin-top: 5px">
@@ -162,7 +162,7 @@
 
 <script setup>
 import {reactive, ref} from "vue";
-import {Delete, Edit, Search} from "@element-plus/icons-vue";
+import {Delete, Edit, Search, Refresh, Plus, Download, Upload} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {request} from "@/utils/request.js";
 import dayjs from "dayjs";

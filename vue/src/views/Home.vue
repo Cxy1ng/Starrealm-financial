@@ -228,13 +228,14 @@
 
 <script setup>
 import { request } from "@/utils/request.js";
-import { reactive, ref, computed, watch, onMounted } from "vue";
+import { reactive, ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Plus, MagicStick, Bell, Wallet, TrendCharts, Histogram } from "@element-plus/icons-vue";
 import { useDark, useTransition } from '@vueuse/core';
 import * as echarts from "echarts";
 import { clearLoginSessionCookie } from "@/utils/cookie.js";
+import { getChartFontScale } from "@/utils/theme.js";
 // Validator rules for password validation
 import { validatePasswordRule } from "@/utils/validator.js";
 
@@ -432,19 +433,25 @@ const balance = useAnimatedValue(() => data.acfun.balance);
 const income = useAnimatedValue(() => data.acfun.income);
 const pay = useAnimatedValue(() => data.acfun.pay);
 
-const createPieOption = (titleText, dark, dataList) => ({
+const createPieOption = (titleText, dark, dataList) => {
+  const scale = getChartFontScale();
+  return {
   title: {
     text: titleText,
     subtext: '实时账单聚合分布',
     left: 'left',
-    textStyle: { fontSize: 16, fontWeight: 600 }
+    textStyle: { fontSize: Math.round(16 * scale), fontWeight: 600 },
+    subtextStyle: { fontSize: Math.round(12 * scale) }
   },
   backgroundColor: 'transparent',
-  tooltip: { trigger: 'item' },
+  tooltip: {
+    trigger: 'item',
+    textStyle: { fontSize: Math.round(13 * scale) }
+  },
   legend: {
     orient: 'horizontal',
     bottom: 0,
-    textStyle: { color: dark ? '#cbd5e1' : '#475569' }
+    textStyle: { color: dark ? '#cbd5e1' : '#475569', fontSize: Math.round(12 * scale) }
   },
   series: [
     {
@@ -471,7 +478,7 @@ const createPieOption = (titleText, dark, dataList) => ({
       emphasis: {
         label: {
           show: true,
-          fontSize: 17,
+          fontSize: Math.round(17 * scale),
           fontWeight: 'bold',
           color: dark ? '#fff' : '#0f172a'
         }
@@ -483,7 +490,8 @@ const createPieOption = (titleText, dark, dataList) => ({
       }))
     }
   ]
-});
+  };
+};
 
 const loadPie = () => {
   const chartDom1 = document.getElementById('pie1');
@@ -505,10 +513,21 @@ const loadPie = () => {
   });
 };
 
+const handleFontSizeChangeForCharts = () => {
+  if (data.user.role === 'USER') {
+    loadPie();
+  }
+};
+
 onMounted(() => {
   if (data.user.role === 'USER') {
     loadPie();
   }
+  window.addEventListener('font-size-change', handleFontSizeChangeForCharts);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('font-size-change', handleFontSizeChangeForCharts);
 });
 
 watch(isDark, () => {
@@ -519,6 +538,9 @@ watch(isDark, () => {
 </script>
 
 <style scoped>
+.home-dashboard {
+  padding-bottom: 36px;
+}
 .hero-banner {
   margin-bottom: 16px;
   background: linear-gradient(135deg, rgba(var(--theme-rgb), 0.14) 0%, rgba(6, 182, 212, 0.06) 50%, rgba(139, 92, 246, 0.06) 100%) !important;

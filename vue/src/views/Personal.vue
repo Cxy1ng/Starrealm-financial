@@ -138,9 +138,21 @@
           </div>
 
           <div v-if="data.user.role === 'USER'" class="bio-showcase-box">
-            <div class="bio-box-label">个人理财格言 / 简介</div>
+            <div class="bio-box-label">
+              <el-icon style="margin-right: 5px; vertical-align: -2px;"><Document /></el-icon>
+              个人简介 / 理财格言
+            </div>
             <div class="bio-box-content">
               {{ data.form.descriptiontext || '暂未填写个人简介，点击右上角「修改资料」记录您的理财目标吧。' }}
+            </div>
+          </div>
+          <div v-else class="bio-showcase-box">
+            <div class="bio-box-label">
+              <el-icon style="margin-right: 5px; vertical-align: -2px;"><Document /></el-icon>
+              管理员权限说明
+            </div>
+            <div class="bio-box-content">
+              当前账号具备系统管理与全站数据审计权限，可统一调度公共配置、媒体资源及违规处置。
             </div>
           </div>
         </div>
@@ -180,6 +192,26 @@
               </div>
             </div>
 
+            <!-- DeepSeek 注册与获取 API Key 引导 -->
+            <div class="vault-guide-box">
+              <div class="guide-box-content">
+                <el-icon class="guide-lead-icon"><Promotion /></el-icon>
+                <div class="guide-text">
+                  <span>没有 API Key 或未注册账号？前往</span>
+                  <a
+                    href="https://platform.deepseek.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="deepseek-portal-link"
+                  >
+                    DeepSeek 开放平台官网 (platform.deepseek.com)
+                    <el-icon :size="12" style="margin-left: 2px;"><TopRight /></el-icon>
+                  </a>
+                  <span>注册并创建专属 API Key。</span>
+                </div>
+              </div>
+            </div>
+
             <div class="vault-input-area">
               <div class="input-Row">
                 <el-input
@@ -215,7 +247,7 @@
           </div>
 
           <!-- 卡片 2：网站字体大小设置 -->
-          <div class="bento-panel security-card" style="margin-bottom: 20px;">
+          <div class="bento-panel security-card">
             <div class="security-row">
               <div class="panel-title-group">
                 <div class="panel-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
@@ -266,7 +298,7 @@
           </div>
 
           <!-- 卡片 4：账户注销危险区域（红色边框统一样式，双击防误触 + 密码校验） -->
-          <div class="bento-panel security-card danger-zone-card" style="margin-top: 20px;" v-if="data.user.perm < 15">
+          <div class="bento-panel security-card danger-zone-card" v-if="data.user.perm < 15">
             <div class="security-row">
               <div class="panel-title-group">
                 <div class="panel-icon-box danger-icon-box">
@@ -489,7 +521,10 @@ import {
   Male,
   Message,
   Plus,
+  Document,
   Postcard,
+  Promotion,
+  TopRight,
   User,
   WarningFilled,
   ZoomIn
@@ -879,6 +914,7 @@ onMounted(() => {
   gap: 20px;
   max-width: 1220px;
   margin: 0 auto;
+  padding-bottom: 36px;
 }
 
 /* ================= 顶部云母个人名片 Hero 横幅 ================= */
@@ -1190,11 +1226,62 @@ html.dark .info-tile {
 }
 
 .bio-showcase-box {
-  margin-top: auto;
+  margin-top: 0;
   padding: 14px 16px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(var(--theme-rgb), 0.07), rgba(var(--theme-rgb), 0.02));
-  border: 1px dashed rgba(var(--theme-rgb), 0.28);
+  background: var(--table-row-alt-bg, #eef4fc);
+  border: 1px dashed rgba(var(--theme-rgb), 0.35);
+  transition: all 0.22s ease;
+}
+
+html.dark .bio-showcase-box {
+  background: var(--table-row-alt-bg, #101829);
+  border-color: rgba(var(--theme-rgb), 0.35);
+}
+
+.vault-guide-box {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(var(--theme-rgb), 0.06);
+  border: 1px solid rgba(var(--theme-rgb), 0.18);
+  font-size: 12.5px;
+  color: var(--el-text-color-regular);
+}
+
+.guide-box-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.5;
+  flex-wrap: wrap;
+}
+
+.guide-lead-icon {
+  color: var(--el-color-primary);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.guide-text {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.deepseek-portal-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--el-color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.deepseek-portal-link:hover {
+  opacity: 0.8;
 }
 
 .bio-box-label {

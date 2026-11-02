@@ -87,7 +87,7 @@
             <div class="vault-status-text">
               <div class="vault-main-line">全站采用用户自备 API Key 模式</div>
               <div class="vault-sub-line">
-                平台不统一提供公共 API 额度，用户需在个人中心配置个人 Key 后方可使用智能分析。
+                平台不统一提供公共 API 额度，用户需在个人中心配置个人 Key 后方可使用智能分析（未注册用户可指引其前往 <a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer" style="color: var(--el-color-primary); text-decoration: underline;">DeepSeek 开放平台官网</a> 获取）。
               </div>
             </div>
           </div>

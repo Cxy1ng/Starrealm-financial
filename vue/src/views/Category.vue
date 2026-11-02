@@ -83,7 +83,7 @@
 
 <script setup>
 import {reactive, ref} from "vue";
-import {Delete, Edit, Search} from "@element-plus/icons-vue";
+import {Delete, Edit, Search, Refresh, Plus} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {request} from "@/utils/request.js";
 

@@ -13,15 +13,17 @@
           <span v-if="exchangeRate" class="rate-badge num-font">
             1 {{ data.form.base }} = {{ Number(exchangeRate).toFixed(4) }} {{ data.form.target }}
           </span>
-          <el-button
-              size="small"
-              type="primary"
-              link
-              :loading="data.loading"
-              @click="fetchExchangeRate"
-          >
-            刷新汇率
-          </el-button>
+          <el-tooltip content="刷新实时单价汇率" placement="top">
+            <button
+                type="button"
+                class="refresh-icon-btn"
+                :disabled="data.loading"
+                title="刷新实时单价汇率"
+                @click="fetchExchangeRate"
+            >
+              <el-icon :class="{ 'is-loading': data.loading }"><Refresh /></el-icon>
+            </button>
+          </el-tooltip>
         </div>
       </div>
 
@@ -179,24 +181,33 @@
         </span>
       </div>
 
-      <!-- 底部客服消息发送栏 -->
+      <!-- 底部客服消息发送栏：嵌入式自适应高度输入框（最高 2 行并支持滚动，无内容时隐藏发送按钮以释放全部空间展示占位文案） -->
       <div class="chat-input-bar">
-        <el-input
-            v-model="chatInput"
-            :placeholder="aiBanned ? '您的 AI 对话功能已被封禁，暂无法发送消息' : '输入理财或汇率问题，按 Enter 发送...'"
-            :disabled="isTyping || aiBanned"
-            @keydown.enter.exact.prevent="sendMessage"
-            clearable
-        />
-        <el-button
-            type="primary"
-            :loading="isTyping"
-            :disabled="!chatInput.trim() || aiBanned"
-            @click="sendMessage"
-            class="send-btn"
-        >
-          {{ aiBanned ? '已封禁' : '发送' }}
-        </el-button>
+        <div class="chat-composer-box" :class="{ 'has-content': chatInput.trim().length > 0, 'is-banned': aiBanned }">
+          <el-input
+              v-model="chatInput"
+              type="textarea"
+              :autosize="{ minRows: 1, maxRows: 2 }"
+              :placeholder="aiBanned ? '您的 AI 对话功能已被限制' : '输入理财或汇率问题，Enter 发送...'"
+              :disabled="isTyping || aiBanned"
+              resize="none"
+              class="chat-inline-textarea"
+              @keydown.enter.exact.prevent="sendMessage"
+          />
+          <Transition name="btn-slide-pop">
+            <button
+                v-if="chatInput.trim().length > 0 || isTyping"
+                type="button"
+                class="embedded-send-circle-btn"
+                :disabled="!chatInput.trim() || isTyping || aiBanned"
+                :title="aiBanned ? '已封禁' : '发送消息 (Enter)'"
+                @click="sendMessage"
+            >
+              <el-icon v-if="isTyping" class="is-loading"><Loading /></el-icon>
+              <el-icon v-else><Promotion /></el-icon>
+            </button>
+          </Transition>
+        </div>
       </div>
       <div class="sidebar-ephemeral-notice">
         会话不会保存，请及时复制重要内容；如需长久存档请使用「AI 智能分析」
@@ -224,7 +235,9 @@ import {
   TrendCharts,
   PieChart,
   Aim,
-  CopyDocument
+  CopyDocument,
+  Promotion,
+  Loading
 } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import request from '@/utils/request.js'
@@ -661,6 +674,38 @@ html.dark .exchange-panel {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.refresh-icon-btn {
+  width: calc(26px * var(--app-font-scale, 1));
+  height: calc(26px * var(--app-font-scale, 1));
+  border-radius: 7px;
+  border: 1px solid rgba(var(--theme-rgb), 0.25);
+  background: rgba(var(--theme-rgb), 0.09);
+  color: var(--el-color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.refresh-icon-btn:hover:not(:disabled) {
+  background: var(--el-color-primary);
+  color: #ffffff;
+}
+
+.refresh-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-icon-btn .el-icon {
+  font-size: calc(13px * var(--app-font-scale, 1));
 }
 
 .rate-badge {
@@ -1122,19 +1167,103 @@ html.dark .msg-assistant .msg-bubble {
 }
 
 .chat-input-bar {
-  padding: 10px 12px;
-  display: flex;
-  gap: 8px;
+  padding: 8px 10px;
   border-top: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.45);
+  box-sizing: border-box;
 }
 
 html.dark .chat-input-bar {
   background: rgba(15, 23, 42, 0.45);
 }
 
-.send-btn {
-  padding: 0 16px;
+.chat-composer-box {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 12px;
+  background: var(--table-row-alt-bg, #eef4fc);
+  border: 1px solid var(--table-border-color, #d3e1f4);
+  box-sizing: border-box;
+  transition: all 0.22s ease;
+}
+
+html.dark .chat-composer-box {
+  background: var(--table-row-alt-bg, #101829);
+  border-color: var(--table-border-color, #1e2c46);
+}
+
+.chat-composer-box:focus-within {
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--theme-rgb), 0.16);
+}
+
+.chat-composer-box.is-banned {
+  opacity: 0.75;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.chat-inline-textarea {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-inline-textarea :deep(.el-textarea__inner) {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 3px 0 !important;
+  line-height: 1.45 !important;
+  resize: none !important;
+  color: var(--el-text-color-primary);
+  min-height: 22px !important;
+  max-height: 48px !important;
+  overflow-y: auto !important;
+}
+
+.chat-inline-textarea :deep(.el-textarea__inner)::placeholder {
+  color: var(--el-text-color-placeholder, #94a3b8);
+}
+
+.embedded-send-circle-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--el-color-primary);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-bottom: 2px;
+  box-shadow: 0 2px 8px rgba(var(--theme-rgb), 0.32);
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.embedded-send-circle-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(var(--theme-rgb), 0.45);
+}
+
+.embedded-send-circle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-slide-pop-enter-active,
+.btn-slide-pop-leave-active {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-slide-pop-enter-from,
+.btn-slide-pop-leave-to {
+  opacity: 0;
+  transform: scale(0.6) translateX(8px);
 }
 
 .sidebar-ephemeral-notice {

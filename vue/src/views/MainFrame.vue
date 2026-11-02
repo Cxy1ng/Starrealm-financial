@@ -442,7 +442,7 @@ html:not(.dark) .antd-pro-layout {
 }
 
 .sider-logo {
-  height: 64px;
+  height: calc(64px * var(--app-font-scale, 1));
   padding: 0 16px;
   display: flex;
   align-items: center;
@@ -637,7 +637,8 @@ html.dark .clock-date {
 }
 
 .antd-header {
-  height: 64px !important;
+  height: calc(64px * var(--app-font-scale, 1)) !important;
+  line-height: calc(64px * var(--app-font-scale, 1)) !important;
   background: var(--antd-header-bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -874,13 +875,17 @@ html.dark .clock-date {
 /* 内容区域与子路由切换过渡动画 */
 .antd-content-body {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
+  display: flex;
 }
 
 .antd-page-view {
-  padding: 20px 24px;
+  flex: 1;
+  height: 100%;
+  padding: 20px 24px 48px 24px;
   overflow-y: auto;
-  height: calc(100vh - 64px);
+  box-sizing: border-box;
 }
 
 .page-transition-shell {

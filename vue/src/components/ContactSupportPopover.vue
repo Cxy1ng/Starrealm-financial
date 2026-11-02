@@ -310,4 +310,73 @@ html.dark .contact-corner-btn {
   line-height: 1.55;
   color: var(--el-text-color-secondary);
 }
+
+.contact-corner-btn {
+  height: calc(36px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(14px * var(--app-font-scale, 1)) 0 calc(8px * var(--app-font-scale, 1)) !important;
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+  gap: calc(7px * var(--app-font-scale, 1)) !important;
+}
+
+.headset-icon-ring {
+  width: calc(26px * var(--app-font-scale, 1)) !important;
+  height: calc(26px * var(--app-font-scale, 1)) !important;
+}
+
+.headset-icon-ring svg {
+  width: calc(17px * var(--app-font-scale, 1)) !important;
+  height: calc(17px * var(--app-font-scale, 1)) !important;
+}
+
+.contact-banner-btn {
+  height: calc(32px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(14px * var(--app-font-scale, 1)) !important;
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+  gap: calc(6px * var(--app-font-scale, 1)) !important;
+}
+
+.contact-banner-btn svg {
+  width: calc(15px * var(--app-font-scale, 1)) !important;
+  height: calc(15px * var(--app-font-scale, 1)) !important;
+}
+
+.support-badge {
+  width: calc(36px * var(--app-font-scale, 1)) !important;
+  height: calc(36px * var(--app-font-scale, 1)) !important;
+}
+
+.support-badge svg {
+  width: calc(18px * var(--app-font-scale, 1)) !important;
+  height: calc(18px * var(--app-font-scale, 1)) !important;
+}
+
+.support-title {
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+}
+
+.support-sub {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.row-icon {
+  width: calc(28px * var(--app-font-scale, 1)) !important;
+  height: calc(28px * var(--app-font-scale, 1)) !important;
+}
+
+.row-icon .el-icon {
+  font-size: calc(15px * var(--app-font-scale, 1)) !important;
+}
+
+.row-label {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.row-value {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.support-foot-note {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
 </style>

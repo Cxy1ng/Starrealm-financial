@@ -37,6 +37,15 @@ public class UserService {
     @Resource
     private SiteConfigService siteConfigService;
 
+    @Resource
+    private NotebookMapper notebookMapper;
+
+    @Resource
+    private BillMapper billMapper;
+
+    @Resource
+    private PlanMapper planMapper;
+
     private static final long WINDOW_24H_MS = 24L * 60 * 60 * 1000;
     private static final int AUTO_BAN_THRESHOLD = 10;
 
@@ -572,7 +581,7 @@ public class UserService {
      */
     public static void cleanupHtmlImages(String content) {
         if (StrUtil.isBlank(content)) return;
-        Pattern imgPattern = Pattern.compile("<img[^>]+src=[\\"']([^\\"']+)[\\"']", Pattern.CASE_INSENSITIVE);
+        Pattern imgPattern = Pattern.compile("<img[^>]+src=['\"]([^'\"]+)['\"]", Pattern.CASE_INSENSITIVE);
         Matcher matcher = imgPattern.matcher(content);
         String baseDir = System.getProperty("user.dir") + "/files/";
         while (matcher.find()) {

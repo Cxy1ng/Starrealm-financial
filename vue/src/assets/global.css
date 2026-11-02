@@ -46,9 +46,139 @@ body {
   letter-spacing: 0.01em;
 }
 
-/* 全站字号缩放联动适配：确保表格、菜单、表单标签、输入框、按钮、统计文本等均随所选字号同步缩放 */
+/* ================= 全站字号多维阶梯式平滑缩放系统 =================
+   使用 --app-font-scale 动态倍率驱动全站所有字体等比例平滑放大，
+   实现整体如“全局缩放”般的一致大字视觉体验，
+   同时完整保持排版层次、设计比例与布局流，不破坏视口高度与滚动边界。
+*/
+
+/* 1. 侧边栏：数字时钟、日期、Logo、菜单项及底部工具栏 */
+.clock-time {
+  font-size: calc(18px * var(--app-font-scale, 1)) !important;
+  line-height: 1.25 !important;
+}
+
+.clock-date {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.sider-clock-card {
+  min-height: calc(54px * var(--app-font-scale, 1)) !important;
+  padding-top: calc(8px * var(--app-font-scale, 1)) !important;
+  padding-bottom: calc(8px * var(--app-font-scale, 1)) !important;
+}
+
+.sider-clock-card.is-collapsed .clock-time {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.logo-text {
+  font-size: calc(17px * var(--app-font-scale, 1)) !important;
+}
+
+.logo-sub {
+  font-size: calc(10px * var(--app-font-scale, 1)) !important;
+}
+
 .el-menu-item,
-.el-sub-menu__title,
+.el-sub-menu__title {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.sider-footer {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  height: calc(46px * var(--app-font-scale, 1)) !important;
+}
+
+/* 2. 顶栏导航区：面包屑、AI 助手胶囊按钮、用户信息徽章 */
+.antd-breadcrumb,
+.antd-breadcrumb * {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.exchange-pill-btn {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.user-name {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.user-role-badge {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+/* 3. 各模块主标题、问候语与大屏横幅 */
+.hero-title,
+.display-name,
+.page-title {
+  font-size: calc(24px * var(--app-font-scale, 1)) !important;
+}
+
+.hero-calendar-line {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.greeting-chip {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+/* 4. 卡片头部、分区标题与弹窗标题 */
+.section-title,
+.panel-title,
+.card-title,
+.head-title,
+.notice-title,
+.el-dialog__title,
+.el-message-box__title {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+/* 5. 核心金额、统计数值与图表高亮指标 */
+.metric-value .el-statistic__content,
+.metric-value :deep(.el-statistic__content) {
+  font-size: calc(30px * var(--app-font-scale, 1)) !important;
+}
+
+.tile-value,
+.cat-amount {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+/* 6. 辅助正文、描述说明与微型帮助文案 */
+.hero-subtitle,
+.panel-sub,
+.bio-line,
+.bio-box-content,
+.notice-body,
+.field-help,
+.metric-foot,
+.vault-sub-line,
+.vault-guide-box,
+.guide-text,
+.pwd-dialog-tip {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  line-height: 1.6 !important;
+}
+
+/* 7. 微型标签、角标与身份胶囊 */
+.tile-label,
+.metric-label,
+.bio-box-label,
+.cat-name,
+.notice-publisher {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.role-pill,
+.security-pill,
+.metric-badge,
+.el-tag,
+.scene-tag {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+/* 8. 基础 UI 控件：数据表格、表单输入框、按钮与分页器 */
 .el-table,
 .el-table th.el-table__cell,
 .el-table td.el-table__cell,
@@ -58,22 +188,550 @@ body {
 .el-select__placeholder,
 .el-select__selected-item,
 .el-dropdown-menu__item,
-.el-button:not(.el-button--small):not(.el-button--large),
-.el-breadcrumb {
-  font-size: var(--app-base-font-size, 14px) !important;
+.el-radio__label,
+.el-checkbox__label,
+.el-message-box__message {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
 }
 
-html[data-font-size="15px"] .antd-main-container {
-  zoom: 1.05;
+/* 基础按钮及输入框几何尺寸、内边距与字体等比例缩放（杜绝字变大按钮不增大的拥挤感） */
+.el-button:not(.el-button--small):not(.el-button--large):not(.is-link):not(.is-text) {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+  height: calc(34px * var(--app-font-scale, 1)) !important;
+  padding: calc(6px * var(--app-font-scale, 1)) calc(16px * var(--app-font-scale, 1)) !important;
+  border-radius: calc(9px * var(--app-font-scale, 1)) !important;
+  gap: calc(6px * var(--app-font-scale, 1)) !important;
 }
 
-html[data-font-size="16px"] .antd-main-container {
-  zoom: 1.12;
+.el-button--small:not(.is-link):not(.is-text) {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+  height: calc(26px * var(--app-font-scale, 1)) !important;
+  padding: calc(3px * var(--app-font-scale, 1)) calc(11px * var(--app-font-scale, 1)) !important;
+  border-radius: calc(7px * var(--app-font-scale, 1)) !important;
+  gap: calc(4px * var(--app-font-scale, 1)) !important;
 }
 
-html[data-font-size="18px"] .antd-main-container {
-  zoom: 1.22;
+.el-button--large:not(.is-link):not(.is-text) {
+  font-size: calc(15.5px * var(--app-font-scale, 1)) !important;
+  height: calc(42px * var(--app-font-scale, 1)) !important;
+  padding: calc(8px * var(--app-font-scale, 1)) calc(20px * var(--app-font-scale, 1)) !important;
+  border-radius: calc(11px * var(--app-font-scale, 1)) !important;
+  gap: calc(8px * var(--app-font-scale, 1)) !important;
 }
+
+/* 圆形按钮几何尺寸等比放大 */
+.el-button.is-circle:not(.el-button--small):not(.el-button--large) {
+  width: calc(34px * var(--app-font-scale, 1)) !important;
+  height: calc(34px * var(--app-font-scale, 1)) !important;
+  padding: 0 !important;
+}
+
+.el-button.is-circle.el-button--small {
+  width: calc(26px * var(--app-font-scale, 1)) !important;
+  height: calc(26px * var(--app-font-scale, 1)) !important;
+  padding: 0 !important;
+}
+
+.el-button.is-circle.el-button--large {
+  width: calc(42px * var(--app-font-scale, 1)) !important;
+  height: calc(42px * var(--app-font-scale, 1)) !important;
+  padding: 0 !important;
+}
+
+/* 输入框高度与内边距与按钮严格匹配放大 */
+.el-input:not(.el-input--small):not(.el-input--large) .el-input__wrapper,
+.el-select:not(.el-select--small):not(.el-select--large) .el-select__wrapper {
+  min-height: calc(34px * var(--app-font-scale, 1)) !important;
+  height: calc(34px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(12px * var(--app-font-scale, 1)) !important;
+  border-radius: calc(9px * var(--app-font-scale, 1)) !important;
+}
+
+.el-input--small .el-input__wrapper,
+.el-select--small .el-select__wrapper {
+  min-height: calc(26px * var(--app-font-scale, 1)) !important;
+  height: calc(26px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(8px * var(--app-font-scale, 1)) !important;
+  border-radius: calc(7px * var(--app-font-scale, 1)) !important;
+}
+
+/* 按钮图标与全局图标按字阶等比例缩放 */
+.el-button .el-icon {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+  width: calc(14px * var(--app-font-scale, 1)) !important;
+  height: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.el-button--small .el-icon {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+  width: calc(12px * var(--app-font-scale, 1)) !important;
+  height: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.el-button--large .el-icon {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+  width: calc(16px * var(--app-font-scale, 1)) !important;
+  height: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.el-menu-item .el-icon,
+.el-sub-menu__title .el-icon {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+  width: calc(16px * var(--app-font-scale, 1)) !important;
+  height: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.el-input__prefix-inner .el-icon,
+.el-input__suffix-inner .el-icon {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.card-header .el-icon,
+.panel-header .el-icon,
+.heading-icon {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.el-pagination,
+.el-pagination * {
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+}
+
+
+/* 9. 独立全屏界面（登录 / 注册 / 404 引导页）全景等比例缩放 */
+.brand-headline {
+  font-size: calc(46px * var(--app-font-scale, 1)) !important;
+}
+
+.brand-desc {
+  font-size: calc(15px * var(--app-font-scale, 1)) !important;
+  line-height: 1.75 !important;
+}
+
+.brand-pill,
+.brand-pill * {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.feature-item,
+.feature-item * {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.card-title {
+  font-size: calc(21px * var(--app-font-scale, 1)) !important;
+}
+
+.card-subtitle {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.role-option {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.remember-cookie-row,
+.legal-consent-row,
+.consent-text,
+.consent-sep,
+.legal-inline-link {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.submit-btn {
+  font-size: calc(15px * var(--app-font-scale, 1)) !important;
+  height: calc(42px * var(--app-font-scale, 1)) !important;
+}
+
+.auth-footer,
+.auth-link {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.notfound-title {
+  font-size: calc(24px * var(--app-font-scale, 1)) !important;
+}
+
+.notfound-desc {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+  line-height: 1.6 !important;
+}
+
+.notfound-btn {
+  font-size: calc(15px * var(--app-font-scale, 1)) !important;
+}
+
+/* 10. 浮层与调色面板（主题配色选择器下拉菜单与 Popover） */
+.palette-title,
+.auth-palette-title {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.palette-sub,
+.auth-palette-sub {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.swatch-name,
+.auth-swatch-name {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.swatch-desc,
+.auth-swatch-desc {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+/* 11. 右侧边栏抽屉 Drawer（Exchange.vue 实时汇率 + 客服 AI 助手全量小字与气泡） */
+.assistant-drawer .el-drawer__title,
+.assistant-drawer .el-drawer__header * {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.panel-title {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.rate-badge {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.box-label {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.converted-val {
+  font-size: calc(18px * var(--app-font-scale, 1)) !important;
+}
+
+.exchange-foot,
+.exchange-foot * {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.model-main-name {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.model-sub-ver {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.status-text {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.msg-bubble,
+.user-text,
+.markdown-chat,
+.markdown-chat * {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.markdown-chat code,
+.markdown-chat pre {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.tg-typing-label {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.msg-time {
+  font-size: calc(10.5px * var(--app-font-scale, 1)) !important;
+}
+
+.sidebar-ai-footer {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.sidebar-copy-btn {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.sidebar-footer-time {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.sidebar-footer-disclaimer {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.quick-prompts,
+.prompt-chip {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.chat-input-bar :deep(.el-input__inner),
+.chat-input-bar input,
+.chat-composer-box,
+.chat-inline-textarea textarea,
+.chat-inline-textarea :deep(.el-textarea__inner),
+.send-btn,
+.embedded-send-circle-btn {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.sidebar-ephemeral-notice {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+/* 12. AI 智能分析舞台（AIAnalysis.vue 全景文字与等待态、历史抽屉、输入坞） */
+.model-name {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.model-build {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.status-label {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.hero-heading,
+.hero-heading * {
+  font-size: calc(20px * var(--app-font-scale, 1)) !important;
+}
+
+.hero-sub {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  line-height: 1.6 !important;
+}
+
+.starter-title {
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+}
+
+.starter-desc {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.ai-sender-name {
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+}
+
+.ai-done-tag {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.shimmer-status-pill {
+  padding: calc(2px * var(--app-font-scale, 1)) calc(10px * var(--app-font-scale, 1)) !important;
+}
+
+.shimmer-marquee-text {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.tg-typing-box {
+  padding: calc(12px * var(--app-font-scale, 1)) calc(18px * var(--app-font-scale, 1)) !important;
+}
+
+.tg-text {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.report-meta-bar,
+.report-meta-bar * {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.user-query-text {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.markdown-body {
+  font-size: calc(14.5px * var(--app-font-scale, 1)) !important;
+  line-height: 1.82 !important;
+}
+
+.ai-msg-footer-bar {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.ai-msg-action-btn {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.ai-footer-time {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.ai-disclaimer-badge {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.window-title {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.bg-streaming-pill {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.ban-headline {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.ban-level-pill {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.ban-count-pill {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.ban-statement {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.ban-sub-reason {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.ban-meta-row {
+  font-size: calc(11.5px * var(--app-font-scale, 1)) !important;
+}
+
+.dock-textarea :deep(.el-textarea__inner),
+.dock-textarea textarea {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.dock-hint {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.chart-dock-trigger {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.pill-count {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+.embedded-send-btn {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.history-drawer-body,
+.history-drawer-body * {
+  font-size: calc(13px * var(--app-font-scale, 1));
+}
+
+.history-empty {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.history-empty-sub {
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.hist-title {
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+}
+
+.hist-time {
+  font-size: calc(11px * var(--app-font-scale, 1)) !important;
+}
+
+/* 13. 通用 Drawers 与 Modals 标题及正文全局等比例缩放 */
+.el-drawer__title,
+.el-drawer__header {
+  font-size: calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.el-drawer__body {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+/* 14. 空状态与空表格占位全量等比例平滑缩放 */
+.el-table__empty-text,
+.el-empty__description,
+.el-empty__description p,
+.empty-table-title,
+.empty-card-title,
+.record-empty-title {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.empty-table-sub,
+.empty-card-sub,
+.record-empty-sub {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.el-empty__bottom {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.el-empty__image {
+  width: calc(90px * var(--app-font-scale, 1)) !important;
+}
+
+/* 15. 存钱计划明细页面 (PlanDetail.vue) 与血条组件全景等比例平滑缩放 */
+.plan-card {
+  padding: calc(20px * var(--app-font-scale, 1)) calc(22px * var(--app-font-scale, 1)) !important;
+}
+
+.plan-title {
+  font-size: calc(19px * var(--app-font-scale, 1)) !important;
+  gap: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.plan-money {
+  font-size: calc(15px * var(--app-font-scale, 1)) !important;
+  padding: calc(2px * var(--app-font-scale, 1)) calc(10px * var(--app-font-scale, 1)) !important;
+  border-radius: calc(6px * var(--app-font-scale, 1)) !important;
+}
+
+.plan-end {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.boss-bar-label {
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+.stage-tag {
+  font-size: calc(10px * var(--app-font-scale, 1)) !important;
+  padding: calc(1px * var(--app-font-scale, 1)) calc(4px * var(--app-font-scale, 1)) !important;
+}
+
+.record-card {
+  padding: calc(14px * var(--app-font-scale, 1)) calc(16px * var(--app-font-scale, 1)) !important;
+  gap: calc(12px * var(--app-font-scale, 1)) !important;
+}
+
+.record-money {
+  font-size: calc(14.5px * var(--app-font-scale, 1)) !important;
+}
+
+.record-sum {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.record-sum-amount {
+  font-size: calc(17px * var(--app-font-scale, 1)) !important;
+}
+
+.record-footer {
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
+}
+
+.record-empty-card {
+  padding: calc(40px * var(--app-font-scale, 1)) calc(16px * var(--app-font-scale, 1)) !important;
+}
+
+.record-empty-title {
+  font-size: calc(15px * var(--app-font-scale, 1)) !important;
+}
+
+.record-empty-sub {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+
 
 /* ================= View Transitions 聚光灯扩散主题切换动画 ================= */
 ::view-transition-old(root),
@@ -554,4 +1212,138 @@ pre,
 code {
   user-select: text !important;
   -webkit-user-select: text !important;
+}
+
+
+/* 16. 全局框架顶栏、侧边栏、右侧抽屉、头像与方案一按钮配色体系 */
+
+/* 顶栏高度与内边距随字阶等比例舒展 */
+.antd-header,
+.sider-logo {
+  height: calc(64px * var(--app-font-scale, 1)) !important;
+  line-height: calc(64px * var(--app-font-scale, 1)) !important;
+}
+
+.antd-header {
+  padding: 0 calc(20px * var(--app-font-scale, 1)) !important;
+}
+
+/* 顶栏右侧按钮高度严格保持一致（消除汇率胶囊与主题/暗色圆形按钮高度不一的问题） */
+.exchange-pill-btn {
+  height: calc(36px * var(--app-font-scale, 1)) !important;
+  line-height: calc(36px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(14px * var(--app-font-scale, 1)) !important;
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.header-icon-btn {
+  width: calc(36px * var(--app-font-scale, 1)) !important;
+  height: calc(36px * var(--app-font-scale, 1)) !important;
+  border-radius: 50% !important;
+}
+
+.header-icon-btn svg,
+.header-icon-btn .el-icon {
+  width: calc(18px * var(--app-font-scale, 1)) !important;
+  height: calc(18px * var(--app-font-scale, 1)) !important;
+  font-size: calc(18px * var(--app-font-scale, 1)) !important;
+}
+
+.active-color-dot {
+  width: calc(8px * var(--app-font-scale, 1)) !important;
+  height: calc(8px * var(--app-font-scale, 1)) !important;
+  right: calc(4px * var(--app-font-scale, 1)) !important;
+  bottom: calc(4px * var(--app-font-scale, 1)) !important;
+}
+
+/* 顶栏与个人中心用户头像随字阶等比例放大 */
+.user-profile-trigger .el-avatar,
+.user-avatar-ring,
+.profile-avatar-box .el-avatar {
+  width: calc(34px * var(--app-font-scale, 1)) !important;
+  height: calc(34px * var(--app-font-scale, 1)) !important;
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+}
+
+/* 左侧边栏宽度随字阶等比延展（避免大字模式下菜单文字挤压） */
+.antd-sider:not(.is-collapsed),
+.antd-aside:not(.is-collapsed) {
+  width: calc(220px * var(--app-font-scale, 1)) !important;
+  max-width: calc(220px * var(--app-font-scale, 1)) !important;
+  flex: 0 0 calc(220px * var(--app-font-scale, 1)) !important;
+}
+
+.antd-sider.is-collapsed,
+.antd-aside.is-collapsed {
+  width: calc(64px * var(--app-font-scale, 1)) !important;
+  flex: 0 0 calc(64px * var(--app-font-scale, 1)) !important;
+}
+
+/* 右侧抽屉（汇率与AI客服抽屉、历史存档抽屉）宽度随字阶等比扩展 */
+.assistant-drawer.el-drawer {
+  width: min(calc(430px * var(--app-font-scale, 1)), 96vw) !important;
+}
+
+.el-drawer.rtl {
+  width: min(calc(400px * var(--app-font-scale, 1)), 96vw) !important;
+  max-width: 96vw !important;
+}
+
+/* 方案一：表格工具栏标准化按钮配色（全站页面完全统一，杜绝在蛋黄琥珀主题下撞色） */
+.btn-toolbar-reset,
+.el-button.btn-toolbar-reset {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  box-shadow: none !important;
+}
+
+.btn-toolbar-reset:hover,
+.el-button.btn-toolbar-reset:hover {
+  background: #e2e8f0 !important;
+  color: #1e293b !important;
+  border-color: #94a3b8 !important;
+}
+
+html.dark .btn-toolbar-reset,
+html.dark .el-button.btn-toolbar-reset {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .btn-toolbar-reset:hover,
+html.dark .el-button.btn-toolbar-reset:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+.btn-toolbar-export,
+.el-button.btn-toolbar-export {
+  background: #6366f1 !important;
+  border-color: #4f46e5 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25) !important;
+}
+
+.btn-toolbar-export:hover,
+.el-button.btn-toolbar-export:hover {
+  background: #4f46e5 !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.38) !important;
+}
+
+html.dark .btn-toolbar-export,
+html.dark .el-button.btn-toolbar-export {
+  background: rgba(99, 102, 241, 0.82) !important;
+  border-color: rgba(165, 180, 252, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.contact-support-popover {
+  width: calc(320px * var(--app-font-scale, 1)) !important;
+  max-width: 90vw !important;
 }

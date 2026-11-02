@@ -165,7 +165,7 @@ const loading = ref(false);
 const formRef = ref();
 const bgVideoRef = ref(null);
 const isDark = useDark();
-const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
+const { presets, activeThemeKey, applyThemePalette, activeFontSize, applyGlobalFontSize } = useThemePalette();
 
 const agreedTerms = ref(false);
 const legalDialogVisible = ref(false);
@@ -210,6 +210,7 @@ const handleVideoTimeUpdate = (e) => {
 
 onMounted(() => {
   applyThemePalette(activeThemeKey.value, isDark.value);
+  applyGlobalFontSize(activeFontSize.value);
   ensureVideoLooping();
 });
 
@@ -423,7 +424,7 @@ html.dark .curl-peek-sky {
 }
 
 .curl-icon {
-  font-size: 13px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -484,8 +485,8 @@ html.dark .curl-flap {
 }
 
 .brand-logo-badge {
-  width: 46px;
-  height: 46px;
+  width: calc(46px * var(--app-font-scale, 1));
+  height: calc(46px * var(--app-font-scale, 1));
   border-radius: 13px;
   background: rgba(var(--theme-rgb), 0.1);
   border: 1px solid rgba(var(--theme-rgb), 0.2);
@@ -496,8 +497,8 @@ html.dark .curl-flap {
 }
 
 .card-logo {
-  width: 30px;
-  height: 30px;
+  width: calc(30px * var(--app-font-scale, 1));
+  height: calc(30px * var(--app-font-scale, 1));
 }
 
 .xingjie-logo-svg {
@@ -679,8 +680,8 @@ html.dark .xingjie-logo-svg {
 
 .submit-btn {
   width: 100%;
-  height: 42px;
-  font-size: 15px;
+  height: calc(42px * var(--app-font-scale, 1));
+  font-size: calc(15px * var(--app-font-scale, 1));
   font-weight: 600;
   margin-top: 4px;
 }
