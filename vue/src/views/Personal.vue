@@ -12,7 +12,7 @@
               :show-file-list="false"
               :on-success="handleQuickAvatarSuccess"
           >
-            <div class="avatar-ring-wrap" title="点击直接更换头像">
+            <div class="avatar-ring-wrap" :class="{ 'ring-super-admin': data.user.perm === 15, 'ring-admin': data.user.perm >= 10 && data.user.perm < 15, 'ring-user': !data.user.perm || data.user.perm < 10 }" title="点击直接更换头像">
               <el-avatar
                   :size="92"
                   :src="data.form.avatar || data.user.avatar || defaultAvatar"
@@ -28,8 +28,8 @@
 
         <div class="identity-column">
           <div class="name-badge-row">
-            <h2 class="display-name">{{ data.form.nickname || data.form.username || data.user.username }}</h2>
-            <span class="role-pill">{{ roleLabel }}</span>
+            <h2 class="display-name" :class="{ 'name-super-admin': data.user.perm === 15, 'name-admin': data.user.perm >= 10 && data.user.perm < 15 }">{{ data.form.nickname || data.form.username || data.user.username }}</h2>
+            <span class="role-pill" :class="{ 'pill-super-admin': data.user.perm === 15, 'pill-admin': data.user.perm >= 10 && data.user.perm < 15, 'pill-user': !data.user.perm || data.user.perm < 10 }">{{ roleLabel }}</span>
             <span class="security-pill" :class="{ 'is-ready': hasStoredKey }">
               <span class="dot"></span>
               {{ hasStoredKey ? 'AI 密钥已加密就绪' : 'AI 密钥待配置' }}

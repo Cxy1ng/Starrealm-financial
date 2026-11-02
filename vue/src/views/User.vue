@@ -28,7 +28,9 @@
         <el-table-column label="性别" prop="sex" />
         <el-table-column label="头像">
           <template #default="scope">
-            <el-avatar :src="scope.row.avatar" style="width: 40px; height: 40px; border-radius: 50%"/>
+            <div class="avatar-shimmer-ring ring-user" style="width: 38px; height: 38px;">
+              <el-avatar :src="scope.row.avatar" style="width: 100%; height: 100%; border-radius: 50%" />
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="手机号" prop="phone" />

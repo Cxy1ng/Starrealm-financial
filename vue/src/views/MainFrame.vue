@@ -184,14 +184,23 @@
           <!-- 个人头像下拉菜单 -->
           <el-dropdown trigger="click">
             <div class="user-profile-trigger">
-              <el-avatar
-                  :size="30"
-                  :src="data.user.avatar || avatarFallback"
-                  class="user-avatar-ring"
-              />
+              <div
+                  class="avatar-shimmer-ring"
+                  :class="{
+                    'ring-super-admin': data.user.perm === 15,
+                    'ring-admin': data.user.perm >= 10 && data.user.perm < 15,
+                    'ring-user': !data.user.perm || data.user.perm < 10
+                  }"
+              >
+                <el-avatar
+                    :size="30"
+                    :src="data.user.avatar || avatarFallback"
+                    class="user-avatar-inner"
+                />
+              </div>
               <div class="user-meta">
-                <span class="user-name">{{ data.user.nickname || data.user.username }}</span>
-                <span class="user-role-badge" :class="{ 'is-super-admin': data.user.perm === 15 }">
+                <span class="user-name" :class="{ 'name-super-admin': data.user.perm === 15, 'name-admin': data.user.perm >= 10 && data.user.perm < 15 }">{{ data.user.nickname || data.user.username }}</span>
+                <span class="user-role-badge" :class="{ 'is-super-admin': data.user.perm === 15, 'is-admin': data.user.perm >= 10 && data.user.perm < 15, 'is-user': !data.user.perm || data.user.perm < 10 }">
                   {{ data.user.perm === 15 ? '超级管理员' : (data.user.perm >= 10 ? '管理员' : '个人账户') }}
                 </span>
               </div>
@@ -849,6 +858,31 @@ html.dark .clock-date {
   border: 2px solid rgba(var(--theme-rgb), 0.4);
 }
 
+.user-profile-trigger .avatar-shimmer-ring {
+  width: calc(34px * var(--app-font-scale, 1)) !important;
+  height: calc(34px * var(--app-font-scale, 1)) !important;
+  min-width: calc(34px * var(--app-font-scale, 1)) !important;
+  min-height: calc(34px * var(--app-font-scale, 1)) !important;
+  max-width: calc(34px * var(--app-font-scale, 1)) !important;
+  max-height: calc(34px * var(--app-font-scale, 1)) !important;
+  padding: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.user-profile-trigger .avatar-shimmer-ring .el-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  border-radius: 50% !important;
+}
+
+.user-profile-trigger .avatar-shimmer-ring .el-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
 .user-meta {
   display: flex;
   flex-direction: column;
@@ -863,13 +897,41 @@ html.dark .clock-date {
 
 .user-role-badge {
   font-size: 11px;
-  color: var(--el-text-color-secondary);
+  font-weight: normal;
+  line-height: 1.2;
+  margin-top: 2px;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 .user-role-badge.is-super-admin {
-  color: #ef4444 !important;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  color: #d97706 !important;
+  font-weight: normal !important;
+}
+
+html.dark .user-role-badge.is-super-admin {
+  color: #fbbf24 !important;
+}
+
+.user-role-badge.is-admin {
+  color: #059669 !important;
+  font-weight: normal !important;
+}
+
+html.dark .user-role-badge.is-admin {
+  color: #34d399 !important;
+}
+
+.user-role-badge.is-user {
+  color: #2563eb !important;
+  font-weight: normal !important;
+}
+
+html.dark .user-role-badge.is-user {
+  color: #60a5fa !important;
 }
 
 /* 内容区域与子路由切换过渡动画 */
