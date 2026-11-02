@@ -146,7 +146,7 @@
 
             <div class="palette-panel">
               <div class="palette-head">
-                <span class="palette-title">主题色与粒子光效</span>
+                <span class="palette-title">主题光效设置</span>
                 <span class="palette-sub">随心配</span>
               </div>
               <div class="palette-list">
@@ -224,7 +224,7 @@
 
         <el-drawer
             v-model="showExchangeDrawer"
-            title="外汇快算 & 智能理财客服"
+            title="汇率换算与 AI 助手"
             direction="rtl"
             size="430px"
             class="assistant-drawer"

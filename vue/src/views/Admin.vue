@@ -280,9 +280,9 @@ const add = () => {
                   <span>点击复制</span>
                 </button>
               </div>
-              <p style="color: #f59e0b; font-size: 12.5px;">注意：请立即复制并妥善转交该管理员。该管理员首次登录后，系统将在主页强制弹窗要求设置新密码后方可使用。</p>
+              <p style="color: #f59e0b; font-size: 12.5px;">请复制并转交该管理员。用户首次登录时将提示修改密码。</p>
             </div>`,
-            '管理员创建成功 · 初始临时密码',
+            '管理员创建成功',
             {
               dangerouslyUseHTMLString: true,
               confirmButtonText: '我已复制并知晓',

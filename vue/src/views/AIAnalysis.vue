@@ -12,7 +12,7 @@
             <div class="model-title-row">
               <span class="model-name">Deepseek V4.1 Flash</span>
               <span class="model-build num-font">1017</span>
-              <span class="scene-tag">智能账单深度诊断</span>
+              <span class="scene-tag">智能账单分析</span>
             </div>
             <div class="conn-status-pill" @click="checkConnectivity" title="点击重新检测连通性">
               <span class="status-dot" :class="connStatus.state"></span>
@@ -209,7 +209,7 @@
     <!-- ================= 历史对话存档抽屉 ================= -->
     <el-drawer
         v-model="showHistoryDrawer"
-        title="历史 AI 财务诊断存档"
+        title="历史账单分析存档"
         direction="rtl"
         size="400px"
         destroy-on-close

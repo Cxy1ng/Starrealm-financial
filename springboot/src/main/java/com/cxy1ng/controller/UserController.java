@@ -8,6 +8,7 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -38,6 +39,16 @@ public class UserController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
         PageInfo<User> pageInfo =  userService.selectPage(user, pageNum, pageSize);
         return Result.success(pageInfo);
+    }
+
+    @PostMapping("/deregister")
+    public Result deregister(@RequestBody Map<String, String> payload) {
+        String pwd = payload != null ? payload.get("pwd") : null;
+        if (cn.hutool.core.util.StrUtil.isBlank(pwd)) {
+            return Result.error(ResultCodeEnum.PARAM_PASSWORD_ERROR);
+        }
+        userService.deregister(pwd.trim());
+        return Result.success();
     }
 
     @PostMapping("/insert")

@@ -74,7 +74,7 @@
                 <span class="head-title">DeepSeek 智能服务配置</span>
               </div>
               <el-tag type="success" size="small" effect="light" round>
-                用户自备 Key 架构
+                自备 Key 模式
               </el-tag>
             </div>
           </template>
@@ -85,9 +85,9 @@
               <el-icon :size="24"><CircleCheckFilled /></el-icon>
             </div>
             <div class="vault-status-text">
-              <div class="vault-main-line">全站统一采用「用户自备 API 密钥」零托管安全模式</div>
+              <div class="vault-main-line">全站采用用户自备 API Key 模式</div>
               <div class="vault-sub-line">
-                平台不设全局公摊 API Key 资金池，杜绝算力挤占与公摊消耗。用户与管理员在【个人中心 &amp; 安全设置】中加密保存个人专属 DeepSeek Key 即可畅享全套智能财务分析与侧边栏理财助手。
+                平台不统一提供公共 API 额度，用户需在个人中心配置个人 Key 后方可使用智能分析。
               </div>
             </div>
           </div>
@@ -107,13 +107,56 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 第二行：用户默认头像配置 -->
+    <el-row :gutter="18" class="stagger-3" style="margin-top: 18px;">
+      <el-col :xs="24" :md="12">
+        <el-card shadow="never" class="config-section-card">
+          <template #header>
+            <div class="card-head-row">
+              <div class="head-left">
+                <el-icon class="head-icon"><Avatar /></el-icon>
+                <span class="head-title">新用户默认头像配置</span>
+              </div>
+              <el-tag :type="form.default_user_avatar ? 'success' : 'info'" size="small" effect="light" round>
+                {{ form.default_user_avatar ? '已设置自定义头像' : '使用系统默认' }}
+              </el-tag>
+            </div>
+          </template>
+
+          <el-form label-position="top" :model="form">
+            <el-form-item label="默认头像预览与上传">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <el-avatar :size="60" :src="form.default_user_avatar || '/src/assets/avatar.jpg'" style="border: 2px solid var(--el-border-color);" />
+                <el-upload
+                    action="/files/upload"
+                    :show-file-list="false"
+                    :on-success="handleDefaultAvatarSuccess"
+                    accept="image/*"
+                >
+                  <el-button size="small" type="primary" plain>
+                    <el-icon style="margin-right: 4px"><Upload /></el-icon>上传新默认头像
+                  </el-button>
+                </el-upload>
+                <el-button v-if="form.default_user_avatar" size="small" type="danger" link @click="form.default_user_avatar = ''">
+                  恢复系统默认
+                </el-button>
+              </div>
+              <div class="field-help" style="margin-top: 10px;">
+                新开立或未设置自定义头像的账号将统一呈现该头像。上传后请点击页面上方【保存全部配置】使配置永久生效。
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Setting, Refresh, Check, Coin, Cpu, CircleCheckFilled } from '@element-plus/icons-vue'
+import { Setting, Refresh, Check, Coin, Cpu, CircleCheckFilled, Avatar, Upload } from '@element-plus/icons-vue'
 import request from '@/utils/request.js'
 
 const loading = ref(false)
@@ -123,8 +166,18 @@ const rateTestResult = ref('')
 
 const form = reactive({
   finexly_api_key: '',
-  deepseek_base_url: 'https://api.deepseek.com'
+  deepseek_base_url: 'https://api.deepseek.com',
+  default_user_avatar: ''
 })
+
+const handleDefaultAvatarSuccess = (res) => {
+  if (res.code === 200 && res.data) {
+    form.default_user_avatar = res.data
+    ElMessage.success('头像上传成功，请点击上方保存全部配置')
+  } else {
+    ElMessage.error(res.msg || '上传失败')
+  }
+}
 
 const statusMeta = reactive({
   finexly_api_key: false
@@ -156,7 +209,8 @@ const saveConfigs = async () => {
   try {
     const res = await request.put('/siteConfig/saveBatch', {
       finexly_api_key: form.finexly_api_key,
-      deepseek_base_url: form.deepseek_base_url || 'https://api.deepseek.com'
+      deepseek_base_url: form.deepseek_base_url || 'https://api.deepseek.com',
+      default_user_avatar: form.default_user_avatar || ''
     })
     if (res.code === 200) {
       ElMessage.success('网站公共配置已加密保存！')

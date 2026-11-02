@@ -159,10 +159,10 @@
       </el-timeline>
     </el-card>
 
-    <!-- 初始临时密码强制修改弹窗（禁止遮罩点击关闭、禁止ESC关闭） -->
+    <!-- 初始密码修改弹窗（禁止遮罩点击关闭、禁止ESC关闭） -->
     <el-dialog
         v-model="forcePwdVisible"
-        title="初始临时密码强制重置"
+        title="首次登录修改密码"
         width="460px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
@@ -172,7 +172,7 @@
     >
       <div style="margin-bottom: 14px;">
         <el-alert
-            title="安全检测提示：当前账号使用的是系统初始分配的默认密码或临时密码。为了保障账户资产与数据安全，您必须首先设置符合安全要求的新密码后方可正常使用系统。"
+            title="检测到当前使用的是初始密码。为保障账户安全，请先设置新密码后再继续使用。"
             type="warning"
             :closable="false"
             show-icon
@@ -218,7 +218,7 @@
             退出登录
           </el-button>
           <el-button type="primary" :loading="submittingForcePwd" @click="handleForcePwdSubmit" style="flex: 2;">
-            保存新密码并重新登录
+            提交并重新登录
           </el-button>
         </div>
       </template>

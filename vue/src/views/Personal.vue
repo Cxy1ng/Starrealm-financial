@@ -157,8 +157,8 @@
                   <el-icon :size="18"><Key /></el-icon>
                 </div>
                 <div>
-                  <h3 class="panel-title">DeepSeek 密钥安全金库</h3>
-                  <span class="panel-sub">AES-128 对称加密存储 · 绝不明文或半明文回显</span>
+                  <h3 class="panel-title">DeepSeek API配置</h3>
+                  <span class="panel-sub">加密存储，仅供该账户使用</span>
                 </div>
               </div>
               <el-tag :type="hasStoredKey ? 'success' : 'warning'" effect="light" round>
@@ -172,10 +172,10 @@
               </div>
               <div class="vault-status-text">
                 <div class="vault-main-line">
-                  {{ hasStoredKey ? '您的专属 DeepSeek API 密钥已安全加密保存在云端' : '当前账户尚未保存个人 DeepSeek API 密钥' }}
+                  {{ hasStoredKey ? '已配置个人 API Key' : '未配置个人 API Key' }}
                 </div>
                 <div class="vault-sub-line">
-                  {{ hasStoredKey ? '您可随时在下方输入新密钥覆盖或清除。' : '配置密钥后即可解锁「AI 智能账单分析」与侧边栏流式理财顾问。' }}
+                  {{ hasStoredKey ? '可在下方输入新密钥进行更新或清除。' : '配置后即可使用智能账单分析与 AI 财务助手。' }}
                 </div>
               </div>
             </div>
@@ -199,7 +199,7 @@
                     @click="saveApiKeyOnly"
                 >
                   <el-icon style="margin-right: 5px"><Check /></el-icon>
-                  {{ hasStoredKey ? '更新并加密保存' : '加密保存密钥' }}
+                  保存密钥
                 </el-button>
                 <el-button
                     v-if="hasStoredKey"
@@ -261,6 +261,30 @@
               </div>
               <el-button type="primary" plain @click="openPwdDialog">
                 修改密码
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 卡片 4：账户注销危险区域（红色边框统一样式，双击防误触 + 密码校验） -->
+          <div class="bento-panel security-card danger-zone-card" style="margin-top: 20px;" v-if="data.user.perm < 15">
+            <div class="security-row">
+              <div class="panel-title-group">
+                <div class="panel-icon-box danger-icon-box">
+                  <el-icon :size="18"><DeleteFilled /></el-icon>
+                </div>
+                <div>
+                  <h3 class="panel-title danger-title">账户注销</h3>
+                  <span class="panel-sub">注销后您的账单、存钱计划、日记与云端媒体文件将被永久物理删除</span>
+                </div>
+              </div>
+              <el-button
+                  type="danger"
+                  :plain="deleteClickCount === 0"
+                  class="danger-action-btn"
+                  @click="handleDeleteAccountClick"
+              >
+                <el-icon style="margin-right: 4px"><Warning /></el-icon>
+                {{ deleteClickCount === 0 ? '注销账户' : '再次点击确认注销' }}
               </el-button>
             </div>
           </div>
@@ -401,6 +425,49 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- ================= 弹窗 3：注销账户安全验证弹窗 ================= -->
+    <el-dialog
+        v-model="deleteAccountDialogVisible"
+        title="安全确认 · 注销账户"
+        width="440px"
+        align-center
+        destroy-on-close
+    >
+      <div style="margin-bottom: 14px;">
+        <el-alert
+            title="此操作不可逆！注销后您的所有财务记账数据、日记、存钱计划与头像图片均会被永久清除。"
+            type="error"
+            :closable="false"
+            show-icon
+        />
+      </div>
+      <el-form label-position="top">
+        <el-form-item label="请输入当前登录密码进行验证">
+          <el-input
+              v-model="deleteAccountPwd"
+              type="password"
+              placeholder="请输入当前密码以确认注销"
+              show-password
+              autocomplete="current-password"
+              @keydown.enter.prevent="submitDeleteAccount"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <el-button @click="deleteAccountDialogVisible = false">取消</el-button>
+          <el-button
+              type="danger"
+              :loading="submittingDeleteAccount"
+              :disabled="!deleteAccountPwd.trim()"
+              @click="submitDeleteAccount"
+          >
+            确认永久注销
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -411,6 +478,8 @@ import {
   Camera,
   Check,
   CircleCheckFilled,
+  DeleteFilled,
+  Warning,
   Delete,
   EditPen,
   Female,
@@ -624,7 +693,7 @@ const saveApiKeyOnly = async () => {
       hasStoredKey.value = true;
       newApiKeyInput.value = "";
       syncLocalStorageUser();
-      ElMessage.success("DeepSeek API 密钥已通过 AES-128 加密存入金库");
+      ElMessage.success("API 密钥已保存");
     } else {
       ElMessage.error(res.msg || "密钥保存失败");
     }
@@ -671,6 +740,54 @@ const clearStoredApiKey = () => {
 };
 
 // ==================== 修改登录密码弹窗逻辑 ====================
+const deleteClickCount = ref(0);
+let deleteClickTimer = null;
+const deleteAccountDialogVisible = ref(false);
+const deleteAccountPwd = ref('');
+const submittingDeleteAccount = ref(false);
+
+const handleDeleteAccountClick = () => {
+  if (deleteClickCount.value === 0) {
+    deleteClickCount.value = 1;
+    ElMessage.warning('危险操作：请再次点击按钮以确认打开注销验证');
+    clearTimeout(deleteClickTimer);
+    deleteClickTimer = setTimeout(() => {
+      deleteClickCount.value = 0;
+    }, 4000);
+  } else {
+    clearTimeout(deleteClickTimer);
+    deleteClickCount.value = 0;
+    deleteAccountPwd.value = '';
+    deleteAccountDialogVisible.value = true;
+  }
+};
+
+const submitDeleteAccount = async () => {
+  if (!deleteAccountPwd.value.trim()) {
+    ElMessage.warning('请输入密码以完成身份验证');
+    return;
+  }
+  submittingDeleteAccount.value = true;
+  try {
+    const res = await request.post('/user/deregister', {
+      pwd: deleteAccountPwd.value.trim()
+    });
+    submittingDeleteAccount.value = false;
+    if (res.code === 200) {
+      ElMessage.success('账户已成功注销，关联数据与图片已清除');
+      deleteAccountDialogVisible.value = false;
+      localStorage.removeItem('loginToken');
+      clearLoginSessionCookie();
+      router.replace('/login');
+    } else {
+      ElMessage.error(res.msg || '注销失败，请核对密码是否正确');
+    }
+  } catch (err) {
+    submittingDeleteAccount.value = false;
+    ElMessage.error(err?.response?.data?.msg || '网络异常，注销失败');
+  }
+};
+
 const pwdDialogVisible = ref(false);
 const submittingPwd = ref(false);
 const pwdFormRef = ref();
@@ -1207,5 +1324,25 @@ html.dark .info-tile {
   width: 92px;
   height: 92px;
   text-align: center;
+}
+
+.danger-zone-card {
+  border: 1px solid rgba(239, 68, 68, 0.38) !important;
+  background: rgba(239, 68, 68, 0.035) !important;
+  transition: all 0.25s ease;
+}
+
+.danger-zone-card:hover {
+  border-color: rgba(239, 68, 68, 0.72) !important;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.1) !important;
+}
+
+.danger-icon-box {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #ef4444 !important;
+}
+
+.danger-title {
+  color: #ef4444 !important;
 }
 </style>

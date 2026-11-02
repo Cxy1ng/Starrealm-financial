@@ -10,6 +10,14 @@ import com.cxy1ng.entity.Account;
 import com.cxy1ng.entity.User;
 import com.cxy1ng.exception.CustomException;
 import com.cxy1ng.mapper.UserMapper;
+import com.cxy1ng.mapper.NotebookMapper;
+import com.cxy1ng.mapper.BillMapper;
+import com.cxy1ng.mapper.PlanMapper;
+import com.cxy1ng.entity.Notebook;
+import com.cxy1ng.entity.Bill;
+import com.cxy1ng.entity.Plan;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import com.cxy1ng.utils.ApiKeyCryptoUtil;
 import com.cxy1ng.utils.TokenUtils;
 import com.github.pagehelper.PageHelper;
@@ -470,9 +478,111 @@ public class UserService {
         Account currentUser = TokenUtils.getCurrentUser();
         PermEnum role = PermEnum.getRoleByPerm(currentUser.getPerm());
         if (role.equals(PermEnum.ADMIN) || role.equals(PermEnum.SUPER_ADMIN)) {
-            userMapper.deleteById(id);
+            User dbUser = userMapper.selectById(id);
+            if (dbUser != null) {
+                cleanupUserFilesAndData(dbUser);
+            }
         } else {
             throw new CustomException(ResultCodeEnum.PERMISSION_ERROR);
+        }
+    }
+
+    /**
+     * 用户自主注销账户（验证密码通过后，执行不可逆物理删除并清理全部关联文件与业务数据）
+     */
+    public void deregister(String pwd) {
+        Account currentUser = TokenUtils.getCurrentUser();
+        if (currentUser == null || currentUser.getId() == null) {
+            throw new CustomException(ResultCodeEnum.TOKEN_INVALID_ERROR);
+        }
+        User dbUser = userMapper.selectById(currentUser.getId());
+        if (dbUser == null) {
+            throw new CustomException(ResultCodeEnum.USER_NOT_EXIST_ERROR);
+        }
+        if (!pwd.equals(dbUser.getPwd())) {
+            throw new CustomException(400, "密码校验失败，无法注销账户");
+        }
+        cleanupUserFilesAndData(dbUser);
+    }
+
+    /**
+     * 级联清理用户本地媒体文件（头像、富文本日记插图）及全部关联业务数据
+     */
+    public void cleanupUserFilesAndData(User dbUser) {
+        if (dbUser == null || dbUser.getId() == null) return;
+        Integer userId = dbUser.getId();
+
+        // 1. 物理清理该用户存储在 ./files/ 下的头像文件
+        String avatar = dbUser.getAvatar();
+        if (StrUtil.isNotBlank(avatar) && avatar.contains("/files/")) {
+            String fileName = avatar.substring(avatar.lastIndexOf("/files/") + 7);
+            String filePath = System.getProperty("user.dir") + "/files/" + fileName;
+            try {
+                cn.hutool.core.io.FileUtil.del(filePath);
+            } catch (Exception ignored) {}
+        }
+
+        // 2. 物理清理理财日记富文本中上传的本地插图，并级联清理日记记录
+        try {
+            Notebook queryNb = new Notebook();
+            queryNb.setUserId(userId);
+            List<Notebook> nbList = notebookMapper.selectAll(queryNb);
+            if (nbList != null) {
+                for (Notebook nb : nbList) {
+                    cleanupHtmlImages(nb.getContent());
+                    notebookMapper.deleteById(nb.getId());
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 3. 级联清理账单与存钱计划
+        try {
+            Bill queryBill = new Bill();
+            queryBill.setUserId(userId);
+            List<Bill> billList = billMapper.selectAll(queryBill);
+            if (billList != null) {
+                for (Bill b : billList) {
+                    billMapper.deleteById(b.getId());
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            Plan queryPlan = new Plan();
+            queryPlan.setUserId(userId);
+            List<Plan> planList = planMapper.selectAll(queryPlan);
+            if (planList != null) {
+                for (Plan p : planList) {
+                    planMapper.deleteById(p.getId());
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 4. 清理 site_config 中该用户相关的配置项
+        try {
+            siteConfigService.putSystemValue("user_need_change_pwd_" + userId, "0", "用户已注销", "system");
+        } catch (Exception ignored) {}
+
+        // 5. 删除用户表主记录
+        userMapper.deleteById(userId);
+    }
+
+    /**
+     * 解析富文本 HTML 中引用本地 ./files/ 的图片并执行磁盘物理删除
+     */
+    public static void cleanupHtmlImages(String content) {
+        if (StrUtil.isBlank(content)) return;
+        Pattern imgPattern = Pattern.compile("<img[^>]+src=[\\"']([^\\"']+)[\\"']", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = imgPattern.matcher(content);
+        String baseDir = System.getProperty("user.dir") + "/files/";
+        while (matcher.find()) {
+            String src = matcher.group(1);
+            if (StrUtil.isNotBlank(src) && src.contains("/files/")) {
+                String fileName = src.substring(src.lastIndexOf("/files/") + 7);
+                try {
+                    cn.hutool.core.io.FileUtil.del(baseDir + fileName);
+                } catch (Exception ignored) {}
+            }
         }
     }
 

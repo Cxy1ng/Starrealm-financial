@@ -82,7 +82,7 @@
 
             <div class="auth-palette-panel">
               <div class="auth-palette-head">
-                <span class="auth-palette-title">主题色与粒子光效</span>
+                <span class="auth-palette-title">主题光效设置</span>
                 <span class="auth-palette-sub">随心配</span>
               </div>
               <div class="auth-palette-list">

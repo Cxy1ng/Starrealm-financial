@@ -34,6 +34,10 @@ public class NotebookService {
     }
 
     public void deleteById(Integer id) {
+        Notebook nb = notebookMapper.selectById(id);
+        if (nb != null) {
+            UserService.cleanupHtmlImages(nb.getContent());
+        }
         notebookMapper.deleteById(id);
     }
 

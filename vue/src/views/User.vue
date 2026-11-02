@@ -627,9 +627,9 @@ const add = () => {
                 <span>点击复制</span>
               </button>
             </div>
-            <p style="color: #f59e0b; font-size: 12.5px;">注意：请立即复制并妥善告知该用户。该用户首次登录系统后，主页将强制弹窗要求设置新密码后方可正常使用全部功能。</p>
+            <p style="color: #f59e0b; font-size: 12.5px;">请复制并告知该用户。用户首次登录时将提示修改密码。</p>
           </div>`,
-          '普通用户创建成功 · 初始默认密码',
+          '用户创建成功',
           {
             dangerouslyUseHTMLString: true,
             confirmButtonText: '我已复制并知晓',
