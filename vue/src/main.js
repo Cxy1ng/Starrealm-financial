@@ -38,8 +38,11 @@ if (typeof window !== 'undefined') {
   }
 }
 
+import { MotionPlugin } from '@vueuse/motion'
+
 const app = createApp(App)
 
+app.use(MotionPlugin)
 app.use(router)
 app.use(ElementPlus, {
     locale: zhCn,
