@@ -85,7 +85,7 @@
     </div>
 
     <el-dialog title="存钱" v-model="data.detailFromVisible" width="40vw" :close-on-click-modal="false" destroy-on-close>
-      <el-form :model="data.detailForm" label-width="100px" style="padding-right: 50px" :rules="data.rules" ref="formRef">
+      <el-form :model="data.detailForm" label-width="auto" style="padding-right: 50px" :rules="data.rules" ref="formRef">
         <el-form-item label="金额" prop="money">
           <el-input v-model="data.detailForm.money" placeholder="金额"></el-input>
         </el-form-item>

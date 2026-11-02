@@ -204,7 +204,7 @@
                     rel="noopener noreferrer"
                     class="deepseek-portal-link"
                   >
-                    DeepSeek 开放平台官网 (platform.deepseek.com)
+                    DeepSeek 开放平台官网
                     <el-icon :size="12" style="margin-left: 2px;"><TopRight /></el-icon>
                   </a>
                   <span>注册并创建专属 API Key。</span>

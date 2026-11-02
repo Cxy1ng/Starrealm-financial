@@ -1269,17 +1269,16 @@ code {
 }
 
 /* 左侧边栏宽度随字阶等比延展（避免大字模式下菜单文字挤压） */
-.antd-sider:not(.is-collapsed),
-.antd-aside:not(.is-collapsed) {
-  width: calc(220px * var(--app-font-scale, 1)) !important;
-  max-width: calc(220px * var(--app-font-scale, 1)) !important;
-  flex: 0 0 calc(220px * var(--app-font-scale, 1)) !important;
+.antd-sider:not(.is-collapsed) {
+  width: calc(236px * var(--app-font-scale, 1)) !important;
+  max-width: calc(236px * var(--app-font-scale, 1)) !important;
+  flex: 0 0 calc(236px * var(--app-font-scale, 1)) !important;
 }
 
-.antd-sider.is-collapsed,
-.antd-aside.is-collapsed {
-  width: calc(64px * var(--app-font-scale, 1)) !important;
-  flex: 0 0 calc(64px * var(--app-font-scale, 1)) !important;
+.antd-sider.is-collapsed {
+  width: calc(68px * var(--app-font-scale, 1)) !important;
+  max-width: calc(68px * var(--app-font-scale, 1)) !important;
+  flex: 0 0 calc(68px * var(--app-font-scale, 1)) !important;
 }
 
 /* 右侧抽屉（汇率与AI客服抽屉、历史存档抽屉）宽度随字阶等比扩展 */
@@ -1346,4 +1345,80 @@ html.dark .el-button.btn-toolbar-export {
 .contact-support-popover {
   width: calc(320px * var(--app-font-scale, 1)) !important;
   max-width: 90vw !important;
+}
+
+
+/* 工具栏操作：导入按钮 (采用天空海青蓝，与导出 Indigo 形成冷色数据 I/O 对，与新建 Emerald Green 彻底绝缘) */
+.btn-toolbar-import,
+.el-button.btn-toolbar-import {
+  background: #0284c7 !important;
+  border-color: #0369a1 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
+}
+
+.btn-toolbar-import:hover,
+.el-button.btn-toolbar-import:hover {
+  background: #0369a1 !important;
+  border-color: #075985 !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.38) !important;
+}
+
+html.dark .btn-toolbar-import,
+html.dark .el-button.btn-toolbar-import {
+  background: rgba(2, 132, 199, 0.85) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  color: #ffffff !important;
+}
+
+html.dark .btn-toolbar-import:hover,
+html.dark .el-button.btn-toolbar-import:hover {
+  background: #0284c7 !important;
+}
+
+
+/* 通用表格工具栏与查询行：严格水平对齐与无级等比伸展 */
+.table-search-row {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+.table-search-row .search-input {
+  width: calc(220px * var(--app-font-scale, 1)) !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+.table-search-row .search-date {
+  width: calc(200px * var(--app-font-scale, 1)) !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+.table-search-row .el-input,
+.table-search-row .el-date-editor,
+.table-search-row .el-button {
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* 全局表单 Label 强制单行、防折行挤压并随字阶等比拉伸 */
+.el-form-item__label {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  flex-shrink: 0 !important;
+  font-size: calc(14px * var(--app-font-scale, 1)) !important;
+  line-height: calc(32px * var(--app-font-scale, 1)) !important;
+}
+
+.el-form--default .el-form-item__label {
+  height: auto !important;
+  min-height: calc(32px * var(--app-font-scale, 1)) !important;
+}
+
+.el-form-item__label-wrap {
+  margin-left: 0 !important;
+  white-space: nowrap !important;
 }

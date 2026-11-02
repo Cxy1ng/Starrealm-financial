@@ -1,17 +1,19 @@
 <template>
   <div>
     <el-card>
-      <el-input
-          v-model="data.username"
-          style="width: 240px; margin-right: 15px"
-          placeholder="输入用户名以查询"
-          clearable
-          :prefix-icon="Search"
-      />
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button type="warning" @click="reset">清空</el-button>
-      <el-button type="info" @click="handleAdd" v-if="currentUser.perm === 15">添加管理员</el-button>
-      <el-button type="danger" @click="delBatch" v-if="currentUser.perm === 15">批量删除</el-button>
+      <div class="table-search-row">
+        <el-input
+            v-model="data.username"
+            class="search-input"
+            placeholder="输入用户名以查询"
+            clearable
+            :prefix-icon="Search"
+        />
+        <el-button type="primary" :icon="Search" @click="load">查询</el-button>
+        <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
+        <el-button type="success" :icon="Plus" @click="handleAdd" v-if="currentUser.perm === 15">添加管理员</el-button>
+        <el-button type="danger" :icon="Delete" @click="delBatch" v-if="currentUser.perm === 15">批量删除</el-button>
+      </div>
     </el-card>
     <el-card style="margin-top: 5px">
       <el-table :data="data.tableData"

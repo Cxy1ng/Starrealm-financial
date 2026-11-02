@@ -4,7 +4,7 @@
     <ParticleBackground :isDark="isDark" />
 
     <!-- Ant Design Pro + Mica 云母毛玻璃侧边栏 Sider -->
-    <el-aside :width="isCollapsed ? '68px' : '236px'" class="antd-sider">
+    <el-aside :width="isCollapsed ? '68px' : '236px'" class="antd-sider" :class="{ 'is-collapsed': isCollapsed }">
       <div class="sider-logo" @click="router.push('/main/home')">
         <div class="logo-badge">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="logo-img xingjie-logo-svg" aria-label="星界 Logo">

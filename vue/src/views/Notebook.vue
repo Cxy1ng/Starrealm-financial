@@ -1,17 +1,19 @@
 <template>
   <div>
     <el-card>
-      <el-input
-          v-model="data.title"
-          style="width: 240px; margin-right: 15px"
-          placeholder="输入日记标题以查询"
-          clearable
-          :prefix-icon="Search"
-      />
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button type="warning" @click="reset">清空</el-button>
-      <el-button type="info" @click="handleAdd" v-if="data.user.role === 'USER'">新建日记</el-button>
-      <el-button type="danger" @click="delBatch" v-if="data.user.perm >= 10">批量删除</el-button>
+      <div class="table-search-row">
+        <el-input
+            v-model="data.title"
+            class="search-input"
+            placeholder="输入日记标题以查询"
+            clearable
+            :prefix-icon="Search"
+        />
+        <el-button type="primary" :icon="Search" @click="load">查询</el-button>
+        <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
+        <el-button type="success" :icon="Plus" @click="handleAdd" v-if="data.user.role === 'USER'">新建日记</el-button>
+        <el-button type="danger" :icon="Delete" @click="delBatch" v-if="data.user.perm >= 10">批量删除</el-button>
+      </div>
     </el-card>
     <el-card style="margin-top: 5px" v-if="data.user.role === 'USER'">
       <el-row :gutter="16" v-if="data.tableData.length">
@@ -115,8 +117,8 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="data.formVisible" title="日记信息" width="70vh">
-      <el-form :model="data.form" :rules="data.rules" ref="formRef" label-width="80px" style="margin-right: 20px">
+    <el-dialog v-model="data.formVisible" title="日记信息" width="min(760px, 92vw)">
+      <el-form :model="data.form" :rules="data.rules" ref="formRef" label-width="auto" style="margin-right: 20px">
         <el-form-item label="日记标题" prop="title">
           <el-input v-model="data.form.title" />
         </el-form-item>
@@ -142,7 +144,7 @@
         </span>
       </template>
     </el-dialog>
-    <el-dialog v-model="data.contentVisible" title="日记内容" width="70vh">
+    <el-dialog v-model="data.contentVisible" title="日记内容" width="min(760px, 92vw)">
       <div v-html="data.content" style="max-height: 400px; overflow-y: auto; padding: 0 20px;"></div>
     </el-dialog>
   </div>

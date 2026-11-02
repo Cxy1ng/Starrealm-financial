@@ -1,38 +1,42 @@
 <template>
   <div>
     <el-card>
-      <el-input
-          v-model="data.type"
-          class="search"
-          placeholder="输入账单类型以查询"
-          clearable
-      />
-      <el-input
-          v-model="data.category"
-          class="search"
-          placeholder="输入账单分类以查询"
-          clearable
-      />
-      <el-date-picker
-          style="width: 200px; margin-right: 10px; margin-bottom: 5px;"
-          format="YYYY/MM/DD"
-          value-format="YYYY-MM-DD"
-          v-model="data.start"
-          placeholder="请选择查询开始日期"/>
-      <el-date-picker
-          style="width: 200px; margin-right: 10px; margin-bottom: 5px;"
-          format="YYYY/MM/DD"
-          value-format="YYYY-MM-DD"
-          v-model="data.end"
-          placeholder="请选择查询结束日期"
-          :disabled-date="disabledDate"
-          :shortcuts="shortcuts"/>
-      <el-button type="primary" :icon="Search" @click="load">查询</el-button>
-      <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
+      <div class="table-search-row">
+        <el-input
+            v-model="data.type"
+            class="search-input"
+            placeholder="输入账单类型以查询"
+            clearable
+            :prefix-icon="Search"
+        />
+        <el-input
+            v-model="data.category"
+            class="search-input"
+            placeholder="输入账单分类以查询"
+            clearable
+            :prefix-icon="Search"
+        />
+        <el-date-picker
+            class="search-date"
+            format="YYYY/MM/DD"
+            value-format="YYYY-MM-DD"
+            v-model="data.start"
+            placeholder="请选择查询开始日期"/>
+        <el-date-picker
+            class="search-date"
+            format="YYYY/MM/DD"
+            value-format="YYYY-MM-DD"
+            v-model="data.end"
+            placeholder="请选择查询结束日期"
+            :disabled-date="disabledDate"
+            :shortcuts="shortcuts"/>
+        <el-button type="primary" :icon="Search" @click="load">查询</el-button>
+        <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
+      </div>
     </el-card>
     <el-card style="margin-top: 5px">
       <div class="bill-toolbar">
-        <el-button type="success" :icon="Plus" @click="handleAdd" v-if="data.user.role === 'USER'">记一笔</el-button>
+        <el-button type="success" :icon="Plus" @click="handleAdd" v-if="data.user.role === 'USER'">新建账单</el-button>
         <el-button type="danger" :icon="Delete" @click="delBatch">批量删除</el-button>
         <el-upload
             v-if="data.user.role === 'USER'"
@@ -42,7 +46,7 @@
             :show-file-list="false"
             :on-success="handleImportSuccess"
         >
-          <el-button type="success">导入</el-button>
+          <el-button class="btn-toolbar-import" :icon="Upload">导入</el-button>
         </el-upload>
         <el-button class="btn-toolbar-export" :icon="Download" @click="exportData" v-if="data.user.role === 'USER'">导出</el-button>
       </div>
@@ -106,7 +110,7 @@
       </div>
     </el-card>
     <el-dialog v-model="data.formVisible" title="账单信息" width="40vw" :close-on-click-modal="false" destroy-on-close>
-      <el-form ref="formRef" :rules="data.rules" :model="data.form" style="padding: 10px 50px 0 20px;" label-position="right" label-width="100px">
+      <el-form ref="formRef" :rules="data.rules" :model="data.form" style="padding: 10px 50px 0 20px;" label-position="right" label-width="auto">
         <el-form-item label="账单类型" prop="type">
           <el-select style="width: 100%;" v-model="data.form.type" @change="getCategoryList">
             <el-option value="收入" />

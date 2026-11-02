@@ -1,17 +1,19 @@
 <template>
   <div>
     <el-card>
-      <el-input
-          v-model="data.name"
-          style="width: 240px; margin-right: 15px"
-          placeholder="输入分类名以查询"
-          clearable
-          :prefix-icon="Search"
-      />
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button type="warning" @click="reset">清空</el-button>
-      <el-button type="info" @click="handleAdd">添加</el-button>
-      <el-button type="danger" @click="delBatch">批量删除</el-button>
+      <div class="table-search-row">
+        <el-input
+            v-model="data.name"
+            class="search-input"
+            placeholder="输入分类名以查询"
+            clearable
+            :prefix-icon="Search"
+        />
+        <el-button type="primary" :icon="Search" @click="load">查询</el-button>
+        <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
+        <el-button type="success" :icon="Plus" @click="handleAdd">添加分类</el-button>
+        <el-button type="danger" :icon="Delete" @click="delBatch">批量删除</el-button>
+      </div>
     </el-card>
     <el-card style="margin-top: 5px">
       <el-table :data="data.tableData"
@@ -58,7 +60,7 @@
       </div>
     </el-card>
     <el-dialog v-model="data.formVisible" title="分类详情" width="40vw" :close-on-click-modal="false" destroy-on-close>
-      <el-form ref="formRef" :rules="data.rules" :model="data.form" style="padding: 10px 50px 0 20px;" label-position="right" label-width="100px">
+      <el-form ref="formRef" :rules="data.rules" :model="data.form" style="padding: 10px 50px 0 20px;" label-position="right" label-width="auto">
         <el-form-item label="分类名称" prop="name">
           <el-input v-model="data.form.name" placeholder="请输入分类名称" />
         </el-form-item>

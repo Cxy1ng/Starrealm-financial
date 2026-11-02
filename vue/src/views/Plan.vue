@@ -1,17 +1,19 @@
 <template>
   <div>
     <el-card>
-      <el-input
-          v-model="data.name"
-          style="width: 240px; margin-right: 15px"
-          placeholder="输入计划名称以查询"
-          clearable
-          :prefix-icon="Search"
-      />
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button type="warning" @click="reset">清空</el-button>
-      <el-button type="info" @click="handleAdd" v-if="data.user.role === 'USER'">新建计划</el-button>
-      <el-button type="danger" @click="delBatch" v-if="data.user.perm >= 10">批量删除</el-button>
+      <div class="table-search-row">
+        <el-input
+            v-model="data.name"
+            class="search-input"
+            placeholder="输入计划名称以查询"
+            clearable
+            :prefix-icon="Search"
+        />
+        <el-button type="primary" :icon="Search" @click="load">查询</el-button>
+        <el-button class="btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
+        <el-button type="success" :icon="Plus" @click="handleAdd" v-if="data.user.role === 'USER'">新建计划</el-button>
+        <el-button type="danger" :icon="Delete" @click="delBatch" v-if="data.user.perm >= 10">批量删除</el-button>
+      </div>
     </el-card>
 
     <el-card style="margin-top: 10px" v-if="data.tableData.length">
@@ -90,7 +92,7 @@
     </el-card>
 
     <el-dialog title="计划信息" v-model="data.fromVisible" width="70vh" :close-on-click-modal="false" destroy-on-close>
-      <el-form :model="data.form" label-width="100px" style="padding-right: 50px" :rules="data.rules" ref="formRef">
+      <el-form :model="data.form" label-width="auto" style="padding-right: 50px" :rules="data.rules" ref="formRef">
         <el-form-item label="计划名称" prop="name">
           <el-input v-model="data.form.name" placeholder="计划名称"></el-input>
         </el-form-item>
@@ -125,7 +127,7 @@
     </el-dialog>
 
     <el-dialog title="存钱" v-model="data.detailFromVisible" width="70vh" :close-on-click-modal="false" destroy-on-close>
-      <el-form :model="data.detailForm" label-width="100px" style="padding-right: 50px" :rules="data.rules" ref="formRef">
+      <el-form :model="data.detailForm" label-width="auto" style="padding-right: 50px" :rules="data.rules" ref="formRef">
         <el-form-item label="金额" prop="money">
           <el-input v-model="data.detailForm.money" placeholder="金额"></el-input>
         </el-form-item>
