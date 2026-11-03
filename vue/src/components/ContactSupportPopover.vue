@@ -57,7 +57,7 @@
             <el-icon><Message /></el-icon>
           </div>
           <div class="row-content">
-            <span class="row-label">官方联系与申诉邮箱（点击复制）</span>
+            <span class="row-label">官方联系与申诉邮箱</span>
             <span class="row-value num-font highlight">starrealm@contact-us.com</span>
           </div>
         </div>
@@ -67,7 +67,7 @@
             <el-icon><Phone /></el-icon>
           </div>
           <div class="row-content">
-            <span class="row-label">客服直线 / 传真电话（点击复制）</span>
+            <span class="row-label">客服直线 / 传真电话</span>
             <span class="row-value num-font">+86 (021) 5089-7720 / FAX-7729</span>
           </div>
         </div>

@@ -17,7 +17,7 @@
               size="small"
               class="plan-button"
               :disabled="isExpired"
-              :title="isExpired ? '该存钱计划已结束过期，已停止存钱' : '存入一笔金额'"
+              :title="isExpired ? '该存钱计划已到期' : '存入一笔金额'"
               @click="addPlanDetail(data.planId)"
           >
             {{ isExpired ? '计划已结束' : '存一笔' }}
@@ -58,7 +58,7 @@
                   size="small"
                   type="danger"
                   :disabled="isExpired"
-                  :title="isExpired ? '该存钱计划已结束过期，不可删除明细记录' : '删除此笔存钱记录'"
+                  :title="isExpired ? '该存钱计划已到期，不可删除记录' : '删除此笔存钱记录'"
               >
                 删除
               </el-button>

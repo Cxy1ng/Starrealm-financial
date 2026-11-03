@@ -60,7 +60,7 @@
         <template #empty>
           <div class="empty-table-placeholder">
             <div class="empty-table-title">暂无收支账单数据</div>
-            <div class="empty-table-sub">当前没有任何账单记录，您可以点击上方「记一笔」或「导入」添加账单</div>
+            <div class="empty-table-sub">当前没有任何账单记录，您可以点击上方「新建账单」或「导入」添加账单</div>
           </div>
         </template>
         <el-table-column type="selection" width="55" align="center"/>
@@ -118,7 +118,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="交易分类" prop="category">
-          <el-select style="width: 100%;" v-model="data.form.category" placeholder="请先选择账单类型，再选择分类">
+          <el-select style="width: 100%;" v-model="data.form.category" placeholder="请选择账单分类">
             <el-option v-for="item in data.categoryList" :key="item.id" :value="item.name"/>
           </el-select>
         </el-form-item>

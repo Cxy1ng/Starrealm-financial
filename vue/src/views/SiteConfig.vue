@@ -9,7 +9,7 @@
           <div>
             <h2 class="page-title">网站公共资源与 API 密钥配置</h2>
             <p class="page-desc">
-              此处的配置属于全站公共资源（存储在数据库 <code>site_config</code> 表中），不绑定于单个管理员个人账户。所有 API 密钥均通过 AES-128 对称加密落库。
+              此处的配置属于全站公共服务参数，应用于所有系统用户。所有服务密钥均经过加密存储保护。
             </p>
           </div>
         </div>
@@ -50,7 +50,7 @@
                   placeholder="请输入 Finexly API Key，保存时自动 AES-128 加密"
               />
               <div class="field-help">
-                用于调用 <code>https://api.finexly.com/v1/rate?from=USD&amp;to=EUR</code> 获取实时基准汇率。前端获取单价汇率后将在本地实时计算转换金额。
+                用于同步全球外汇实时牌价，支持账单导入与多币种资产自动核算。
               </div>
             </el-form-item>
 
@@ -100,7 +100,7 @@
                   placeholder="默认 https://api.deepseek.com"
               />
               <div class="field-help">
-                官方标准端点为 <code>https://api.deepseek.com</code>（系统发起大模型推理调用时会自动拼接 <code>/v1/chat/completions</code> 与 <code>/v1/models</code>；如自建反代或中转网关可在此直接替换）。
+                默认官方端点为 <code>https://api.deepseek.com</code>；如部署私有反向代理或第三方网关，可在此替换。
               </div>
             </el-form-item>
           </el-form>

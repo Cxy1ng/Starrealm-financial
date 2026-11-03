@@ -13,12 +13,12 @@
           <span v-if="exchangeRate" class="rate-badge num-font">
             1 {{ data.form.base }} = {{ Number(exchangeRate).toFixed(4) }} {{ data.form.target }}
           </span>
-          <el-tooltip content="刷新实时单价汇率" placement="top">
+          <el-tooltip content="刷新实时汇率" placement="top">
             <button
                 type="button"
                 class="refresh-icon-btn"
                 :disabled="data.loading"
-                title="刷新实时单价汇率"
+                title="刷新实时汇率"
                 @click="fetchExchangeRate"
             >
               <el-icon :class="{ 'is-loading': data.loading }"><Refresh /></el-icon>
@@ -60,12 +60,12 @@
               v-model.number="data.form.amount"
               type="number"
               min="0"
-              placeholder="输入金额 (本地实时换算)"
+              placeholder="请输入兑换金额"
               class="num-font"
           />
         </div>
         <div class="amount-box result-highlight">
-          <span class="box-label">本地折算结果 ({{ data.form.target }})</span>
+          <span class="box-label">折算金额 ({{ data.form.target }})</span>
           <div class="converted-val num-font">
             {{ convertedResult }}
           </div>
@@ -91,7 +91,7 @@
               <span class="model-main-name">Deepseek V4.1 Flash</span>
               <span class="model-sub-ver num-font">1017</span>
             </div>
-            <div class="model-status-row" @click="checkConnectivity" title="点击重新检测连通性">
+            <div class="model-status-row" @click="checkConnectivity" title="点击刷新服务状态">
               <span class="status-dot" :class="connStatus.state"></span>
               <span class="status-text">
                 {{ isTyping ? '对方正在输入...' : connStatus.message }}
@@ -101,7 +101,7 @@
         </div>
 
         <div class="chat-header-tools">
-          <el-tooltip content="检测模型连通性" placement="top">
+          <el-tooltip content="检查服务状态" placement="top">
             <el-button circle size="small" text @click="checkConnectivity" :loading="connStatus.checking">
               <el-icon><Refresh /></el-icon>
             </el-button>
@@ -210,7 +210,7 @@
         </div>
       </div>
       <div class="sidebar-ephemeral-notice">
-        会话不会保存，请及时复制重要内容；如需长久存档请使用「AI 智能分析」
+        临时会话不作云端保存，重要报告请前往「AI 智能分析」
       </div>
     </div>
 

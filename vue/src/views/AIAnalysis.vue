@@ -14,17 +14,17 @@
               <span class="model-build num-font">1017</span>
               <span class="scene-tag">智能账单分析</span>
             </div>
-            <div class="conn-status-pill" @click="checkConnectivity" title="点击重新检测连通性">
+            <div class="conn-status-pill" @click="checkConnectivity" title="点击刷新服务状态">
               <span class="status-dot" :class="connStatus.state"></span>
               <span class="status-label">
-                {{ isStreaming ? '正在流式生成分析报告...' : connStatus.message }}
+                {{ isStreaming ? '正在生成财务诊断分析...' : connStatus.message }}
               </span>
             </div>
           </div>
         </div>
 
         <div class="header-actions">
-          <el-tooltip content="重新检测模型连通性" placement="bottom">
+          <el-tooltip content="检查服务状态" placement="bottom">
             <el-button circle size="small" @click="checkConnectivity" :loading="connStatus.checking">
               <el-icon><Refresh /></el-icon>
             </el-button>
@@ -75,7 +75,7 @@
                 <span>您的实时收支结构全景</span>
               </h3>
               <p class="hero-sub">
-                DeepSeek 将自动结合下方实时收支分类数据为您生成定制化财务诊断。在底部输入框提问后，图表将自动收纳至输入框左下角供随时呼出。
+                AI 顾问将结合您的当期收支与资产结构，为您提供定制化财务诊断与预算建议。
               </p>
             </div>
 
@@ -328,7 +328,7 @@
             type="textarea"
             :disabled="aiBanState.banned"
             :autosize="{ minRows: 2, maxRows: 5 }"
-            :placeholder="aiBanState.banned ? '您的 AI 对话权限已被限制，暂无法发送消息，请点击上方「联系我们」申诉解封...' : '输入您想分析的财务问题（Enter 发送，Shift + Enter 换行）...'"
+            :placeholder="aiBanState.banned ? '您的 AI 对话权限已被限制，暂无法发送消息，请点击上方「联系我们」申诉解封...' : '请输入您想咨询的财务问题 (Enter 发送)...'"
             class="dock-textarea"
             @focus="inputFocused = true"
             @blur="inputFocused = false"

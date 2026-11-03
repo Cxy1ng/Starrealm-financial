@@ -35,7 +35,7 @@
         <el-card class="metric-bento balance-bento" shadow="never">
           <div class="metric-head">
             <span class="metric-label">
-              <el-icon class="metric-icon primary"><Wallet /></el-icon>账户净结余 (收支差)
+              <el-icon class="metric-icon primary"><Wallet /></el-icon>账户净结余
             </span>
             <span class="metric-badge primary">NET BALANCE</span>
           </div>
@@ -83,7 +83,7 @@
         <el-card shadow="never" class="section-card">
           <template #header>
             <div class="section-header">
-              <span class="section-title">收入构成占比（单位：元）</span>
+              <span class="section-title">收入构成占比</span>
               <el-tag size="small" type="success" effect="light">{{ data.incomeList.length }} 个分类</el-tag>
             </div>
           </template>

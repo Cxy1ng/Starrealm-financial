@@ -50,7 +50,7 @@
                         size="small"
                         type="primary"
                         :disabled="isPlanExpired(item)"
-                        :title="isPlanExpired(item) ? '该存钱计划已结束过期，不可继续存钱' : '存入一笔金额'"
+                        :title="isPlanExpired(item) ? '该存钱计划已到期' : '存入一笔金额'"
                         @click.stop="addPlanDetail(item)"
                     >
                       {{ isPlanExpired(item) ? '已结束' : '存一笔' }}
