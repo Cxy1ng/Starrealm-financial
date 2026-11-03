@@ -170,49 +170,58 @@ const startSequentialCharge = (startVal, targetVal) => {
   let vel = 0.12
 
   const step = () => {
-    if (pauseFrames > 0) {
-      pauseFrames--
-      chargeVelocity.value = 0.14
-      if (pauseFrames === 0) chargePaused.value = false
-      chargeRafId = requestAnimationFrame(step)
-      return
-    }
-
-    const currentFloor = Math.floor(current / 100) * 100
-    const nextBoundary = currentFloor + 100
-    const segmentTarget = Math.min(to, nextBoundary)
-    const distInSegment = Math.max(0, current - segmentStart)
-
-    // 渐进加速曲线
-    const accel = 0.16 + Math.pow(distInSegment / 60, 1.5) * 1.45
-    vel = Math.min(1.8, accel)
-    chargeVelocity.value = vel
-
-    current += vel
-
-    if (current >= segmentTarget) {
-      current = segmentTarget
-      displayPct.value = current
-
-      // 达成一个条完成的整百边界时，触发正圆形突破爆发光环
-      if (current % 100 === 0 && current > 0) {
-        triggerBreakthroughBurst(current)
-      }
-
-      if (current < to) {
-        pauseFrames = 14
-        chargePaused.value = true
-        segmentStart = current
-        vel = 0.1
+    try {
+      if (pauseFrames > 0) {
+        pauseFrames--
+        chargeVelocity.value = 0.14
+        if (pauseFrames === 0) chargePaused.value = false
         chargeRafId = requestAnimationFrame(step)
-      } else {
-        displayPct.value = to
-        chargePaused.value = false
-        isCharging.value = false
+        return
       }
-    } else {
-      displayPct.value = current
-      chargeRafId = requestAnimationFrame(step)
+
+      const currentFloor = Math.floor(current / 100) * 100
+      const nextBoundary = currentFloor + 100
+      const segmentTarget = Math.min(to, nextBoundary)
+      const distInSegment = Math.max(0, current - segmentStart)
+
+      // 渐进加速曲线
+      const accel = 0.16 + Math.pow(distInSegment / 60, 1.5) * 1.45
+      vel = Math.min(1.8, accel)
+      chargeVelocity.value = vel
+
+      current += vel
+
+      if (current >= segmentTarget) {
+        current = segmentTarget
+        displayPct.value = current
+
+        // 达成一个条完成的整百边界时，触发正圆形突破爆发光环
+        if (current % 100 === 0 && current > 0) {
+          triggerBreakthroughBurst(current)
+        }
+
+        if (current < to) {
+          pauseFrames = 14
+          chargePaused.value = true
+          segmentStart = current
+          vel = 0.1
+          chargeRafId = requestAnimationFrame(step)
+        } else {
+          displayPct.value = to
+          chargePaused.value = false
+          isCharging.value = false
+          chargeVelocity.value = 0
+        }
+      } else {
+        displayPct.value = current
+        chargeRafId = requestAnimationFrame(step)
+      }
+    } catch (err) {
+      console.error('BossProgressBar charge step error:', err)
+      displayPct.value = to
+      chargePaused.value = false
+      isCharging.value = false
+      chargeVelocity.value = 0
     }
   }
 
@@ -395,10 +404,12 @@ const setupCanvas = () => {
 }
 
 const renderFxLoop = () => {
-  const track = trackRef.value
-  const cvs = canvasRef.value
-  if (track && cvs) {
-    const ctx = cvs.getContext('2d')
+  try {
+    const track = trackRef.value
+    const cvs = canvasRef.value
+    if (track && cvs) {
+      const ctx = cvs.getContext('2d')
+      if (!ctx) return
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const trackW = cvs.width / dpr - PAD_X * 2
     const trackH = cvs.height / dpr - PAD_Y * 2
@@ -811,6 +822,7 @@ const renderFxLoop = () => {
             cometArcs.splice(i, 1)
             continue
           }
+          const progress = ca.life / ca.maxLife
           const alpha = Math.sin(progress * Math.PI) *
             (0.85 + 0.15 * Math.sin(ca.life * 2.3 + ca.phase)) * cometOpacity
 
@@ -818,14 +830,21 @@ const renderFxLoop = () => {
             main: ca.main.map((pt) => ({ x: pt.x + headX, y: pt.y + headY })),
             branches: ca.branches.map((b) => b.map((pt) => ({ x: pt.x + headX, y: pt.y + headY })))
           }
-          drawBolt(ctx, shiftedBolt, BOLT_PALETTE[ca.stage], ca.width, alpha)
+          drawBolt(ctx, shiftedBolt, BOLT_PALETTE[ca.stage] || BOLT_PALETTE[5], ca.width, alpha)
         }
       }
+    } else {
+      tailParticles.length = 0
+      cometArcs.length = 0
     }
 
     ctx.restore()
   }
-  fxRafId = requestAnimationFrame(renderFxLoop)
+  } catch (err) {
+    console.error('BossProgressBar renderFxLoop error:', err)
+  } finally {
+    fxRafId = requestAnimationFrame(renderFxLoop)
+  }
 }
 
 onMounted(() => {
