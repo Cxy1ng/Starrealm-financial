@@ -398,7 +398,7 @@
           </div>
           <div class="feedback-row">
             <span class="fb-label">传真电话：</span>
-            <span class="fb-val num-font">+86 (021) 5089-7720 / FAX-7729</span>
+            <span class="fb-val num-font">+86 (021) 5089-6657 / FAX-6657</span>
           </div>
           <div class="feedback-row">
             <span class="fb-label">工作时间：</span>

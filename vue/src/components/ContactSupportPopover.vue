@@ -68,7 +68,7 @@
           </div>
           <div class="row-content">
             <span class="row-label">客服直线 / 传真电话</span>
-            <span class="row-value num-font">+86 (021) 5089-7720 / FAX-7729</span>
+            <span class="row-value num-font">+86 (021) 5089-6657 / FAX-6657</span>
           </div>
         </div>
 
