@@ -204,7 +204,7 @@ const data = reactive({
 const formRef = ref()
 
 const load = () => {
-  request.get('/admin/selectPage', {
+  request.get('/admins', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -238,7 +238,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('admin/delete/' +id).then(res=>{
+    request.delete('/admins/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -263,7 +263,7 @@ const save = () => {
 }
 
 const add = () => {
-  request.post('/admin/insert', data.form).then(res => {
+  request.post('/admins', data.form).then(res => {
     if (res.code === 200) {
       data.formVisible = false
       load()
@@ -306,7 +306,7 @@ const add = () => {
 }
 
 const update = () => {
-  request.put('/admin/update', data.form).then(res => {
+  request.put('/admins/' + data.form.id, data.form).then(res => {
     if (res.code === 200) {
       ElMessage.success('操作成功')
       data.formVisible = false
@@ -324,7 +324,7 @@ const handleToggleBan = (row, banned) => {
     cancelButtonText: '取消',
     type: banned === 1 ? 'warning' : 'info'
   }).then(() => {
-    request.put('/admin/ban', {
+    request.put('/admins/ban', {
       id: row.id,
       banned: banned
     }).then(res => {
@@ -347,7 +347,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/admin/delete/batch', {data: data.ids}).then(res => {
+      request.delete('/admins/batch', {data: data.ids}).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()

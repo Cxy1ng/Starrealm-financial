@@ -10,49 +10,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping({"/categories", "/category"})
 public class CategoryController {
 
     @Resource
     private CategoryService categoryService;
 
-    @PostMapping("/insert")
+    @PostMapping({"", "/insert"})
     public Result insert(@RequestBody Category category) {
         categoryService.insert(category);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result deleteById(@PathVariable Integer id) {
         categoryService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         categoryService.deleteBatch(ids);
         return Result.success();
     }
 
-    @PutMapping("/update")
-    public Result update(@RequestBody Category category) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result update(@PathVariable(required = false) Integer id, @RequestBody Category category) {
+        if (id != null) {
+            category.setId(id);
+        }
         categoryService.update(category);
         return Result.success();
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         Category category = categoryService.selectById(id);
         return Result.success(category);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(Category category) {
         List<Category> list = categoryService.selectAll(category);
         return Result.success(list);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(Category category,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {

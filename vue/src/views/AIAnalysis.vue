@@ -788,8 +788,8 @@ const renderChartsOnPair = (dom1, dom2) => {
 const fetchBillCountsAndRender = async () => {
   try {
     const [incRes, payRes] = await Promise.all([
-      request.get('/bill/count', { params: { type: '收入' } }),
-      request.get('/bill/count', { params: { type: '支出' } })
+      request.get('/bills/count', { params: { type: '收入' } }),
+      request.get('/bills/count', { params: { type: '支出' } })
     ])
     data.incomeList = incRes.data || []
     data.payList = payRes.data || []
@@ -855,7 +855,7 @@ const syncChatStateToBackend = (immediate = false) => {
           }))
         }
       : null
-    request.post('/deepseek/chatState', {
+    request.post('/deepseek/chat-state', {
       historyList: chatHistoryList.value,
       activeSession: cleanActive
     }).catch(() => {})
@@ -951,7 +951,7 @@ const restoreHistoryAndActiveSession = async () => {
 
   // 从后端数据库拉取持久化存档（解决前后端重新编译或跨浏览器丢失问题）
   try {
-    const res = await request.get('/deepseek/chatState')
+    const res = await request.get('/deepseek/chat-state')
     if (res.code === 200 && res.data) {
       applyBanMetaFromPayload(res.data)
       const remoteHistory = Array.isArray(res.data.historyList) ? res.data.historyList : []
@@ -1143,7 +1143,7 @@ const analyze = async () => {
     scrollToBottom(true)
 
     try {
-      const vioRes = await request.post('/deepseek/reportViolation', {
+      const vioRes = await request.post('/deepseek/violations', {
         category: localGuard.category,
         snippet: localGuard.snippet,
         source: '前端拦截'

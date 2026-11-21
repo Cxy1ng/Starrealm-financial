@@ -112,7 +112,7 @@ const data = reactive({
 const formRef = ref()
 
 const load = () => {
-  request.get('/category/selectPage', {
+  request.get('/categories', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -146,7 +146,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/category/delete/' +id).then(res=>{
+    request.delete('/categories/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -170,7 +170,7 @@ const save = () => {
 }
 
 const add = () => {
-  request.post('/category/insert', data.form).then(res => {
+  request.post('/categories', data.form).then(res => {
     if (res.code === 200) {
       data.formVisible = false
       ElMessage.success('操作成功')
@@ -182,7 +182,7 @@ const add = () => {
 }
 
 const update = () => {
-  request.put('/category/update', data.form).then(res => {
+  request.put('/categories/' + data.form.id, data.form).then(res => {
     if (res.code === 200) {
       data.formVisible = false
       ElMessage.success('操作成功')
@@ -202,7 +202,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/category/delete/batch', {data: data.ids}).then(res => {
+      request.delete('/categories/batch', {data: data.ids}).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()

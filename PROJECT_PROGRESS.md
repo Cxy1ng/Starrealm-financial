@@ -98,9 +98,25 @@
    - 全面清理 9 大核心业务页面/组件中的开发备注、过程性提示语与生硬表述；
    - 彻底清理并规范化全代码库中的状态与倍率文本，保持界面与文档的高水准与专业性。
 
+### 轮次 4 (分支 `refactor/restful-api`) - 全栈 RESTful API 规范化重构与前后端协同对齐
+1. **后端 Spring Boot 控制器架构重构**：
+   - 涵盖全部 13 个业务 Controller（`BillController`、`CategoryController`、`UserController`、`AdminController`、`PlanController`、`PlanDetailController`、`NoticeController`、`NotebookController`、`AcfunController`、`SiteConfigController`、`DeepseekController`、`WebController` 等）；
+   - 严格遵循 RESTful 规范：使用复数名词资源路由（`/bills`、`/categories`、`/users`、`/plans`、`/plan-details`、`/notices`、`/notebooks`、`/admins`、`/site-configs` 等）；
+   - 标准 HTTP 动词语义化重构：`POST` 资源创建、`DELETE /{id}` 资源删除、`DELETE /batch` 批量删除、`PUT /{id}` 资源修改、`GET /{id}` 详情读取、`GET` 集合分页与过滤；
+   - 双向兼容映射：映射双向别名，确保高可用与平滑过渡；
+   - 同步修正 `JwtInterceptor`（初始密码强制重置放行路径）与 `WebConfig`（账单导出公开放行路径）。
+2. **前端 Vue 视图与接口调用全面协同对齐**：
+   - 统一改造 15 个 Vue 业务页面（`Bill.vue`、`Category.vue`、`User.vue`、`Admin.vue`、`Plan.vue`、`PlanDetail.vue`、`Notice.vue`、`Notebook.vue`、`AccountDetail.vue`、`Home.vue`、`Personal.vue`、`AIAnalysis.vue`、`SiteConfig.vue`、`Exchange.vue`、`PwdChange.vue`）；
+   - 彻底消除全部旧版 RPC-over-HTTP 路径（如 `/selectPage`、`/insert`、`/delete/{id}`、`/update` 等），全面对齐标准 RESTful 资源动词与参数规范。
+3. **严格工程构建与编译验证**：
+   - 前端 Vite 生产环境全量编译打包通过（2529 个模块，0 报错）；
+   - 后端 Maven (JDK 21) 全量测试编译通过（BUILD SUCCESS，0 报错）。
+
 ---
 
 ## 四、 后续预期待办 (TODO)
+- **操作栏按钮微渐变质感体系升级**：已在账单导入交互原型中完成全套微渐变高光按钮体系设计（涵盖新建、批量删除、导入、导出、查询与重置等核心操作栏按钮），后续实装至全站时，将根据现有项目已有的配色方案进行严格适配与全局统一。
+- **向导式智能账单导入与排重机制实装**：采用“渠道识别与文件解析 → 智能预检与冲突排重 → 结果入库与数据联动”三步向导流，集成微信、支付宝、银行卡与 PayPal 真实渠道特征自动识别、多币种交易日历史汇率智能折算、以及跨渠道绑卡重复扣款智能跳过/合并策略。
 - **基于 @vueuse/motion 的手势微动效落地**：基于已集成的动效底座，为移动端、平板与桌面端核心卡片增加弹性入场与手势反馈微动效。
 - **注销账户二次身份认证**：在个人中心注销双击确认流程中，未来引入标准邮箱验证码与手机短信验证码进行深度身份复验。
 - **跨平台客户端架构演进 (Tauri 2.0 桌面端 & Android APK)**：基于 Tauri 2.0 统一代码库方案，利用系统原生 WebView 构建 Windows/macOS 轻量桌面应用及 Android 原生壳 APK，替代笨重的高内存 Chromium 套壳方案。

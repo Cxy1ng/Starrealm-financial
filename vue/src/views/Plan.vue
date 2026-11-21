@@ -197,7 +197,7 @@ const getRealPercent = (item) => {
 const animMap = reactive({})
 
 const load = (animatePlanId = null, prevPct = null) => {
-  request.get('/plan/selectPage', {
+  request.get('/plans', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -208,7 +208,7 @@ const load = (animatePlanId = null, prevPct = null) => {
     data.tableData = list
     data.total = res.data?.total || 0
     // 拉取全量明细并在前端按计划汇总真实存入总额，彻底突破旧后端 100% 封顶限制
-    request.get('/planDetail/selectAll').then(detailRes => {
+    request.get('/plan-details/all').then(detailRes => {
       const details = detailRes.data || []
       const sumMap = {}
       for (const d of details) {
@@ -260,7 +260,7 @@ const save = () => {
   formRef.value.validate((valid) => {
     if (valid) {
       request({
-        url: data.form.id ? '/plan/update' : '/plan/add',
+        url: data.form.id ? ('/plans/' + data.form.id) : '/plans',
         method: data.form.id ? 'PUT' : 'POST',
         data: data.form
       }).then(res => {
@@ -282,7 +282,7 @@ const del = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/plan/delete/' + id).then(res => {
+    request.delete('/plans/' + id).then(res => {
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -302,7 +302,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/plan/delete/batch', { data: data.ids }).then(res => {
+      request.delete('/plans/batch', { data: data.ids }).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()
@@ -346,7 +346,7 @@ const savePlanDetail = () => {
   const targetPlanId = data.detailForm.planId
   const targetPlan = data.tableData.find(p => p.id === targetPlanId)
   const prevPct = targetPlan ? getRealPercent(targetPlan) : 0
-  request.post('/planDetail/add', data.detailForm).then(res => {
+  request.post('/plan-details', data.detailForm).then(res => {
     if (res.code === 200) {
       ElMessage.success('存入成功，正在充能进度条...')
       load(targetPlanId, prevPct)

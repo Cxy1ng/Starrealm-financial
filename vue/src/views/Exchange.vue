@@ -494,7 +494,7 @@ const sendMessage = async () => {
     messages.value.push(blockedReply)
     scrollToBottom(true)
     try {
-      const vioRes = await request.post('/deepseek/reportViolation', {
+      const vioRes = await request.post('/deepseek/violations', {
         category: localGuard.category,
         snippet: localGuard.snippet,
         source: '侧边栏拦截'

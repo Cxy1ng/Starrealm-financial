@@ -110,7 +110,7 @@ const data = reactive({
 const formRef = ref()
 
 const load = () => {
-  request.get('/notice/selectPage', {
+  request.get('/notices', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -144,7 +144,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/notice/delete/' +id).then(res=>{
+    request.delete('/notices/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -168,7 +168,7 @@ const save = () => {
 }
 
 const add = () => {
-  request.post('/notice/insert', data.form).then(res => {
+  request.post('/notices', data.form).then(res => {
     if (res.code === 200) {
       ElMessage.success('操作成功')
       data.formVisible = false
@@ -180,7 +180,7 @@ const add = () => {
 }
 
 const update = () => {
-  request.put('/notice/update', data.form).then(res => {
+  request.put('/notices/' + data.form.id, data.form).then(res => {
     if (res.code === 200) {
       ElMessage.success('操作成功')
       data.formVisible = false
@@ -200,7 +200,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/notice/delete/batch', {data: data.ids}).then(res => {
+      request.delete('/notices/batch', {data: data.ids}).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()

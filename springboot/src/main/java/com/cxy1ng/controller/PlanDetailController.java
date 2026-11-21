@@ -10,49 +10,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/planDetail")
+@RequestMapping({"/plan-details", "/planDetail"})
 public class PlanDetailController {
 
     @Resource
     private PlanDetailService planDetailService;
 
-    @PostMapping("/add")
+    @PostMapping({"", "/add", "/insert"})
     public Result add(@RequestBody PlanDetail planDetail) {
         planDetailService.add(planDetail);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result deleteById(@PathVariable Integer id) {
         planDetailService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         planDetailService.deleteBatch(ids);
         return Result.success();
     }
 
-    @PutMapping("/update")
-    public Result updateById(@RequestBody PlanDetail planDetail) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result updateById(@PathVariable(required = false) Integer id, @RequestBody PlanDetail planDetail) {
+        if (id != null) {
+            planDetail.setId(id);
+        }
         planDetailService.updateById(planDetail);
         return Result.success();
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         PlanDetail planDetail = planDetailService.selectById(id);
         return Result.success(planDetail);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(PlanDetail planDetail) {
         List<PlanDetail> list = planDetailService.selectAll(planDetail);
         return Result.success(list);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(PlanDetail planDetail,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {

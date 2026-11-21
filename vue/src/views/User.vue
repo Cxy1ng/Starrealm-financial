@@ -451,7 +451,7 @@ const data = reactive({
 const formRef = ref()
 
 const load = () => {
-  request.get('/user/selectPage', {
+  request.get('/users', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -499,7 +499,7 @@ const handleOpenAiAudit = (row) => {
 const submitAiAudit = (action, resetCount = false) => {
   const userId = data.aiAuditRow.id
   if (!userId) return
-  request.put('/user/aiBan', {
+  request.put('/users/ai-ban', {
     userId,
     action,
     resetCount,
@@ -508,7 +508,7 @@ const submitAiAudit = (action, resetCount = false) => {
   }).then(res => {
     if (res.code === 200) {
       ElMessage.success('AI 安全审核操作已生效')
-      request.get('/user/selectPage', {
+      request.get('/users', {
         params: {
           pageNum: data.pageNum,
           pageSize: data.pageSize,
@@ -541,7 +541,7 @@ const handleOpenBan = (row) => {
 }
 
 const confirmBan = () => {
-  request.put('/user/ban', {
+  request.put('/users/ban', {
     id: data.banForm.id,
     banned: 1,
     banReason: data.banForm.banReason
@@ -562,7 +562,7 @@ const handleUnban = (row) => {
     cancelButtonText: '取消',
     type: 'info'
   }).then(() => {
-    request.put('/user/ban', {
+    request.put('/users/ban', {
       id: row.id,
       banned: 0,
       banReason: ''
@@ -583,7 +583,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/user/delete/' +id).then(res=>{
+    request.delete('/users/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -608,7 +608,7 @@ const save = () => {
 
 const add = () => {
   const username = data.form.username
-  request.post('/user/insert', data.form).then(res => {
+  request.post('/users', data.form).then(res => {
     if (res.code === 200) {
       data.formVisible = false
       load()
@@ -647,7 +647,7 @@ const add = () => {
 }
 
 const update = () => {
-  request.put('/user/update', data.form).then(res => {
+  request.put('/users/' + data.form.id, data.form).then(res => {
     if (res.code === 200) {
       ElMessage.success('操作成功')
       data.formVisible = false
@@ -667,7 +667,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/user/delete/batch', {data: data.ids}).then(res => {
+      request.delete('/users/batch', {data: data.ids}).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()

@@ -72,7 +72,7 @@ const updatePwd = () => {
   data.form.username = data.user.username
   formRef.value.validate((valid) => {
     if (valid) {
-      request.put('/updatePwd', data.form).then(res => {
+      request.put('/password', data.form).then(res => {
         if (res.code === 200) {
           ElMessage.success('密码修改成功，请重新登录')
           localStorage.removeItem('loginToken')

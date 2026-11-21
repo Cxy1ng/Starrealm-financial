@@ -10,49 +10,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/acfun")
+@RequestMapping({"/acfun", "/acfun-videos"})
 public class AcfunController {
 
     @Resource
     private AcfunService acfunService;
 
-    @PostMapping("/insert")
+    @PostMapping({"", "/insert"})
     public Result insert(@RequestBody Acfun acfun) {
         acfunService.insert(acfun);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result deleteById(@PathVariable Integer id) {
         acfunService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         acfunService.deleteBatch(ids);
         return Result.success();
     }
 
-    @PutMapping("/update")
-    public Result update(@RequestBody Acfun acfun) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result update(@PathVariable(required = false) Integer id, @RequestBody Acfun acfun) {
+        if (id != null) {
+            acfun.setId(id);
+        }
         acfunService.update(acfun);
         return Result.success();
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         Acfun acfun = acfunService.selectById(id);
         return Result.success(acfun);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(Acfun acfun) {
         List<Acfun> list = acfunService.selectAll(acfun);
         return Result.success(list);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(Acfun acfun,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {

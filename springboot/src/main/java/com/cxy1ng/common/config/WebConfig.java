@@ -19,6 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/logout")
                 .excludePathPatterns("/register")
                 .excludePathPatterns("/files/**")
+                .excludePathPatterns("/bills/export")
                 .excludePathPatterns("/bill/export")
         ;
     }

@@ -624,8 +624,8 @@ const zodiacInfo = computed(() => {
 });
 
 const getUpdateEndpoint = () => {
-  if (data.user.role === "USER") return "/user/update";
-  if (data.user.perm >= 10) return "/admin/update";
+  if (data.user.role === "USER") return "/users/" + data.user.id;
+  if (data.user.perm >= 10) return "/admins/" + data.user.id;
   return null;
 };
 
@@ -647,9 +647,9 @@ const syncLocalStorageUser = (patch = {}) => {
 const loadProfile = () => {
   const url =
     data.user.role === "USER"
-      ? "/user/selectById/" + data.user.id
+      ? "/users/" + data.user.id
       : data.user.perm >= 10
-      ? "/admin/selectById/" + data.user.id
+      ? "/admins/" + data.user.id
       : null;
   if (!url) return;
 
@@ -804,7 +804,7 @@ const submitDeleteAccount = async () => {
   }
   submittingDeleteAccount.value = true;
   try {
-    const res = await request.post('/user/deregister', {
+    const res = await request.post('/users/deregister', {
       pwd: deleteAccountPwd.value.trim()
     });
     submittingDeleteAccount.value = false;

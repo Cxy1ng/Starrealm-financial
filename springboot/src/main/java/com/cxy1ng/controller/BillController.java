@@ -31,49 +31,52 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
-@RequestMapping("/bill")
+@RequestMapping({"/bills", "/bill"})
 public class BillController {
 
     @Resource
     private BillService billService;
 
-    @PostMapping("/insert")
+    @PostMapping({"", "/insert"})
     public Result insert(@RequestBody Bill bill) {
         billService.insert(bill);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result delete(@PathVariable Integer id) {
         billService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         billService.deleteBatch(ids);
         return Result.success();
     }
 
-    @PutMapping("/update")
-    public Result update(@RequestBody Bill bill) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result update(@PathVariable(required = false) Integer id, @RequestBody Bill bill) {
+        if (id != null) {
+            bill.setId(id);
+        }
         billService.update(bill);
         return Result.success();
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         Bill bill = billService.selectById(id);
         return Result.success(bill);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(Bill bill) {
         List<Bill> list = billService.selectAll(bill);
         return Result.success(list);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(Bill bill,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {

@@ -587,7 +587,7 @@ const statusMeta = reactive({
 const loadConfigs = async () => {
   loading.value = true
   try {
-    const res = await request.get('/siteConfig/selectAll')
+    const res = await request.get('/site-configs')
     if (res.code === 200 && Array.isArray(res.data)) {
       for (const item of res.data) {
         if (item.configKey in form) {
@@ -611,7 +611,7 @@ const saveConfigs = async () => {
   }
   saving.value = true
   try {
-    const res = await request.put('/siteConfig/saveBatch', {
+    const res = await request.put('/site-configs', {
       finexly_api_key: form.finexly_api_key,
       deepseek_base_url: form.deepseek_base_url || 'https://api.deepseek.com',
       default_user_avatar: form.default_user_avatar || ''

@@ -146,8 +146,8 @@ const animTrigger = ref(0)
 
 const load = (shouldAnimate = false, prevPct = 0) => {
   Promise.all([
-    request.get('/plan/selectById/' + data.planId),
-    request.get('/planDetail/selectAll', { params: { planId: data.planId } })
+    request.get('/plans/' + data.planId),
+    request.get('/plan-details/all', { params: { planId: data.planId } })
   ]).then(([planRes, detailRes]) => {
     data.plan = planRes.data || {}
     const list = detailRes.data || []
@@ -194,7 +194,7 @@ const savePlanDetail = () => {
     return
   }
   const prevPct = realPercent.value
-  request.post('/planDetail/add', data.detailForm).then(res => {
+  request.post('/plan-details', data.detailForm).then(res => {
     if (res.code === 200) {
       ElMessage.success('存入成功，正在充能进度条...')
       load(true, prevPct)
@@ -215,7 +215,7 @@ const del = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/planDetail/delete/' + id).then(res=>{
+    request.delete('/plan-details/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()

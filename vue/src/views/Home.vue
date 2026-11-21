@@ -337,7 +337,7 @@ const handleForcePwdLogout = () => {
 
 const checkNeedChangePwd = () => {
   if (!data.user?.id) return;
-  const api = data.user.perm >= 10 ? ('/admin/selectById/' + data.user.id) : ('/user/selectById/' + data.user.id);
+  const api = data.user.perm >= 10 ? ('/admins/' + data.user.id) : ('/users/' + data.user.id);
   request.get(api).then(res => {
     if (res.code === 200 && res.data) {
       if (res.data.needChangePwd === 1) {
@@ -372,7 +372,7 @@ const handleForcePwdSubmit = () => {
       pwd: forcePwdForm.pwd,
       newPwd: forcePwdForm.newPwd
     };
-    request.put('/updatePwd', payload).then(res => {
+    request.put('/password', payload).then(res => {
       submittingForcePwd.value = false;
       if (res.code === 200) {
         ElMessage.success("初始密码重置成功，请使用新密码重新登录！");
@@ -392,7 +392,7 @@ const handleForcePwdSubmit = () => {
 };
 
 const loadNotice = () => {
-  request.get('/notice/selectAll').then(res => {
+  request.get('/notices/all').then(res => {
     if (res.code === 200) {
       data.noticeData = (res.data || []).slice(0, 4);
     } else {
@@ -404,7 +404,7 @@ loadNotice();
 
 const loadAcfun = () => {
   if (data.user.role === 'USER') {
-    request.get('/acfun/selectAll', {
+    request.get('/acfun/all', {
       params: { userId: data.user.id }
     }).then(res => {
       if (res.code === 200) {
@@ -503,11 +503,11 @@ const loadPie = () => {
   const myChart1 = echarts.init(chartDom1, isDark.value ? 'dark' : null);
   const myChart2 = echarts.init(chartDom2, isDark.value ? 'dark' : null);
 
-  request.get('/bill/count', { params: { type: '收入' } }).then(res => {
+  request.get('/bills/count', { params: { type: '收入' } }).then(res => {
     data.incomeList = res.data || [];
     myChart1.setOption(createPieOption('账户收入结构分布', isDark.value, data.incomeList));
   });
-  request.get('/bill/count', { params: { type: '支出' } }).then(res => {
+  request.get('/bills/count', { params: { type: '支出' } }).then(res => {
     data.payList = res.data || [];
     myChart2.setOption(createPieOption('账户支出结构分布', isDark.value, data.payList));
   });

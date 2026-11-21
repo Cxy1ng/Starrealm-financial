@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
 })
 
 const load = () => {
-  request.get('/notebook/selectPage', {
+  request.get('/notebooks', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -266,7 +266,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/notebook/delete/' + id).then(res => {
+    request.delete('/notebooks/' + id).then(res => {
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -284,7 +284,7 @@ const handleSelectionChange = (rows) => {
 
 
 const add = () => {
-  request.post('/notebook/add', data.form).then(res => {
+  request.post('/notebooks', data.form).then(res => {
     if (res.code === 200) {
       ElMessage.success('操作成功')
       data.formVisible = false
@@ -296,7 +296,7 @@ const add = () => {
 }
 
 const update = () => {
-  request.put('/notebook/update', data.form).then(res => {
+  request.put('/notebooks/' + data.form.id, data.form).then(res => {
     if (res.code === 200) {
       ElMessage.success('操作成功')
       data.formVisible = false
@@ -316,7 +316,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/notebook/delete/batch', { data: data.ids }).then(res => {
+      request.delete('/notebooks/batch', { data: data.ids }).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()

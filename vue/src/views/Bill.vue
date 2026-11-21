@@ -41,7 +41,7 @@
         <el-upload
             v-if="data.user.role === 'USER'"
             class="bill-upload-inline"
-            action="http://localhost:8080/bill/import"
+            action="http://localhost:8080/bills/import"
             :headers="{token: data.user.token}"
             :show-file-list="false"
             :on-success="handleImportSuccess"
@@ -207,7 +207,7 @@ const data = reactive({
 const formRef = ref()
 
 const load = () => {
-  request.get('/bill/selectPage', {
+  request.get('/bills', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -238,7 +238,7 @@ const handleAdd = () => {
 
 const handleUpdate = (row) => {
   data.form = JSON.parse(JSON.stringify(row))
-  request.get('/category/selectAll',{
+  request.get('/categories/all', {
     params: {
       type: data.form.type
     }
@@ -254,7 +254,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/bill/delete/' +id).then(res=>{
+    request.delete('/bills/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -279,7 +279,7 @@ const save = () => {
 }
 
 const add = () => {
-  request.post('/bill/insert', data.form).then(res => {
+  request.post('/bills', data.form).then(res => {
     if (res.code === 200) {
       data.formVisible = false
       ElMessage.success('操作成功')
@@ -291,7 +291,7 @@ const add = () => {
 }
 
 const update = () => {
-  request.put('/bill/update', data.form).then(res => {
+  request.put('/bills/' + data.form.id, data.form).then(res => {
     if (res.code === 200) {
       data.formVisible = false
       ElMessage.success('操作成功')
@@ -311,7 +311,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/bill/delete/batch', {data: data.ids}).then(res => {
+      request.delete('/bills/batch', {data: data.ids}).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()
@@ -325,7 +325,7 @@ const delBatch = () => {
 
 const exportData = () => {
   let idsStr = data.ids.join(",")
-  let url = `http://localhost:8080/bill/export?ids=${idsStr}`
+  let url = `http://localhost:8080/bills/export?ids=${idsStr}`
   let token = data.user.token
   if (token) {
     url += `&token=${token}`
@@ -350,7 +350,7 @@ const getCategoryList = () => {
   if (data.form.category) {
     data.form.category = ''
   }
-  request.get('/category/selectAll',{
+  request.get('/categories/all', {
     params: {
       type: data.form.type
     }

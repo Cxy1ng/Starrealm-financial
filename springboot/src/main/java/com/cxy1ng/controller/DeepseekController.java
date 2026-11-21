@@ -299,7 +299,7 @@ public class DeepseekController {
     /**
      * 前端零算力拦截防线触发后上报违规记录（计入用户 24 小时滚动窗口，超 10 次自动封禁 AI 对话功能）
      */
-    @PostMapping("/reportViolation")
+    @PostMapping({"/violations", "/reportViolation"})
     public Result reportViolation(@RequestBody Map<String, Object> payload) {
         Account currentUser = TokenUtils.getCurrentUser();
         if (currentUser == null || currentUser.getId() == null) {
@@ -315,7 +315,7 @@ public class DeepseekController {
     /**
      * 读取当前登录用户在后端数据库持久化的 AI 对话历史与当前会话（即使重新编译前后端或换浏览器也永不丢失）
      */
-    @GetMapping("/chatState")
+    @GetMapping({"/chat-state", "/chatState"})
     public Result getChatState() {
         Account currentUser = TokenUtils.getCurrentUser();
         if (currentUser == null || currentUser.getId() == null) {
@@ -351,7 +351,7 @@ public class DeepseekController {
     /**
      * 将当前登录用户的 AI 对话历史与当前会话同步持久化到后端数据库
      */
-    @PostMapping("/chatState")
+    @PostMapping({"/chat-state", "/chatState"})
     public Result saveChatState(@RequestBody Map<String, Object> payload) {
         Account currentUser = TokenUtils.getCurrentUser();
         if (currentUser == null || currentUser.getId() == null) {

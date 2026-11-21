@@ -10,49 +10,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notebook")
+@RequestMapping({"/notebooks", "/notebook"})
 public class NotebookController {
 
     @Resource
     private NotebookService notebookService;
 
-    @PostMapping("/add")
+    @PostMapping({"", "/add", "/insert"})
     public Result add(@RequestBody Notebook notebook) {
         notebookService.add(notebook);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result deleteById(@PathVariable Integer id) {
         notebookService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         notebookService.deleteBatch(ids);
         return Result.success();
     }
 
-    @PutMapping("/update")
-    public Result updateById(@RequestBody Notebook notebook) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result updateById(@PathVariable(required = false) Integer id, @RequestBody Notebook notebook) {
+        if (id != null) {
+            notebook.setId(id);
+        }
         notebookService.updateById(notebook);
         return Result.success();
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         Notebook notebook = notebookService.selectById(id);
         return Result.success(notebook);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(Notebook notebook) {
         List<Notebook> list = notebookService.selectAll(notebook);
         return Result.success(list);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(Notebook notebook,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {

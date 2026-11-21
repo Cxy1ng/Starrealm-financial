@@ -12,19 +12,19 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping({"/users", "/user"})
 public class UserController {
 
     @Resource
     private UserService userService;
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(User user) {
         List<User> list = userService.selectAll(user);
         return Result.success(list);
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         User user = userService.selectById(id);
         if (user != null) {
@@ -34,7 +34,7 @@ public class UserController {
         return Result.success(user);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(User user,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
@@ -52,14 +52,17 @@ public class UserController {
         return Result.success();
     }
 
-    @PostMapping("/insert")
+    @PostMapping({"", "/insert"})
     public Result insert(@RequestBody User user) {
         String defaultPwd = userService.insert(user);
         return Result.success(defaultPwd);
     }
 
-    @PutMapping("/update")
-    public Result update(@RequestBody User user) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result update(@PathVariable(required = false) Integer id, @RequestBody User user) {
+        if (id != null) {
+            user.setId(id);
+        }
         userService.update(user);
         return Result.success();
     }
@@ -70,19 +73,19 @@ public class UserController {
         return Result.success();
     }
 
-    @PutMapping("/aiBan")
+    @PutMapping({"/ai-ban", "/aiBan"})
     public Result auditAiBan(@RequestBody java.util.Map<String, Object> payload) {
         userService.auditAiBan(payload);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result deleteById(@PathVariable Integer id) {
         userService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         userService.deleteBatch(ids);
         return Result.success();

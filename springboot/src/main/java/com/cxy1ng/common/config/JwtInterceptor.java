@@ -97,9 +97,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (Integer.valueOf(1).equals(account.getNeedChangePwd())) {
             String uri = request.getRequestURI();
             boolean isAllowed = uri.endsWith("/updatePwd")
+                    || uri.endsWith("/password")
                     || uri.endsWith("/logout")
-                    || (account.getId() != null && uri.contains("/user/selectById/" + account.getId()))
-                    || (account.getId() != null && uri.contains("/admin/selectById/" + account.getId()));
+                    || (account.getId() != null && (uri.contains("/users/" + account.getId()) || uri.contains("/user/selectById/" + account.getId())))
+                    || (account.getId() != null && (uri.contains("/admins/" + account.getId()) || uri.contains("/admin/selectById/" + account.getId())));
             if (!isAllowed) {
                 throw new CustomException(403, "账户初始密码尚未修改，请先重置密码后方可使用系统功能");
             }

@@ -80,7 +80,7 @@ public class WebController {
         return Result.success();
     }
 
-    @PutMapping("/updatePwd")
+    @PutMapping({"/password", "/updatePwd"})
     public Result updatePwd(@RequestBody Account account) {
         PermEnum role = PermEnum.getRoleByPerm(account.getPerm());
         if (StrUtil.isBlank(account.getUsername()) || StrUtil.isBlank(account.getPwd()) || ObjectUtil.isEmpty(account.getPerm())) {

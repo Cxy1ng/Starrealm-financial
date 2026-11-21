@@ -25,7 +25,7 @@ public class SiteConfigController {
     /**
      * 管理员读取全部网站公共配置（脱敏返回）
      */
-    @GetMapping("/siteConfig/selectAll")
+    @GetMapping({"/site-configs", "/site-configs/all", "/siteConfig/selectAll"})
     public Result selectAll() {
         return Result.success(siteConfigService.selectAllMasked());
     }
@@ -33,7 +33,7 @@ public class SiteConfigController {
     /**
      * 管理员加密保存网站公共配置
      */
-    @PutMapping("/siteConfig/saveBatch")
+    @PutMapping({"/site-configs", "/siteConfig/saveBatch"})
     public Result saveBatch(@RequestBody Map<String, String> payload) {
         siteConfigService.saveBatch(payload);
         return Result.success();
@@ -43,7 +43,7 @@ public class SiteConfigController {
      * 实时汇率查询接口（仅查询单价汇率，前端本地计算具体金额）
      * 调用示例：curl -H "Authorization: Bearer YOUR_KEY" "https://api.finexly.com/v1/rate?from=USD&to=EUR"
      */
-    @GetMapping("/exchange/rate")
+    @GetMapping({"/exchange/rate", "/exchange-rates"})
     public Result getExchangeRate(@RequestParam String from, @RequestParam String to) {
         String base = from.trim().toUpperCase();
         String target = to.trim().toUpperCase();

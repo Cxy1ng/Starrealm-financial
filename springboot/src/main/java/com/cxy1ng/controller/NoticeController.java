@@ -10,49 +10,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notice")
+@RequestMapping({"/notices", "/notice"})
 public class NoticeController {
 
     @Resource
     private NoticeService noticeService;
 
-    @PostMapping("/insert")
+    @PostMapping({"", "/insert"})
     public Result insert(@RequestBody Notice notice) {
         noticeService.insert(notice);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result delete(@PathVariable Integer id) {
         noticeService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         noticeService.deleteBatch(ids);
         return Result.success();
     }
 
-    @PutMapping("/update")
-    public Result update(@RequestBody Notice notice) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result update(@PathVariable(required = false) Integer id, @RequestBody Notice notice) {
+        if (id != null) {
+            notice.setId(id);
+        }
         noticeService.update(notice);
         return Result.success();
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         Notice notice = noticeService.selectById(id);
         return Result.success(notice);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(Notice notice) {
         List<Notice> list = noticeService.selectAll(notice);
         return Result.success(list);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(Notice notice,
                              @RequestParam(defaultValue = "1") Integer pageNum,
                              @RequestParam(defaultValue = "10") Integer pageSize) {

@@ -10,19 +10,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping({"/admins", "/admin"})
 public class AdminController {
 
     @Resource
     private AdminService adminService;
 
-    @GetMapping("/selectAll")
+    @GetMapping({"/all", "/selectAll"})
     public Result selectAll(Admin admin) {
         List<Admin> list = adminService.selectAll(admin);
         return Result.success(list);
     }
 
-    @GetMapping("/selectById/{id}")
+    @GetMapping({"/{id}", "/selectById/{id}"})
     public Result selectById(@PathVariable Integer id) {
         Admin admin = adminService.selectById(id);
         if (admin != null) {
@@ -32,7 +32,7 @@ public class AdminController {
         return Result.success(admin);
     }
 
-    @GetMapping("/selectPage")
+    @GetMapping({"", "/selectPage"})
     public Result selectPage(Admin admin,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
@@ -40,14 +40,17 @@ public class AdminController {
         return Result.success(pageInfo);
     }
 
-    @PostMapping("/insert")
+    @PostMapping({"", "/insert"})
     public Result insert(@RequestBody Admin admin) {
         String tempPwd = adminService.insert(admin);
         return Result.success(tempPwd);
     }
 
-    @PutMapping("/update")
-    public Result update(@RequestBody Admin admin) {
+    @PutMapping({"", "/{id}", "/update"})
+    public Result update(@PathVariable(required = false) Integer id, @RequestBody Admin admin) {
+        if (id != null) {
+            admin.setId(id);
+        }
         adminService.update(admin);
         return Result.success();
     }
@@ -58,13 +61,13 @@ public class AdminController {
         return Result.success();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping({"/{id}", "/delete/{id}"})
     public Result deleteById(@PathVariable Integer id) {
         adminService.deleteById(id);
         return Result.success();
     }
 
-    @DeleteMapping("/delete/batch")
+    @DeleteMapping({"", "/batch", "/delete/batch"})
     public Result deleteBatch(@RequestBody List<Integer> ids) {
         adminService.deleteBatch(ids);
         return Result.success();

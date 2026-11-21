@@ -76,7 +76,7 @@ const data = reactive({
 })
 
 const load = () => {
-  request.get('/acfun/selectPage', {
+  request.get('/acfun', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
@@ -100,7 +100,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    request.delete('/acfun/delete/' +id).then(res=>{
+    request.delete('/acfun/' + id).then(res=>{
       if (res.code === 200) {
         ElMessage.success('操作成功')
         load()
@@ -125,7 +125,7 @@ const delBatch = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      request.delete('/acfun/delete/batch', {data: data.ids}).then(res => {
+      request.delete('/acfun/batch', {data: data.ids}).then(res => {
         if (res.code === 200) {
           ElMessage.success('操作成功')
           load()
