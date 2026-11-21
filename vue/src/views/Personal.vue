@@ -871,7 +871,7 @@ const submitPwdChange = () => {
       newPwd: pwdForm.newPwd
     };
     request
-      .put("/updatePwd", payload)
+      .put("/password", payload)
       .then((res) => {
         if (res.code === 200) {
           ElMessage.success("密码修改成功，请重新登录");
