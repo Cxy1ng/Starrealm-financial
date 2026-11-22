@@ -8,8 +8,11 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.cxy1ng.common.Result;
 import com.cxy1ng.common.enums.PermEnum;
+import com.cxy1ng.dto.bill.BillImportConfirmDTO;
+import com.cxy1ng.dto.bill.BillImportPrecheckVO;
 import com.cxy1ng.entity.Account;
 import com.cxy1ng.entity.Bill;
+import com.cxy1ng.service.BillImportService;
 import com.cxy1ng.service.BillService;
 import com.cxy1ng.utils.TokenUtils;
 import com.github.pagehelper.PageInfo;
@@ -36,6 +39,9 @@ public class BillController {
 
     @Resource
     private BillService billService;
+
+    @Resource
+    private BillImportService billImportService;
 
     @PostMapping({"", "/insert"})
     public Result insert(@RequestBody Bill bill) {
@@ -132,6 +138,42 @@ public class BillController {
     public Result count(String type) {
         List<Bill> list = billService.count(type);
         return Result.success(list);
+    }
+
+    /**
+     * 账单导入第一阶段：预检解析（不落库，返回多维指标与智能分类待确认条目）
+     */
+    @PostMapping({"/import/precheck", "/precheck"})
+    public Result precheck(@RequestParam("file") MultipartFile file,
+                           @RequestParam(value = "channel", required = false) String channel) {
+        if (file == null || file.isEmpty()) {
+            return Result.error(400, "请选择要导入的账单文件");
+        }
+        Account currentUser = TokenUtils.getCurrentUser();
+        Integer userId = currentUser != null ? currentUser.getId() : null;
+        if (userId == null) {
+            return Result.error(401, "登录状态已失效，请重新登录");
+        }
+        BillImportPrecheckVO precheckVO = billImportService.precheck(file, channel, userId);
+        return Result.success(precheckVO);
+    }
+
+    /**
+     * 账单导入第二阶段：确认提交入库
+     */
+    @PostMapping({"/import/confirm", "/confirm"})
+    public Result confirm(@RequestBody BillImportConfirmDTO confirmDTO) {
+        if (confirmDTO == null || confirmDTO.getItems() == null || confirmDTO.getItems().isEmpty()) {
+            return Result.error(400, "待入库记录为空");
+        }
+        Account currentUser = TokenUtils.getCurrentUser();
+        Integer userId = currentUser != null ? currentUser.getId() : null;
+        if (userId == null) {
+            return Result.error(401, "登录状态已失效，请重新登录");
+        }
+        confirmDTO.setUserId(userId);
+        int count = billImportService.confirm(confirmDTO);
+        return Result.success(count);
     }
 
     @PostMapping("/import")
