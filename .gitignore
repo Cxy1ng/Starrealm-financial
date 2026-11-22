@@ -24,3 +24,9 @@ files/
 # Logs & Temp
 *.log
 temp-examples/
+
+# Temporary & Progress Docs
+AGENTS.md
+SHORT-GOAL.md
+PROJECT_PROGRESS.md
+.impeccable/
