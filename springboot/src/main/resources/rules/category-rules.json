@@ -1,0 +1,282 @@
+{
+  "version": "1.0.0",
+  "description": "星界财务平台 - 多渠道账单自动分类与凭证解析规则库基准文件",
+  "domainPatterns": [
+    {
+      "pattern": "@autonavi\\.com",
+      "counterparty": "高德打车",
+      "category": "交通出行",
+      "direction": "支出"
+    },
+    {
+      "pattern": "@service\\.netease\\.com",
+      "counterparty": "网易公司 (NetEase)",
+      "category": "文化休闲",
+      "direction": "支出"
+    },
+    {
+      "pattern": "@alibaba-inc\\.com",
+      "counterparty": "阿里巴巴外卖/电商",
+      "detailMatches": [
+        { "keyword": "外卖|餐|鸡|生煎|米线|面", "category": "餐饮美食" },
+        { "keyword": "超市|天猫|淘宝|日用", "category": "日常购物" }
+      ],
+      "defaultCategory": "餐饮美食",
+      "direction": "支出"
+    },
+    {
+      "pattern": "@alipay\\.com",
+      "counterparty": "支付宝客运服务",
+      "detailMatches": [
+        { "keyword": "火车票|客票|退票|12306", "category": "交通出行" },
+        { "keyword": "寄件|快递", "category": "日常购物" }
+      ],
+      "defaultCategory": "交通出行",
+      "direction": "支出"
+    },
+    {
+      "pattern": "@apple\\.com",
+      "counterparty": "Apple 数字服务",
+      "category": "数码科技",
+      "direction": "支出"
+    },
+    {
+      "pattern": "@service\\.aliyun\\.com",
+      "counterparty": "菜鸟物流/阿里云",
+      "detailMatches": [
+        { "keyword": "寄件|快递|退货", "category": "日常购物" },
+        { "keyword": "云服务器|ECS|域名", "category": "数码科技" }
+      ],
+      "defaultCategory": "日常购物",
+      "direction": "支出"
+    },
+    {
+      "pattern": "@adyen\\.com",
+      "counterparty": "Adyen 国际结算",
+      "category": "文化休闲",
+      "direction": "支出"
+    }
+  ],
+  "brandDictionary": [
+    {
+      "category": "餐饮美食",
+      "direction": "支出",
+      "brands": [
+        "美团", "饿了么", "麦当劳", "肯德基", "必胜客", "汉堡王", "塔斯汀", "德克士", "华莱士",
+        "星巴克", "瑞幸咖啡", "库迪咖啡", "喜茶", "奈雪的茶", "茶百道", "古茗", "一点点", "蜜雪冰城", "霸王茶姬", "沪上阿姨",
+        "海底捞", "呷哺呷哺", "西贝", "萨莉亚", "正新鸡排", "周黑鸭", "绝味鸭脖", "绝味",
+        "沙县小吃", "兰州拉面", "友宝", "友宝昂莱", "康师傅"
+      ]
+    },
+    {
+      "category": "交通出行",
+      "direction": "支出",
+      "brands": [
+        "12306", "中铁网络", "铁路客户服务", "滴滴出行", "高德打车", "花小猪", "首汽约车", "曹操出行", "T3出行",
+        "哈啰单车", "哈啰出行", "美团单车", "青桔单车", "中国石化", "中石化", "中国石油", "中石油", "中海油",
+        "特来电", "星星充电", "城市智慧路边泊车", "泊车", "停车费", "停车服务", "高速公路电子联网", "ETC",
+        "长沙地铁", "广州地铁", "北京地铁", "深圳地铁", "上海地铁", "武汉地铁", "杭州地铁",
+        "公交集团", "公共交通"
+      ]
+    },
+    {
+      "category": "生活缴费",
+      "direction": "支出",
+      "brands": [
+        "国家电网", "南方电网", "电费", "自来水", "自来水公司", "水务综合", "智校乐", "水控充值",
+        "华润燃气", "新奥燃气", "燃气", "中国移动", "中国联通", "中国电信", "广电网络", "物业管理"
+      ]
+    },
+    {
+      "category": "文化休闲",
+      "direction": "支出",
+      "brands": [
+        "Steam", "Steam Games", "蒸汽平台", "网易云音乐", "QQ音乐", "酷狗音乐", "酷我音乐",
+        "哔哩哔哩", "Bilibili", "爱奇艺", "腾讯视频", "优酷", "芒果TV", "网飞", "Netflix",
+        "暴雪", "米哈游", "原神", "星穹铁道", "鹰角网络", "明日方舟", "网易游戏", "腾讯天美",
+        "WARGAMING", "wot", "坦克世界", "育碧", "Ubisoft", "Epic Games",
+        "猫眼电影", "淘票票", "大麦网", "秀动", "长隆", "迪士尼"
+      ]
+    },
+    {
+      "category": "数码科技",
+      "direction": "支出",
+      "brands": [
+        "Apple", "Apple Store", "小米之家", "华为商城", "联想", "戴尔",
+        "GitHub", "OpenAI", "ChatGPT", "Cursor", "JetBrains", "Vercel",
+        "阿里云", "腾讯云", "华为云", "百度网盘", "夸克网盘"
+      ]
+    },
+    {
+      "category": "医疗健康",
+      "direction": "支出",
+      "brands": [
+        "大药房", "药业", "药房", "同仁堂", "老百姓大药房", "益丰大药房", "一心堂", "海王星辰", "君信堂",
+        "平安健康", "人保健康", "众安在线", "泰康在线", "挂号网", "微医", "爱康国宾", "美年大健康"
+      ]
+    },
+    {
+      "category": "日常购物",
+      "direction": "支出",
+      "brands": [
+        "美宜佳", "天猫超市", "京东", "淘宝平台商户", "拼多多", "朴朴超市", "盒马鲜生", "永辉超市",
+        "大润发", "沃尔玛", "山姆会员", "屈臣氏", "万宁", "7-Eleven", "罗森", "全家", "新玛特",
+        "顺丰速运", "菜鸟裹裹", "邮政EMS", "圆通速递", "中通快递", "申通快递", "韵达速递", "极兔速递"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "exp_food_keywords",
+      "direction": "支出",
+      "category": "餐饮美食",
+      "priority": 80,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(外卖|快餐|餐馆|饭店|面馆|面条|小吃|菜馆|烤肉|火锅|米粉|米线|烧烤|卤味|早餐|早点|生煎|肠粉|包子|包坊|烘焙|面包|西点|咖啡|奶茶|果茶|炒饭|便当|快餐店|速食|熟食|熟菜|饮料|饮品|开水|矿泉水|麻辣烫|烤冷面|灌饼|煎饼|炸鸡|鸭脖|烤鸭|美食|料理|炒货|干果|零食|豆腐坊|豆制品|牛杂|羊肉泡馍|牛肉拉面|牛肉面).*",
+      "excludes": ["餐具批发", "外卖箱", "骑手服装", "咖啡机设备"]
+    },
+    {
+      "id": "exp_transport_keywords",
+      "direction": "支出",
+      "category": "交通出行",
+      "priority": 80,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(地铁|公交|车票|火车|高铁|客票|打车|出租车|网约车|拼车|顺风车|单车|骑行|加油|加气|充电桩|充电费|过路费|通行费|高速费|停车|泊车|代驾|机票|航空|客运|高速公路|收费公路|公路收费|交通信息中心|城泊通|临停|石油|加油站|加油厂).*",
+      "excludes": ["模型车", "玩具车", "车模"]
+    },
+    {
+      "id": "exp_utility_keywords",
+      "direction": "支出",
+      "category": "生活缴费",
+      "priority": 85,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(生活缴费|电费|水费|水费代扣|自来水|燃气费|煤气费|暖气费|供暖|供热|抄表|话费|充值.*元，谨防诈骗|宽带|校园网|水控充值|物业费|卫生费|税务局|税务局.*消费|税收缴款).*",
+      "excludes": ["电费计算器", "水管维修工具"]
+    },
+    {
+      "id": "exp_entertainment_keywords",
+      "direction": "支出",
+      "category": "文化休闲",
+      "priority": 75,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(影音|音乐|VIP连续包月|月卡|季卡|年卡|会员充值|游戏充值|游戏道具|点券|皮肤|抽卡|门票|电影票|密室|剧本杀|桌游|KTV|健身房|瑜伽|滑雪|景区|度假|温泉|考试院|CET.*考试|考试费|学杂费|重修费|培训费|文化艺术).*",
+      "excludes": []
+    },
+    {
+      "id": "exp_digital_keywords",
+      "direction": "支出",
+      "category": "数码科技",
+      "priority": 70,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(数码|显卡|主板|CPU|内存条|固态硬盘|显示器|手机|平板|iPad|MacBook|耳机|外设|机械键盘|鼠标|充电线|手机壳|软件订阅|域名|云服务器|API.*token|Copilot).*",
+      "excludes": ["红富士", "水果苹果", "苹果干"]
+    },
+    {
+      "id": "exp_health_keywords",
+      "direction": "支出",
+      "category": "医疗健康",
+      "priority": 85,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(门诊|挂号|医院|卫生院|诊所|大药房|药店|医药|药业|胶囊|颗粒|注射液|感冒|消炎|医疗保险|保费|体检|口腔|牙科|近视|配镜|隐形眼镜|医疗险|重疾险|健康险|意外险|水滴保险|保险经纪).*",
+      "excludes": ["药膳火锅"]
+    },
+    {
+      "id": "exp_transfer_keywords",
+      "direction": "支出",
+      "category": "红包转账",
+      "priority": 90,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(微信红包|发红包|转账给|向.*转账|微信转账|群收款|二维码收款|扫二维码付款|AA收款|人情礼金|份子钱).*",
+      "excludes": ["返还", "退款"]
+    },
+    {
+      "id": "exp_shopping_keywords",
+      "direction": "支出",
+      "category": "日常购物",
+      "priority": 60,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(超市|便利店|百货|日杂|母婴|服饰|服装|鞋|包|化妆品|洗护|纸巾|洗衣液|家居|家纺|厨具|快递|寄件|寄件费|自提柜|旗舰店|电商|专营店|直营店|生鲜|果蔬|菜市场|菜市|市集|小卖部|杂货铺|食杂|调料|食品店|食品商店|海鲜|水产|烟酒|商行|理发|美发|发艺|美甲|剪发|体育|商场|购物中心).*",
+      "excludes": []
+    },
+    {
+      "id": "inc_refund_rules",
+      "direction": "收入",
+      "category": "退款返还",
+      "priority": 100,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(退款|退还|退差价|退货款|已全额退款|部分退款|押金退还|订单取消退款).*",
+      "excludes": []
+    },
+    {
+      "id": "inc_salary_rules",
+      "direction": "收入",
+      "category": "工资薪金",
+      "priority": 95,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(薪资|代发工资|工资|薪酬|劳务报酬|年终奖|季度奖|月度绩效|津贴).*",
+      "excludes": []
+    },
+    {
+      "id": "inc_transfer_rules",
+      "direction": "收入",
+      "category": "红包转账",
+      "priority": 90,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(收到红包|红包|微信红包|收到口令红包|转账收款|收到转账|转账存入|亲友转账|AA收款).*",
+      "excludes": ["退款"]
+    },
+    {
+      "id": "inc_investment_rules",
+      "direction": "收入",
+      "category": "投资理财",
+      "priority": 85,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(理财收益|结息|基金分红|股票收益|赎回|余额宝.*收益|零钱通.*收益|活期结息|利息入账).*",
+      "excludes": []
+    },
+    {
+      "id": "inc_side_gig_rules",
+      "direction": "收入",
+      "category": "副业外快",
+      "priority": 80,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(平台激励|创作分成|短视频.*激励|短视频.*收益|收益提现|网易BUFF出售|BUFF.*出售|饰品出售|接单劳务|兼职报酬|佣金提现).*",
+      "excludes": []
+    },
+    {
+      "id": "inc_subsidy_rules",
+      "direction": "收入",
+      "category": "补贴奖励",
+      "priority": 85,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(退税|个税退税|税务局|政府补贴|技能提升补贴|国家助学金|奖学金|育儿补贴|以旧换新补贴).*",
+      "excludes": []
+    },
+    {
+      "id": "inc_secondhand_rules",
+      "direction": "收入",
+      "category": "二手闲置",
+      "priority": 75,
+      "matchFields": ["DETAIL", "PAYEE"],
+      "regex": ".*(闲鱼|转转|拍拍|二手出售|出闲置|二手回血).*",
+      "excludes": []
+    }
+  ],
+  "nativeFallbacks": [
+    {
+      "pattern": "群收款|微信红包|转账|扫二维码付款",
+      "direction": "支出",
+      "category": "红包转账"
+    },
+    {
+      "pattern": "收到红包|群收款|转账|扫二维码付款",
+      "direction": "收入",
+      "category": "红包转账"
+    },
+    {
+      "pattern": "退款|退还",
+      "direction": "收入",
+      "category": "退款返还"
+    }
+  ]
+}
