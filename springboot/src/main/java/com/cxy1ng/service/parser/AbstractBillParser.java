@@ -383,7 +383,11 @@ public abstract class AbstractBillParser implements ChannelBillParser {
         BillImportItemDTO item = new BillImportItemDTO();
         item.setTime(time);
         item.setPayee(cleanPayee);
-        item.setRawPayee(rawPayee);
+        if (StrUtil.isNotBlank(rawPayee) && !rawPayee.trim().equals(cleanPayee.trim())) {
+            item.setRawPayee(rawPayee.trim());
+        } else {
+            item.setRawPayee(null);
+        }
         item.setDetail(detail);
         item.setType(normalizedType);
         item.setAmount(amount.abs());

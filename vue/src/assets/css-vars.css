@@ -13,6 +13,25 @@ html:not(.dark) {
     --el-header-bg-color: var(--table-row-bg, #f6f9fe);
     --el-card-bg-color: var(--table-row-bg, #f6f9fe);
 
+    /* 注入金融账单设计体系浅色模式变量 */
+    --theme-grad-start: var(--el-color-primary-light-3, #3b82f6);
+    --theme-grad-end: var(--el-color-primary-dark-2, #1d4ed8);
+    --theme-light: var(--el-color-primary-light-3, #60a5fa);
+    --bg-page: var(--theme-bg-page-light, #f1f5f9);
+    --bg-surface: var(--table-row-bg, #ffffff);
+    --bg-elevated: var(--table-row-alt-bg, #f8fafc);
+    --bg-input: #f8fafc;
+    --border-subtle: rgba(15, 23, 42, 0.08);
+    --border-strong: rgba(15, 23, 42, 0.14);
+    --text-main: #0f172a;
+    --text-regular: #334155;
+    --text-sub: #64748b;
+    --text-muted: #94a3b8;
+    --card-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06);
+    --table-divider: rgba(15, 23, 42, 0.06);
+    --table-row-stripe: var(--table-row-alt-bg, #fafcff);
+    --table-row-hover: var(--table-hover-bg, #f1f6ff);
+
     /* WangEditor 浅色适配 */
     --w-e-textarea-bg-color: var(--table-row-bg, #f6f9fe);
     --w-e-textarea-color: #0f172a;
@@ -35,6 +54,25 @@ html.dark {
     --el-header-bg-color: var(--table-head-bg, #121b2d);
     --el-table-header-bg-color: var(--table-head-bg, #121b2d);
     --el-card-bg-color: var(--table-row-bg, #0c1322);
+
+    /* 注入金融账单设计体系深色模式变量 */
+    --theme-grad-start: var(--el-color-primary-light-3, #3b82f6);
+    --theme-grad-end: var(--el-color-primary-dark-2, #1d4ed8);
+    --theme-light: var(--el-color-primary-light-3, #60a5fa);
+    --bg-page: var(--theme-bg-page-dark, #070b14);
+    --bg-surface: var(--table-row-bg, #0e1422);
+    --bg-elevated: var(--table-row-alt-bg, #131b2e);
+    --bg-input: #111827;
+    --border-subtle: rgba(148, 163, 184, 0.11);
+    --border-strong: rgba(148, 163, 184, 0.2);
+    --text-main: #f1f5f9;
+    --text-regular: #cbd5e1;
+    --text-sub: #8b9bb4;
+    --text-muted: #64748b;
+    --card-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.55);
+    --table-divider: rgba(148, 163, 184, 0.08);
+    --table-row-stripe: var(--table-row-alt-bg, #101727);
+    --table-row-hover: var(--table-hover-bg, #172138);
 
     /* 降低暗色模式下各类语义按钮的荧光感，采用低饱和深邃色阶 */
     --el-color-success: #059669;

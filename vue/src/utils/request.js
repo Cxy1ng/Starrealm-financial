@@ -11,7 +11,11 @@ export const request = axios.create({
 })
 
 request.interceptors.request.use(config => {
-    config.headers['Content-Type'] = 'application/json; charset=UTF-8';
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+    } else if (!config.headers['Content-Type']) {
+        config.headers['Content-Type'] = 'application/json; charset=UTF-8';
+    }
     let user = JSON.parse(localStorage.getItem("loginToken") || '{}');
     if ((!user || !user.token) && typeof document !== 'undefined') {
         const cookieSession = getLoginSessionFromCookie();
