@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <!-- 类 APP 圆角方形白底 (带微妙边缘描边，深浅标签页均清晰精致) -->
-  <rect x="2" y="2" width="252" height="252" rx="54" fill="#ffffff" stroke="rgba(0,0,0,0.06)" stroke-width="4" />
-  <!-- 纯黑星界 (Star Realm) 专属几何 LOGO -->
-  <g transform="translate(128, 128) scale(0.70) translate(-100, -100)" fill="#000000">
+  <!-- 类 APP 圆角方形纯白底板：铺满画布零浪费外边距，深浅标签栏均清晰 -->
+  <rect x="1" y="1" width="254" height="254" rx="56" fill="#ffffff" stroke="rgba(0,0,0,0.08)" stroke-width="2" />
+  <!-- 纯黑星界 (Star Realm) 专属几何 LOGO：放大至占画布高度约 83%，16×16px 标签栏清晰可辨 -->
+  <g transform="translate(128, 128) scale(1.13) translate(-100, -100)" fill="#000000">
     <!-- 1. 上半部 S 骨架 -->
     <path d="M 83 6 L 94 6 L 94 25.5 L 100 22 L 106 25.5 L 106 6 L 117 6 L 117 30 L 166 58 L 166 86 L 138 86 L 138 72 L 100 50 L 68.4 68.3 L 88 79.1 L 83.6 87.1 L 89.2 90.2 L 86 96 L 80.4 92.9 L 75.9 100.9 L 34 77.7 L 34 67.8 L 76.2 91.2 L 79.9 84.5 L 34 59.1 L 34 58 L 83 30 Z" />
     <!-- 2. 下半部 S 骨架 -->

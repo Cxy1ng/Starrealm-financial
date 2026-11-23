@@ -1069,6 +1069,9 @@ const step3TableRowClassName = ({ row }) => {
   if (row.isConflict) {
     return 'table-row-conflict';
   }
+  if (row.isUncertain || row.category === '待确认') {
+    return 'table-row-attention';
+  }
   return '';
 };
 
@@ -1858,72 +1861,107 @@ html:not(.dark) .guardrail-btn-apply:disabled {
   will-change: transform;
 }
 
-/* 深色模式下的实色暖金琥珀高亮底色（全单元格高饱和纯色平铺，无渐变） */
-.custom-bill-table :deep(tr.table-row-attention td.el-table__cell),
-.custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-conflict td.el-table__cell),
-.custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell) {
-  --el-table-tr-bg-color: rgba(245, 158, 11, 0.38) !important;
-  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.52) !important;
-  background-color: rgba(245, 158, 11, 0.38) !important;
-  background: rgba(245, 158, 11, 0.38) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.60) !important;
-  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.50) !important;
-  transition: background 0.15s ease, background-color 0.15s ease;
+/* ================= 步骤 2 待确认行 & 步骤 3 冲突行：半透明橙色深浅斑马纹 =================
+ * 根因修复：
+ * 1. 先将高亮行 tr 自身背景及 --el-table-tr-bg-color 置透明，避免与 td 半透明色双重叠加发暗；
+ * 2. 使用高优先级选择器同时接管 :nth-child(odd)、:nth-child(even) 与 .el-table__row--striped，
+ *    彻底覆盖全局暗色主题及 Element Plus 斑马纹对奇偶行的劫持；
+ * 3. 如需完全统一纯色（不做深浅斑马纹），只需把下方偶数行的 0.30 改成与奇数行一致的 0.22 即可。
+ */
+
+/* 1) 清空高亮行 tr 本体背景，防止与 td 的 rgba 叠加 */
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict) {
+  --el-table-tr-bg-color: transparent !important;
+  --el-table-row-hover-bg-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-/* 专用的高亮行鼠标悬停纯色暖色（无渐变，更明亮高光琥珀） */
-.custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell),
-.custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell),
-.custom-bill-table :deep(.el-table__row.table-row-attention.hover-row td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-conflict:hover td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell),
-.custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell),
-.custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell) {
-  background-color: rgba(245, 158, 11, 0.52) !important;
-  background: rgba(245, 158, 11, 0.52) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.75) !important;
+/* 2) 深色模式 - 奇数高亮行（通透浅半透明橙） */
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:nth-child(odd) > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:nth-child(odd) > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:nth-child(odd) > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:nth-child(odd) > td.el-table__cell) {
+  background: rgba(245, 158, 11, 0.22) !important;
+  background-color: rgba(245, 158, 11, 0.22) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.34) !important;
+  transition: background-color 0.15s ease;
 }
 
-.custom-bill-table :deep(tr.table-row-attention td.el-table__cell:first-child),
-.custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell:first-child),
-.custom-bill-table :deep(tr.table-row-conflict td.el-table__cell:first-child),
-.custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell:first-child) {
-  border-left: 5px solid #f59e0b !important;
+/* 3) 深色模式 - 偶数高亮行（略深半透明橙，形成柔和橙色斑马纹；若要纯色一致可改为 0.22） */
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:nth-child(even) > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.el-table__row--striped > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:nth-child(even) > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.el-table__row--striped > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:nth-child(even) > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.el-table__row--striped > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:nth-child(even) > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.el-table__row--striped > td.el-table__cell) {
+  background: rgba(245, 158, 11, 0.30) !important;
+  background-color: rgba(245, 158, 11, 0.30) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.38) !important;
+  transition: background-color 0.15s ease;
 }
 
-.custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell:first-child),
-.custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell:first-child),
-.custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell:first-child),
-.custom-bill-table :deep(.el-table__row.table-row-attention.hover-row td.el-table__cell:first-child),
-.custom-bill-table :deep(tr.table-row-conflict:hover td.el-table__cell:first-child),
-.custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell:first-child),
-.custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell:first-child),
-.custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell:first-child) {
-  border-left: 5px solid #fbbf24 !important;
+/* 4) 深色模式 - 高亮行悬停态（统一明亮暖橙，兼容固定列 .hover-row） */
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:hover > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.hover-row > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:hover > td.el-table__cell),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.hover-row > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:hover > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.hover-row > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:hover > td.el-table__cell),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.hover-row > td.el-table__cell) {
+  background: rgba(245, 158, 11, 0.42) !important;
+  background-color: rgba(245, 158, 11, 0.42) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.56) !important;
 }
 
-/* 浅色模式下的明亮琥珀高亮底色与悬停暖色 */
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell) {
-  --el-table-tr-bg-color: #fef3c7 !important;
-  --el-table-row-hover-bg-color: #fde68a !important;
-  background: #fef3c7 !important;
-  border-bottom: 1px solid #fcd34d !important;
+/* 5) 左侧琥珀色强调条（用 inset box-shadow 不挤占首列对齐） */
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention > td.el-table__cell:first-child),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict > td.el-table__cell:first-child),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention > td.el-table__cell:first-child),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict > td.el-table__cell:first-child) {
+  box-shadow: inset 4px 0 0 #f59e0b !important;
 }
 
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-attention.hover-row td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell) {
-  background: #fde68a !important;
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:hover > td.el-table__cell:first-child),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.hover-row > td.el-table__cell:first-child),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:hover > td.el-table__cell:first-child),
+html.dark .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.hover-row > td.el-table__cell:first-child),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:hover > td.el-table__cell:first-child),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.hover-row > td.el-table__cell:first-child),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:hover > td.el-table__cell:first-child),
+.modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.hover-row > td.el-table__cell:first-child) {
+  box-shadow: inset 4px 0 0 #fbbf24 !important;
+}
+
+/* 6) 浅色模式 - 半透明橙色深浅斑马纹与悬停态 */
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:nth-child(odd) > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:nth-child(odd) > td.el-table__cell) {
+  background: rgba(245, 158, 11, 0.13) !important;
+  background-color: rgba(245, 158, 11, 0.13) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.28) !important;
+}
+
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:nth-child(even) > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.el-table__row--striped > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:nth-child(even) > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.el-table__row--striped > td.el-table__cell) {
+  background: rgba(245, 158, 11, 0.22) !important;
+  background-color: rgba(245, 158, 11, 0.22) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.32) !important;
+}
+
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention:hover > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-attention.hover-row > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict:hover > td.el-table__cell),
+html:not(.dark) .modal-table-shell .custom-bill-table.el-table :deep(.el-table__body tbody tr.el-table__row.table-row-conflict.hover-row > td.el-table__cell) {
+  background: rgba(245, 158, 11, 0.30) !important;
+  background-color: rgba(245, 158, 11, 0.30) !important;
 }
 
 /* ================= 7. 步骤 3 预检与排重专属元素 ================= */
