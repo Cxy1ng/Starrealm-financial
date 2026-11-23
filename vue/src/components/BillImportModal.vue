@@ -1858,21 +1858,21 @@ html:not(.dark) .guardrail-btn-apply:disabled {
   will-change: transform;
 }
 
-/* 深色模式下的实色暖金琥珀高亮底色（全单元格纯色平铺，无渐变） */
+/* 深色模式下的实色暖金琥珀高亮底色（全单元格高饱和纯色平铺，无渐变） */
 .custom-bill-table :deep(tr.table-row-attention td.el-table__cell),
 .custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell),
 .custom-bill-table :deep(tr.table-row-conflict td.el-table__cell),
 .custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell) {
-  --el-table-tr-bg-color: rgba(245, 158, 11, 0.28) !important;
-  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.40) !important;
-  background-color: rgba(245, 158, 11, 0.28) !important;
-  background: rgba(245, 158, 11, 0.28) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.45) !important;
-  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.4) !important;
+  --el-table-tr-bg-color: rgba(245, 158, 11, 0.38) !important;
+  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.52) !important;
+  background-color: rgba(245, 158, 11, 0.38) !important;
+  background: rgba(245, 158, 11, 0.38) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.60) !important;
+  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.50) !important;
   transition: background 0.15s ease, background-color 0.15s ease;
 }
 
-/* 专用的高亮行鼠标悬停纯色暖色（无渐变，明亮琥珀） */
+/* 专用的高亮行鼠标悬停纯色暖色（无渐变，更明亮高光琥珀） */
 .custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell),
 .custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell),
 .custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell),
@@ -1881,9 +1881,9 @@ html:not(.dark) .guardrail-btn-apply:disabled {
 .custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell),
 .custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell),
 .custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell) {
-  background-color: rgba(245, 158, 11, 0.40) !important;
-  background: rgba(245, 158, 11, 0.40) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.65) !important;
+  background-color: rgba(245, 158, 11, 0.52) !important;
+  background: rgba(245, 158, 11, 0.52) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.75) !important;
 }
 
 .custom-bill-table :deep(tr.table-row-attention td.el-table__cell:first-child),
