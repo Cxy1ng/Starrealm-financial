@@ -154,17 +154,19 @@
             <div class="cell-merchant-product" :class="{ 'is-double-line': layoutMode === 'double' }">
               <el-tooltip v-if="row.rawPayee && row.rawPayee !== row.payee" :content="'原始商户: ' + row.rawPayee" placement="top" :show-after="180">
                 <span class="cell-title">
-                  <span>{{ row.payee || '-' }}</span>
+                  <span>{{ getMerchantDisplay(row).title }}</span>
                   <span class="cleaned-tag">转译</span>
                 </span>
               </el-tooltip>
-              <el-tooltip v-else :content="row.payee || '-'" placement="top" :show-after="250">
-                <span class="cell-title">{{ row.payee || '-' }}</span>
+              <el-tooltip v-else :content="getMerchantDisplay(row).title" placement="top" :show-after="250">
+                <span class="cell-title">{{ getMerchantDisplay(row).title }}</span>
               </el-tooltip>
-              <span class="cell-divider">·</span>
-              <el-tooltip :content="row.detail || '-'" placement="top" :show-after="220">
-                <span class="cell-sub">{{ row.detail || '无说明' }}</span>
-              </el-tooltip>
+              <template v-if="getMerchantDisplay(row).hasSub">
+                <span class="cell-divider">·</span>
+                <el-tooltip :content="getMerchantDisplay(row).sub" placement="top" :show-after="220">
+                  <span class="cell-sub">{{ getMerchantDisplay(row).sub }}</span>
+                </el-tooltip>
+              </template>
             </div>
           </template>
         </el-table-column>
@@ -318,6 +320,66 @@ import BillImportModal from "@/components/BillImportModal.vue";
 
 const importModalVisible = ref(false);
 const layoutMode = ref('single'); // 'single' | 'double'
+
+const getMerchantDisplay = (row) => {
+  if (!row) return { title: '-', sub: '', hasSub: false };
+  let payee = (row.payee || '').trim();
+  let detail = (row.detail || '').trim();
+
+  // 过滤无效纯符号的商品说明
+  if (detail === '/' || detail === '-' || detail === '.' || detail === '无' || detail === '无说明' || detail === '无商品说明') {
+    detail = '';
+  }
+
+  const isInvalidPayee = !payee || payee === '/' || payee === '-' || payee === '.' || payee === '未知商户' || payee === '未知' || payee === '其他';
+
+  // 1. 当收款方为空或无效符号时，智能从商品说明/交易摘要中提取商户名与业务子项
+  if (isInvalidPayee) {
+    if (!detail) {
+      return { title: '其他收支', sub: '', hasSub: false };
+    }
+
+    // 匹配如 "网易BUFF出售-印花|TYLOO (全息) | 2020 RMR" -> brand: "网易BUFF", sub: "出售 印花|TYLOO..."
+    const match = detail.match(/^([a-zA-Z0-9\u4e00-\u9fa5]+?)(出售|代发|充值|退款|快捷支付|支付|App|商城|平台)?\s*[-_—:|/]\s*(.*)$/);
+    if (match && match[1].trim().length >= 2) {
+      const brand = match[1].trim();
+      const action = match[2] ? match[2].trim() : '';
+      const rest = match[3] ? match[3].trim() : '';
+      const sub = action ? `${action} ${rest}`.trim() : rest;
+      return { title: brand, sub, hasSub: Boolean(sub) };
+    }
+
+    // 常见分隔符分割商户与子项
+    const delIdx = detail.search(/[-_—:|/]/);
+    if (delIdx > 1 && delIdx < detail.length - 1) {
+      const title = detail.substring(0, delIdx).trim();
+      const sub = detail.substring(delIdx + 1).trim();
+      return { title, sub, hasSub: Boolean(sub) };
+    }
+
+    // 空格分割商户与子项（如 "海底捞火锅 3号桌消费"）
+    const spaceIdx = detail.indexOf(' ');
+    if (spaceIdx >= 2 && spaceIdx <= 12) {
+      const title = detail.substring(0, spaceIdx).trim();
+      const sub = detail.substring(spaceIdx + 1).trim();
+      return { title, sub, hasSub: Boolean(sub) };
+    }
+
+    return { title: detail, sub: '', hasSub: false };
+  }
+
+  // 2. 当商户与说明完全一致或说明为空时
+  if (!detail || detail === payee) {
+    // 智能分解类似 "团app短视频-现金激励-微信零钱" 中的品牌与细项
+    const match = payee.match(/^([^\-_—:|/]+?)[\-_—:|/]\s*(.+)$/);
+    if (match && match[1].trim().length >= 2 && !match[1].startsWith('商户')) {
+      return { title: match[1].trim(), sub: match[2].trim(), hasSub: true };
+    }
+    return { title: payee, sub: '', hasSub: false };
+  }
+
+  return { title: payee, sub: detail, hasSub: true };
+};
 
 const data = reactive({
   user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
@@ -682,15 +744,15 @@ const getPaymentMiniSvg = (paymentText) => {
 .btn-action {
   border-radius: 8px !important;
   font-weight: 600 !important;
-  font-size: 13px !important;
-  padding: 8px 14px !important;
-  height: 34px !important;
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+  padding: calc(8px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1)) !important;
+  height: calc(36px * var(--app-font-scale, 1)) !important;
   border: 1px solid transparent !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   margin: 0 !important;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: calc(5px * var(--app-font-scale, 1));
 }
 
 .btn-action:hover {
@@ -774,9 +836,9 @@ const getPaymentMiniSvg = (paymentText) => {
   border: none;
   background: transparent;
   color: var(--text-sub, #64748b);
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 500;
-  padding: 4px 10px;
+  padding: calc(4px * var(--app-font-scale, 1)) calc(10px * var(--app-font-scale, 1));
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.16s ease;
@@ -833,8 +895,8 @@ html.dark .segmented-btn.is-active {
   background: var(--table-head-bg, #f8fafc) !important;
   color: var(--text-sub, #64748b) !important;
   font-weight: 600 !important;
-  font-size: 12px !important;
-  padding: 10px 0 !important;
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+  padding: calc(11px * var(--app-font-scale, 1)) 0 !important;
   border-bottom: 1px solid var(--border-subtle, rgba(15, 23, 42, 0.08)) !important;
   letter-spacing: 0.2px;
   white-space: nowrap;
@@ -843,14 +905,14 @@ html.dark .segmented-btn.is-active {
 .custom-bill-table :deep(td.el-table__cell) {
   background: transparent !important;
   color: var(--text-regular, #334155);
-  font-size: 13px !important;
-  padding: 10px 0 !important;
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+  padding: calc(10px * var(--app-font-scale, 1)) 0 !important;
   border-bottom: 1px solid var(--table-divider, rgba(15, 23, 42, 0.06)) !important;
   transition: background-color 0.15s ease;
 }
 
 .custom-bill-table.is-double-table :deep(td.el-table__cell) {
-  padding: 8.5px 0 !important;
+  padding: calc(9.5px * var(--app-font-scale, 1)) 0 !important;
 }
 
 .custom-bill-table :deep(.el-table__row:nth-child(even)) {
@@ -881,8 +943,8 @@ html.dark .segmented-btn.is-active {
 .cell-time-box {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: calc(6px * var(--app-font-scale, 1));
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   white-space: nowrap;
   line-height: 1.35;
@@ -905,11 +967,11 @@ html.dark .segmented-btn.is-active {
 }
 
 .cell-time-box.is-double-line .time-date {
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
 }
 
 .cell-time-box.is-double-line .time-clock {
-  font-size: 11px;
+  font-size: calc(11.5px * var(--app-font-scale, 1));
   color: var(--text-muted, #94a3b8);
 }
 
@@ -917,9 +979,9 @@ html.dark .segmented-btn.is-active {
 .cat-pill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: calc(2.5px * var(--app-font-scale, 1)) calc(8px * var(--app-font-scale, 1));
   border-radius: 6px;
-  font-size: 11.5px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
   font-weight: 500;
   line-height: 1.45;
   white-space: nowrap;
@@ -951,7 +1013,7 @@ html:not(.dark) .cat-pill.cat-refund { color: #d97706; }
 .cell-merchant-product {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: calc(7px * var(--app-font-scale, 1));
   line-height: 1.4;
   overflow: hidden;
   white-space: nowrap;
@@ -960,7 +1022,7 @@ html:not(.dark) .cat-pill.cat-refund { color: #d97706; }
 .cell-merchant-product .cell-title {
   font-weight: 600;
   color: var(--text-main, #0f172a);
-  font-size: 13px;
+  font-size: calc(14px * var(--app-font-scale, 1));
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -969,13 +1031,13 @@ html:not(.dark) .cat-pill.cat-refund { color: #d97706; }
 .cell-merchant-product .cell-divider {
   color: var(--text-muted, #94a3b8);
   opacity: 0.45;
-  font-size: 11px;
+  font-size: calc(12px * var(--app-font-scale, 1));
   user-select: none;
   flex-shrink: 0;
 }
 
 .cell-merchant-product .cell-sub {
-  font-size: 12px;
+  font-size: calc(12.8px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -995,8 +1057,8 @@ html:not(.dark) .cat-pill.cat-refund { color: #d97706; }
 }
 
 .cell-merchant-product.is-double-line .cell-sub {
-  font-size: 11.5px;
-  line-height: 1.3;
+  font-size: calc(12px * var(--app-font-scale, 1));
+  line-height: 1.35;
   white-space: nowrap;
   max-width: 100%;
 }
@@ -1004,8 +1066,8 @@ html:not(.dark) .cat-pill.cat-refund { color: #d97706; }
 .cleaned-tag {
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
-  font-size: 10px;
+  padding: 1px calc(5px * var(--app-font-scale, 1));
+  font-size: calc(11px * var(--app-font-scale, 1));
   font-weight: 600;
   border-radius: 4px;
   color: var(--theme-light, #60a5fa);
@@ -1026,9 +1088,9 @@ html:not(.dark) .cleaned-tag {
 /* 收支类型徽标 */
 .type-badge {
   display: inline-block;
-  font-size: 11.5px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
   font-weight: 600;
-  padding: 1px 5px;
+  padding: 1px calc(6px * var(--app-font-scale, 1));
   border-radius: 4px;
 }
 
@@ -1053,7 +1115,7 @@ html:not(.dark) .type-badge.is-income {
 /* 核心金额 */
 .amount-main {
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: calc(14.5px * var(--app-font-scale, 1));
   letter-spacing: -0.3px;
   white-space: nowrap;
 }
@@ -1075,7 +1137,7 @@ html:not(.dark) .amount-income {
 }
 
 .amount-sub {
-  font-size: 10.5px;
+  font-size: calc(11.5px * var(--app-font-scale, 1));
   color: var(--text-muted, #94a3b8);
   margin-top: 1px;
 }
@@ -1084,10 +1146,10 @@ html:not(.dark) .amount-income {
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
+  gap: calc(5px * var(--app-font-scale, 1));
+  padding: calc(2.5px * var(--app-font-scale, 1)) calc(8px * var(--app-font-scale, 1));
   border-radius: 999px;
-  font-size: 11px;
+  font-size: calc(12px * var(--app-font-scale, 1));
   font-weight: 600;
   line-height: 1.3;
   white-space: nowrap;
@@ -1095,8 +1157,8 @@ html:not(.dark) .amount-income {
 }
 
 .status-pill .status-dot {
-  width: 6px;
-  height: 6px;
+  width: calc(6.5px * var(--app-font-scale, 1));
+  height: calc(6.5px * var(--app-font-scale, 1));
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1160,8 +1222,8 @@ html:not(.dark) .status-pill.status-danger { color: #dc2626; }
 .payment-cell-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: calc(5px * var(--app-font-scale, 1));
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-regular, #334155);
   white-space: nowrap;
   overflow: hidden;
@@ -1170,8 +1232,8 @@ html:not(.dark) .status-pill.status-danger { color: #dc2626; }
 }
 
 .payment-mini-icon {
-  width: 19px;
-  height: 19px;
+  width: calc(20px * var(--app-font-scale, 1));
+  height: calc(20px * var(--app-font-scale, 1));
   border-radius: 5px;
   display: inline-flex;
   align-items: center;
@@ -1183,20 +1245,20 @@ html:not(.dark) .status-pill.status-danger { color: #dc2626; }
 .table-action-group {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--app-font-scale, 1));
   white-space: nowrap;
 }
 
 .action-link-btn {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 12px;
+  gap: calc(3px * var(--app-font-scale, 1));
+  font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 500;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 3px 6px;
+  padding: calc(3px * var(--app-font-scale, 1)) calc(6px * var(--app-font-scale, 1));
   border-radius: 5px;
   transition: all 0.15s ease;
 }
@@ -1227,15 +1289,15 @@ html:not(.dark) .action-link-btn.is-edit {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
+  padding: calc(12px * var(--app-font-scale, 1)) calc(18px * var(--app-font-scale, 1));
   background: var(--bg-surface, var(--table-row-bg, #ffffff));
   border-top: 1px solid var(--border-subtle, var(--table-divider, rgba(15, 23, 42, 0.06)));
   flex-wrap: wrap;
-  gap: 12px;
+  gap: calc(12px * var(--app-font-scale, 1));
 }
 
 .pagination-info {
-  font-size: 12.5px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
 }
 
@@ -1260,22 +1322,22 @@ html.dark :deep(.el-pagination.is-background .el-pager li.is-active) {
 }
 
 .empty-table-placeholder {
-  padding: 36px 16px;
+  padding: calc(36px * var(--app-font-scale, 1)) calc(16px * var(--app-font-scale, 1));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: calc(6px * var(--app-font-scale, 1));
 }
 
 .empty-table-title {
-  font-size: 14px;
+  font-size: calc(15px * var(--app-font-scale, 1));
   font-weight: 600;
   color: var(--text-regular, #334155);
 }
 
 .empty-table-sub {
-  font-size: 12.5px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
 }
 </style>

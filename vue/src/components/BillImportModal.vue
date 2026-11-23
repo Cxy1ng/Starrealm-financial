@@ -360,9 +360,6 @@
                 应用
               </el-button>
             </div>
-            <button type="button" class="guardrail-batch-btn" @click="autoAssignUncertainToOther">
-              归入其他收入/支出
-            </button>
             <button type="button" class="guardrail-close-btn" @click="guardrailBannerVisible = false" title="关闭横幅">×</button>
           </div>
         </div>
@@ -413,11 +410,13 @@
             <template #default="{ row }">
               <div class="cell-merchant-product is-double-line">
                 <span class="cell-title">
-                  <span>{{ row.payee || '-' }}</span>
+                  <span>{{ getMerchantDisplay(row).title }}</span>
                   <span v-if="row.rawPayee && row.rawPayee !== row.payee" class="cleaned-tag" :title="'原始商户: ' + row.rawPayee">转译</span>
                 </span>
-                <span class="cell-divider">·</span>
-                <span class="cell-sub">{{ row.detail || '无说明' }}</span>
+                <template v-if="getMerchantDisplay(row).hasSub">
+                  <span class="cell-divider">·</span>
+                  <span class="cell-sub">{{ getMerchantDisplay(row).sub }}</span>
+                </template>
               </div>
             </template>
           </el-table-column>
@@ -498,8 +497,8 @@
           <div v-for="(item, idx) in tableData.filter(r => r.isConflict)" :key="idx" class="conflict-compare-item">
             <div class="conflict-info-left">
               <span class="conflict-time">{{ formatTime(item.time) }}</span>
-              <strong class="conflict-payee">{{ item.payee }}</strong>
-              <span class="conflict-detail">{{ item.detail || '无说明' }}</span>
+              <strong class="conflict-payee">{{ getMerchantDisplay(item).title }}</strong>
+              <span v-if="getMerchantDisplay(item).hasSub" class="conflict-detail">{{ getMerchantDisplay(item).sub }}</span>
             </div>
             <div class="conflict-info-right">
               <span class="num-font conflict-amount" :class="item.type === '支出' ? 'amount-expense' : 'amount-income'">
@@ -545,11 +544,13 @@
             <template #default="{ row }">
               <div class="cell-merchant-product is-double-line">
                 <span class="cell-title">
-                  <span>{{ row.payee || '-' }}</span>
+                  <span>{{ getMerchantDisplay(row).title }}</span>
                   <span v-if="row.rawPayee && row.rawPayee !== row.payee" class="cleaned-tag" :title="'原始商户: ' + row.rawPayee">转译</span>
                 </span>
-                <span class="cell-divider">·</span>
-                <span class="cell-sub">{{ row.detail || '无说明' }}</span>
+                <template v-if="getMerchantDisplay(row).hasSub">
+                  <span class="cell-divider">·</span>
+                  <span class="cell-sub">{{ getMerchantDisplay(row).sub }}</span>
+                </template>
               </div>
             </template>
           </el-table-column>
@@ -613,7 +614,7 @@
     <!-- 底部操作按钮栏 -->
     <template #footer>
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <div style="font-size: 12px; color: var(--text-sub);">
+        <div :style="{ fontSize: 'calc(13px * var(--app-font-scale, 1))', color: 'var(--text-sub)' }">
           <span v-if="currentStep === 0">当前渠道：<strong style="color: var(--text-main);">{{ getChannelName(currentChannel) }}</strong></span>
           <span v-else-if="currentStep === 1">
             待确认：<strong class="num-font" :style="{ color: uncertainCount > 0 ? '#f59e0b' : '#10b981' }">{{ uncertainCount }} 笔</strong>
@@ -813,6 +814,66 @@ const formatFileSize = (bytes) => {
 
 const formatTime = (time) => {
   return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : '-';
+};
+
+const getMerchantDisplay = (row) => {
+  if (!row) return { title: '-', sub: '', hasSub: false };
+  let payee = (row.payee || '').trim();
+  let detail = (row.detail || '').trim();
+
+  // 过滤无效纯符号的商品说明
+  if (detail === '/' || detail === '-' || detail === '.' || detail === '无' || detail === '无说明' || detail === '无商品说明') {
+    detail = '';
+  }
+
+  const isInvalidPayee = !payee || payee === '/' || payee === '-' || payee === '.' || payee === '未知商户' || payee === '未知' || payee === '其他';
+
+  // 1. 当收款方为空或无效符号时，智能从商品说明/交易摘要中提取商户名与业务子项
+  if (isInvalidPayee) {
+    if (!detail) {
+      return { title: '其他收支', sub: '', hasSub: false };
+    }
+
+    // 匹配如 "网易BUFF出售-印花|TYLOO (全息) | 2020 RMR" -> brand: "网易BUFF", sub: "出售 印花|TYLOO..."
+    const match = detail.match(/^([a-zA-Z0-9\u4e00-\u9fa5]+?)(出售|代发|充值|退款|快捷支付|支付|App|商城|平台)?\s*[-_—:|/]\s*(.*)$/);
+    if (match && match[1].trim().length >= 2) {
+      const brand = match[1].trim();
+      const action = match[2] ? match[2].trim() : '';
+      const rest = match[3] ? match[3].trim() : '';
+      const sub = action ? `${action} ${rest}`.trim() : rest;
+      return { title: brand, sub, hasSub: Boolean(sub) };
+    }
+
+    // 常见分隔符分割商户与子项
+    const delIdx = detail.search(/[-_—:|/]/);
+    if (delIdx > 1 && delIdx < detail.length - 1) {
+      const title = detail.substring(0, delIdx).trim();
+      const sub = detail.substring(delIdx + 1).trim();
+      return { title, sub, hasSub: Boolean(sub) };
+    }
+
+    // 空格分割商户与子项（如 "海底捞火锅 3号桌消费"）
+    const spaceIdx = detail.indexOf(' ');
+    if (spaceIdx >= 2 && spaceIdx <= 12) {
+      const title = detail.substring(0, spaceIdx).trim();
+      const sub = detail.substring(spaceIdx + 1).trim();
+      return { title, sub, hasSub: Boolean(sub) };
+    }
+
+    return { title: detail, sub: '', hasSub: false };
+  }
+
+  // 2. 当商户与说明完全一致或说明为空时
+  if (!detail || detail === payee) {
+    // 智能分解类似 "团app短视频-现金激励-微信零钱" 中的品牌与细项
+    const match = payee.match(/^([^\-_—:|/]+?)[\-_—:|/]\s*(.+)$/);
+    if (match && match[1].trim().length >= 2 && !match[1].startsWith('商户')) {
+      return { title: match[1].trim(), sub: match[2].trim(), hasSub: true };
+    }
+    return { title: payee, sub: '', hasSub: false };
+  }
+
+  return { title: payee, sub: detail, hasSub: true };
 };
 
 const triggerFileSelect = () => {
@@ -1065,7 +1126,7 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .modal-title-text {
-  font-size: 15.5px;
+  font-size: calc(16.5px * var(--app-font-scale, 1));
   font-weight: 700;
   color: var(--text-main, #0f172a);
 }
@@ -1123,10 +1184,10 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .stepper-index {
-  width: 24px;
-  height: 24px;
+  width: calc(26px * var(--app-font-scale, 1));
+  height: calc(26px * var(--app-font-scale, 1));
   border-radius: 50%;
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -1154,7 +1215,7 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .stepper-title {
-  font-size: 13px;
+  font-size: calc(14px * var(--app-font-scale, 1));
   font-weight: 700;
   color: var(--text-main, #0f172a);
   line-height: 1.25;
@@ -1269,7 +1330,7 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .channel-name {
-  font-size: 14px;
+  font-size: calc(14.5px * var(--app-font-scale, 1));
   font-weight: 700;
   color: var(--text-main, #0f172a);
   line-height: 1.2;
@@ -1277,9 +1338,9 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .channel-tag {
-  font-size: 11px;
+  font-size: calc(12px * var(--app-font-scale, 1));
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 1px calc(7px * var(--app-font-scale, 1));
   border-radius: 4px;
   line-height: 1.35;
   white-space: nowrap;
@@ -1300,7 +1361,7 @@ html:not(.dark) .tag-paypal { color: #0070ba; }
 .upload-zone-card {
   border: 1.5px dashed var(--border-strong, var(--table-border-color, rgba(148, 163, 184, 0.2)));
   border-radius: 12px;
-  padding: 18px 20px;
+  padding: calc(18px * var(--app-font-scale, 1)) calc(20px * var(--app-font-scale, 1));
   background: rgba(var(--theme-rgb, 37, 99, 235), 0.03);
   transition: all 0.18s ease;
   cursor: pointer;
@@ -1324,15 +1385,15 @@ html:not(.dark) .tag-paypal { color: #0070ba; }
 }
 
 .upload-icon-circle {
-  width: 44px;
-  height: 44px;
+  width: calc(46px * var(--app-font-scale, 1));
+  height: calc(46px * var(--app-font-scale, 1));
   border-radius: 11px;
   background: rgba(var(--theme-rgb, 37, 99, 235), 0.14);
   color: var(--theme-light, #60a5fa);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: calc(22px * var(--app-font-scale, 1));
   flex-shrink: 0;
 }
 
@@ -1348,7 +1409,7 @@ html:not(.dark) .upload-icon-circle {
 }
 
 .upload-filename {
-  font-size: 14px;
+  font-size: calc(15px * var(--app-font-scale, 1));
   font-weight: 700;
   color: var(--text-main, #0f172a);
   display: flex;
@@ -1360,7 +1421,7 @@ html:not(.dark) .upload-icon-circle {
 }
 
 .upload-sub {
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   display: flex;
   align-items: center;
@@ -1377,8 +1438,8 @@ html:not(.dark) .upload-icon-circle {
 }
 
 .field-chip {
-  font-size: 11px;
-  padding: 2px 8px;
+  font-size: calc(12px * var(--app-font-scale, 1));
+  padding: 2px calc(8px * var(--app-font-scale, 1));
   border-radius: 5px;
   background: var(--bg-elevated, var(--table-row-alt-bg, #f8fafc));
   border: 1px solid var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08)));
@@ -1412,8 +1473,8 @@ html:not(.dark) .upload-icon-circle {
   background: var(--table-head-bg, #f8fafc) !important;
   color: var(--text-sub, #64748b) !important;
   font-weight: 600 !important;
-  font-size: 12px !important;
-  padding: 8px 0 !important;
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  padding: calc(9px * var(--app-font-scale, 1)) 0 !important;
   border-bottom: 1px solid var(--border-subtle, rgba(15, 23, 42, 0.08)) !important;
   letter-spacing: 0.2px;
 }
@@ -1421,8 +1482,8 @@ html:not(.dark) .upload-icon-circle {
 .custom-bill-table :deep(td.el-table__cell) {
   background: transparent !important;
   color: var(--text-regular, #334155);
-  font-size: 12.5px !important;
-  padding: 8px 0 !important;
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  padding: calc(9px * var(--app-font-scale, 1)) 0 !important;
   border-bottom: 1px solid var(--table-divider, rgba(15, 23, 42, 0.06)) !important;
 }
 
@@ -1438,18 +1499,18 @@ html:not(.dark) .upload-icon-circle {
 .category-filter-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--app-font-scale, 1));
   flex-wrap: wrap;
   margin-bottom: 10px;
-  padding: 8px 11px;
+  padding: calc(8px * var(--app-font-scale, 1)) calc(11px * var(--app-font-scale, 1));
   background: var(--bg-elevated, var(--table-row-alt-bg, #f8fafc));
   border-radius: 10px;
   border: 1px solid var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08)));
 }
 
 .category-capsule-btn {
-  font-size: 11.5px;
-  padding: 4px 10px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
+  padding: calc(4px * var(--app-font-scale, 1)) calc(10px * var(--app-font-scale, 1));
   border-radius: 7px;
   border: 1px solid var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08)));
   background: var(--bg-surface, var(--table-row-bg, #ffffff));
@@ -1457,7 +1518,7 @@ html:not(.dark) .upload-icon-circle {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: calc(5px * var(--app-font-scale, 1));
   font-weight: 500;
   transition: all 0.15s ease;
   line-height: 1.35;
@@ -1711,20 +1772,57 @@ html:not(.dark) .guardrail-inline-desc {
   will-change: transform;
 }
 
+:deep(.custom-bill-table tr.table-row-attention),
+:deep(.custom-bill-table tr.table-row-conflict) {
+  --el-table-tr-bg-color: rgba(245, 158, 11, 0.24) !important;
+  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.34) !important;
+  background-color: rgba(245, 158, 11, 0.24) !important;
+}
+
 :deep(.custom-bill-table tr.table-row-attention > td),
-:deep(.custom-bill-table tr.table-row-conflict > td) {
-  background-color: rgba(245, 158, 11, 0.12) !important;
+:deep(.custom-bill-table tr.table-row-attention > td.el-table__cell),
+:deep(.custom-bill-table tr.table-row-conflict > td),
+:deep(.custom-bill-table tr.table-row-conflict > td.el-table__cell) {
+  background-color: rgba(245, 158, 11, 0.24) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.35) !important;
+  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.35) !important;
   transition: background-color 0.2s ease;
 }
 
 :deep(.custom-bill-table tr.table-row-attention:hover > td),
-:deep(.custom-bill-table tr.table-row-conflict:hover > td) {
-  background-color: rgba(245, 158, 11, 0.18) !important;
+:deep(.custom-bill-table tr.table-row-attention:hover > td.el-table__cell),
+:deep(.custom-bill-table tr.table-row-conflict:hover > td),
+:deep(.custom-bill-table tr.table-row-conflict:hover > td.el-table__cell) {
+  background-color: rgba(245, 158, 11, 0.34) !important;
 }
 
 :deep(.custom-bill-table tr.table-row-attention > td:first-child),
 :deep(.custom-bill-table tr.table-row-conflict > td:first-child) {
-  border-left: 4px solid #f59e0b !important;
+  border-left: 5px solid #f59e0b !important;
+  box-shadow: inset 5px 0 14px -2px rgba(245, 158, 11, 0.55) !important;
+}
+
+/* 浅色模式下的明亮琥珀高亮底色 */
+html:not(.dark) :deep(.custom-bill-table tr.table-row-attention),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict) {
+  --el-table-tr-bg-color: #fef3c7 !important;
+  --el-table-row-hover-bg-color: #fde68a !important;
+  background-color: #fef3c7 !important;
+}
+
+html:not(.dark) :deep(.custom-bill-table tr.table-row-attention > td),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-attention > td.el-table__cell),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict > td),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict > td.el-table__cell) {
+  background-color: #fef3c7 !important;
+  border-bottom: 1px solid #fcd34d !important;
+}
+
+html:not(.dark) :deep(.custom-bill-table tr.table-row-attention:hover > td),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-attention:hover > td.el-table__cell),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict:hover > td),
+html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict:hover > td.el-table__cell) {
+  background-color: #fde68a !important;
 }
 
 /* ================= 7. 步骤 3 预检与排重专属元素 ================= */
@@ -1747,13 +1845,13 @@ html:not(.dark) .guardrail-inline-desc {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   font-weight: 500;
 }
 
 .stat-val {
-  font-size: 18px;
+  font-size: calc(20px * var(--app-font-scale, 1));
   font-weight: 800;
 }
 
@@ -1763,7 +1861,7 @@ html:not(.dark) .guardrail-inline-desc {
   gap: 5px;
   padding: 3px 8px;
   border-radius: 6px;
-  font-size: 12.5px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 600;
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
@@ -1774,7 +1872,7 @@ html:not(.dark) .guardrail-inline-desc {
   background: linear-gradient(90deg, rgba(245, 158, 11, 0.11) 0%, rgba(245, 158, 11, 0.03) 100%);
   border: 1px solid rgba(245, 158, 11, 0.32);
   border-radius: 9px;
-  padding: 8px 13px;
+  padding: calc(8px * var(--app-font-scale, 1)) calc(13px * var(--app-font-scale, 1));
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -1787,13 +1885,13 @@ html:not(.dark) .guardrail-inline-desc {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: calc(13.5px * var(--app-font-scale, 1));
   color: var(--text-main, #0f172a);
 }
 
 .dedup-dot {
-  width: 22px;
-  height: 22px;
+  width: calc(22px * var(--app-font-scale, 1));
+  height: calc(22px * var(--app-font-scale, 1));
   border-radius: 6px;
   background: rgba(245, 158, 11, 0.18);
   color: #fbbf24;
@@ -1815,7 +1913,7 @@ html:not(.dark) .guardrail-inline-desc {
   gap: 5px;
   padding: 3px 8px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 500;
   background: rgba(99, 102, 241, 0.08);
   color: var(--theme-light, #818cf8);
@@ -1834,7 +1932,7 @@ html:not(.dark) .cat-readonly-tag {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  font-size: 11.5px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
   line-height: 1.4;
   border-radius: 5px;
   font-weight: 600;
@@ -1872,14 +1970,14 @@ html:not(.dark) .custom-table-tag.tag-status-foreign { color: #2563eb; }
 }
 
 .finish-title {
-  font-size: 18px;
+  font-size: calc(20px * var(--app-font-scale, 1));
   font-weight: 700;
   color: var(--text-main, #0f172a);
   margin-bottom: 6px;
 }
 
 .finish-desc {
-  font-size: 13px;
+  font-size: calc(14px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   margin: 0 auto 20px;
 }
@@ -1904,7 +2002,7 @@ html:not(.dark) .custom-table-tag.tag-status-foreign { color: #2563eb; }
 .cell-merchant-product {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: calc(7px * var(--app-font-scale, 1));
   line-height: 1.4;
   overflow: hidden;
   white-space: nowrap;
@@ -1913,7 +2011,7 @@ html:not(.dark) .custom-table-tag.tag-status-foreign { color: #2563eb; }
 .cell-merchant-product .cell-title {
   font-weight: 600;
   color: var(--text-main, #0f172a);
-  font-size: 12.5px;
+  font-size: calc(14px * var(--app-font-scale, 1));
   display: inline-flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -1921,7 +2019,7 @@ html:not(.dark) .custom-table-tag.tag-status-foreign { color: #2563eb; }
 }
 
 .cell-merchant-product .cell-sub {
-  font-size: 11.5px;
+  font-size: calc(12.8px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1939,8 +2037,8 @@ html:not(.dark) .custom-table-tag.tag-status-foreign { color: #2563eb; }
 .cleaned-tag {
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
-  font-size: 10px;
+  padding: 1px calc(5px * var(--app-font-scale, 1));
+  font-size: calc(11px * var(--app-font-scale, 1));
   font-weight: 600;
   border-radius: 4px;
   color: var(--theme-light, #60a5fa);
@@ -1961,8 +2059,8 @@ html:not(.dark) .cleaned-tag {
 .payment-cell-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: calc(5px * var(--app-font-scale, 1));
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-regular, #334155);
   white-space: nowrap;
   overflow: hidden;
@@ -1971,8 +2069,8 @@ html:not(.dark) .cleaned-tag {
 }
 
 .payment-mini-icon {
-  width: 19px;
-  height: 19px;
+  width: calc(20px * var(--app-font-scale, 1));
+  height: calc(20px * var(--app-font-scale, 1));
   border-radius: 5px;
   display: inline-flex;
   align-items: center;
@@ -1982,7 +2080,7 @@ html:not(.dark) .cleaned-tag {
 
 .amount-main {
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: calc(14.5px * var(--app-font-scale, 1));
   letter-spacing: -0.3px;
   white-space: nowrap;
 }
@@ -2004,13 +2102,13 @@ html:not(.dark) .amount-income {
 }
 
 .amount-sub {
-  font-size: 10.5px;
+  font-size: calc(11.5px * var(--app-font-scale, 1));
   color: var(--text-muted, #94a3b8);
   margin-top: 1px;
 }
 
 .table-cell-time {
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
 }
 
@@ -2025,7 +2123,7 @@ html:not(.dark) .amount-income {
 .cell-merchant-product .cell-divider {
   color: var(--text-muted, #94a3b8);
   opacity: 0.45;
-  font-size: 11px;
+  font-size: calc(12px * var(--app-font-scale, 1));
   user-select: none;
   flex-shrink: 0;
 }
@@ -2033,8 +2131,8 @@ html:not(.dark) .amount-income {
   display: none;
 }
 .cell-merchant-product.is-double-line .cell-sub {
-  font-size: 11.5px;
-  line-height: 1.3;
+  font-size: calc(12px * var(--app-font-scale, 1));
+  line-height: 1.35;
   white-space: nowrap;
   max-width: 100%;
 }
@@ -2042,13 +2140,13 @@ html:not(.dark) .amount-income {
 /* 冲突比对卡片 */
 .conflict-compare-card {
   margin-bottom: 12px;
-  padding: 10px 14px;
+  padding: calc(10px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1));
   border-radius: 9px;
   background: rgba(245, 158, 11, 0.06);
   border: 1px dashed rgba(245, 158, 11, 0.35);
 }
 .conflict-compare-header {
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 600;
   color: #f59e0b;
   margin-bottom: 8px;
@@ -2057,7 +2155,7 @@ html:not(.dark) .amount-income {
   justify-content: space-between;
 }
 .conflict-policy-hint {
-  font-size: 11px;
+  font-size: calc(12px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   font-weight: normal;
 }
@@ -2069,12 +2167,12 @@ html:not(.dark) .amount-income {
   overflow-y: auto;
 }
 .conflict-compare-item {
-  font-size: 12px;
+  font-size: calc(13px * var(--app-font-scale, 1));
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--bg-surface, var(--table-row-bg, rgba(0, 0, 0, 0.2)));
-  padding: 6px 10px;
+  padding: calc(6px * var(--app-font-scale, 1)) calc(10px * var(--app-font-scale, 1));
   border-radius: 6px;
 }
 .conflict-info-left {
@@ -2086,18 +2184,18 @@ html:not(.dark) .amount-income {
 }
 .conflict-time {
   color: var(--text-sub, #64748b);
-  font-size: 11px;
+  font-size: calc(12px * var(--app-font-scale, 1));
 }
 .conflict-payee {
   color: var(--text-main, #0f172a);
-  font-size: 12px;
+  font-size: calc(13.5px * var(--app-font-scale, 1));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .conflict-detail {
   color: var(--text-sub, #64748b);
-  font-size: 11.5px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2110,10 +2208,10 @@ html:not(.dark) .amount-income {
 }
 .conflict-amount {
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: calc(14.5px * var(--app-font-scale, 1));
 }
 .conflict-reason-badge {
-  font-size: 10.5px;
+  font-size: calc(11.5px * var(--app-font-scale, 1));
   padding: 1px 6px;
   border-radius: 4px;
   background: rgba(245, 158, 11, 0.15);
@@ -2127,9 +2225,9 @@ html:not(.dark) .conflict-reason-badge {
 .btn-action {
   border-radius: 8px !important;
   font-weight: 600 !important;
-  font-size: 13px !important;
-  padding: 8px 14px !important;
-  height: 34px !important;
+  font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
+  padding: calc(8px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1)) !important;
+  height: calc(36px * var(--app-font-scale, 1)) !important;
   border: 1px solid transparent !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   display: inline-flex !important;
