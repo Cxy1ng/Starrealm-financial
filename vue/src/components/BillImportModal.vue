@@ -360,6 +360,13 @@
                 应用
               </el-button>
             </div>
+            <button
+              type="button"
+              class="guardrail-batch-btn"
+              @click="autoAssignUncertainToOther"
+            >
+              将这些账单归为其他分类
+            </button>
             <button type="button" class="guardrail-close-btn" @click="guardrailBannerVisible = false" title="关闭横幅">×</button>
           </div>
         </div>
@@ -1787,16 +1794,16 @@ html:not(.dark) .guardrail-inline-desc {
   will-change: transform;
 }
 
-/* 深色模式下的实色暖琥珀高亮底色（消除透明度穿透与底色冲突） */
+/* 深色模式下的实色暖琥珀高亮底色（全单元格均匀铺满） */
 .custom-bill-table :deep(tr.table-row-attention),
 .custom-bill-table :deep(tr.table-row-attention > td),
 .custom-bill-table :deep(tr.table-row-attention > td.el-table__cell),
 .custom-bill-table :deep(tr.table-row-conflict),
 .custom-bill-table :deep(tr.table-row-conflict > td),
 .custom-bill-table :deep(tr.table-row-conflict > td.el-table__cell) {
-  --el-table-tr-bg-color: #2e1d09 !important;
-  --el-table-row-hover-bg-color: #482e11 !important;
-  background-color: #2e1d09 !important;
+  --el-table-tr-bg-color: rgba(245, 158, 11, 0.22) !important;
+  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.35) !important;
+  background-color: rgba(245, 158, 11, 0.22) !important;
   border-bottom: 1px solid rgba(245, 158, 11, 0.45) !important;
   box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.4) !important;
   transition: background-color 0.15s ease;
@@ -1815,13 +1822,12 @@ html:not(.dark) .guardrail-inline-desc {
 .custom-bill-table :deep(tr.table-row-conflict.hover-row),
 .custom-bill-table :deep(tr.table-row-conflict.hover-row > td),
 .custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el-table__cell) {
-  background-color: #482e11 !important;
+  background-color: rgba(245, 158, 11, 0.35) !important;
 }
 
 .custom-bill-table :deep(tr.table-row-attention > td:first-child),
 .custom-bill-table :deep(tr.table-row-conflict > td:first-child) {
   border-left: 5px solid #f59e0b !important;
-  box-shadow: inset 5px 0 16px -2px rgba(245, 158, 11, 0.6) !important;
 }
 
 .custom-bill-table :deep(tr.table-row-attention:hover > td:first-child),
@@ -1829,7 +1835,6 @@ html:not(.dark) .guardrail-inline-desc {
 .custom-bill-table :deep(tr.table-row-conflict:hover > td:first-child),
 .custom-bill-table :deep(tr.table-row-conflict.hover-row > td:first-child) {
   border-left: 5px solid #fbbf24 !important;
-  box-shadow: inset 5px 0 18px -2px rgba(251, 191, 36, 0.75) !important;
 }
 
 /* 浅色模式下的明亮琥珀高亮底色与悬停暖色 */
@@ -1863,7 +1868,7 @@ html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el
 /* ================= 7. 步骤 3 预检与排重专属元素 ================= */
 .precheck-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr 1fr 1.35fr;
   gap: calc(10px * var(--app-font-scale, 1));
   margin-bottom: 12px;
 }
@@ -1893,12 +1898,11 @@ html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el
   font-size: calc(19px * var(--app-font-scale, 1));
   font-weight: 800;
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
 .stat-val.is-amount {
-  font-size: calc(16.5px * var(--app-font-scale, 1));
+  font-size: calc(15px * var(--app-font-scale, 1));
+  white-space: nowrap;
 }
 
 .stat-badge-success {
@@ -1927,6 +1931,13 @@ html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.dedup-banner :deep(.el-radio-button__inner) {
+  font-size: calc(13px * var(--app-font-scale, 1)) !important;
+  padding: calc(6px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1)) !important;
+  height: auto !important;
+  line-height: 1.3 !important;
 }
 
 .dedup-banner-left {
