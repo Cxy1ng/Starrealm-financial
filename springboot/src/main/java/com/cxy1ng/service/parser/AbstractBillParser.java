@@ -362,13 +362,25 @@ public abstract class AbstractBillParser implements ChannelBillParser {
         String rawPayee = cellToStr(row, colIdxMap.get("payee"), "未知商户");
         String cleanPayee = cleanMerchantName(rawPayee);
         String detail = cellToStr(row, colIdxMap.get("detail"), "");
-        if ("/".equals(detail.trim()) || "-".equals(detail.trim())) {
+        if ("/".equals(detail.trim()) || "-".equals(detail.trim()) || ".".equals(detail.trim())) {
             detail = "";
         } else {
             // 清理商品说明中结尾过长的冗余单号后缀（如 微信中的 _1002100260517...）
             int under = detail.indexOf('_');
             if (under > 0 && under < detail.length() - 5) {
                 detail = detail.substring(0, under).trim();
+            }
+        }
+
+        // 若商户名无效或为 "/"，且交易说明不为空，智能从交易说明中提取商户名
+        if (isInvalidMerchant(cleanPayee) && StrUtil.isNotBlank(detail)) {
+            MerchantExtracted extracted = extractMerchantFromDetail(detail);
+            if (extracted != null) {
+                cleanPayee = extracted.merchant;
+                detail = extracted.subDetail;
+            } else {
+                cleanPayee = detail.trim();
+                detail = "";
             }
         }
         String rawType = cellToStr(row, colIdxMap.get("type"), "");
@@ -538,8 +550,41 @@ public abstract class AbstractBillParser implements ChannelBillParser {
         return "支出";
     }
 
+    private static final Pattern DETAIL_DELIMITER_PATTERN = Pattern.compile("^([\\w\\u4e00-\\u9fa5]+?)(出售|代发|充值|退款|快捷支付|支付|App)?[-_—:|\\s]+(.*)$");
+
+    protected boolean isInvalidMerchant(String payee) {
+        if (StrUtil.isBlank(payee)) return true;
+        String p = payee.trim();
+        return "/".equals(p) || "-".equals(p) || ".".equals(p) || "未知商户".equals(p) || "未知".equals(p) || "其他".equals(p);
+    }
+
+    protected MerchantExtracted extractMerchantFromDetail(String detail) {
+        if (StrUtil.isBlank(detail)) return null;
+        String d = detail.trim();
+        Matcher m = DETAIL_DELIMITER_PATTERN.matcher(d);
+        if (m.find()) {
+            String brand = m.group(1).trim();
+            String action = m.group(2) != null ? m.group(2).trim() : "";
+            String rest = m.group(3) != null ? m.group(3).trim() : "";
+            if (brand.length() >= 2) {
+                String sub = StrUtil.isNotBlank(action) ? (action + " " + rest).trim() : rest;
+                return new MerchantExtracted(brand, sub);
+            }
+        }
+        return null;
+    }
+
+    protected static class MerchantExtracted {
+        public final String merchant;
+        public final String subDetail;
+        public MerchantExtracted(String merchant, String subDetail) {
+            this.merchant = merchant;
+            this.subDetail = subDetail != null ? subDetail.trim() : "";
+        }
+    }
+
     protected String cleanMerchantName(String payee) {
-        if (StrUtil.isBlank(payee) || "/".equals(payee.trim())) {
+        if (isInvalidMerchant(payee)) {
             return "未知商户";
         }
         String p = payee.trim();
