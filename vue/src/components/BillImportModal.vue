@@ -262,7 +262,7 @@
         </div>
         <div class="precheck-stat-card">
           <span class="stat-label">预计总额</span>
-          <span class="stat-val num-font" style="color: var(--theme-light, #60a5fa);">¥ {{ estimatedTotalAmount }}</span>
+          <span class="stat-val num-font is-amount" style="color: var(--theme-light, #60a5fa);">¥ {{ estimatedTotalAmount }}</span>
         </div>
       </div>
 
@@ -287,7 +287,7 @@
       <!-- 零抖动固定高度上下文操作条 -->
       <div class="table-context-dock" :class="{ 'is-batch-active': selectedRows.length > 0 }">
         <template v-if="selectedRows.length === 0">
-          <span style="font-size: 12px; color: var(--text-sub);">
+          <span class="dock-instruction-text">
             勾选多笔流水可批量归类；单行分类框支持直接搜索或快速指定
           </span>
           <button
@@ -301,7 +301,7 @@
           </button>
         </template>
         <template v-else>
-          <span style="font-size: 12.5px; font-weight: 600; color: var(--text-main);">
+          <span class="dock-selected-text">
             已勾选 <strong class="num-font" style="color: var(--theme-light);">{{ selectedRows.length }}</strong> 笔流水
           </span>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -336,7 +336,7 @@
             </div>
             <div class="guardrail-inline-text">
               <span class="guardrail-inline-title">
-                尚有 <strong class="num-font" style="color: #f59e0b; font-size: 14px;">{{ uncertainCount }}</strong> 笔未分类账单：
+                尚有 <strong class="num-font" style="color: #f59e0b;">{{ uncertainCount }}</strong> 笔未分类账单：
               </span>
               <span class="guardrail-inline-desc">为保证统计精准，建议核对后再入账。您可直接归类或一键分流：</span>
             </div>
@@ -1219,6 +1219,7 @@ const getPaymentMiniSvg = (paymentText) => {
   font-weight: 700;
   color: var(--text-main, #0f172a);
   line-height: 1.25;
+  white-space: nowrap;
 }
 
 /* ================= 3. 步骤体通用布局 ================= */
@@ -1234,12 +1235,13 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: calc(13.5px * var(--app-font-scale, 1));
   font-weight: 700;
   color: var(--text-main, #0f172a);
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .section-label::before {
@@ -1487,11 +1489,12 @@ html:not(.dark) .upload-icon-circle {
   border-bottom: 1px solid var(--table-divider, rgba(15, 23, 42, 0.06)) !important;
 }
 
-.custom-bill-table :deep(.el-table__row:nth-child(even)) {
+.custom-bill-table :deep(.el-table__row:not(.table-row-attention):not(.table-row-conflict):nth-child(even)) {
   background-color: var(--table-row-stripe, #fafcff) !important;
 }
 
-.custom-bill-table :deep(.el-table__row:hover td.el-table__cell) {
+.custom-bill-table :deep(.el-table__row:not(.table-row-attention):not(.table-row-conflict):hover td.el-table__cell),
+.custom-bill-table :deep(.el-table__row:not(.table-row-attention):not(.table-row-conflict).hover-row td.el-table__cell) {
   background-color: var(--table-row-hover, #f1f6ff) !important;
 }
 
@@ -1583,6 +1586,18 @@ html:not(.dark) .category-capsule-btn.is-warning {
   transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
+.dock-instruction-text {
+  font-size: calc(13px * var(--app-font-scale, 1));
+  color: var(--text-sub, #64748b);
+  line-height: 1.4;
+}
+
+.dock-selected-text {
+  font-size: calc(13px * var(--app-font-scale, 1));
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+}
+
 .table-context-dock.is-batch-active {
   background: rgba(var(--theme-rgb, 37, 99, 235), 0.1);
   border-color: rgba(var(--theme-rgb, 37, 99, 235), 0.34);
@@ -1667,7 +1682,7 @@ html:not(.dark) .guardrail-inline-banner {
 }
 
 .guardrail-inline-title {
-  font-size: 13px;
+  font-size: calc(13.5px * var(--app-font-scale, 1));
   font-weight: 700;
   color: #f59e0b;
   line-height: 1.35;
@@ -1678,7 +1693,7 @@ html:not(.dark) .guardrail-inline-title {
 }
 
 .guardrail-inline-desc {
-  font-size: 11.5px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   line-height: 1.35;
 }
@@ -1705,9 +1720,9 @@ html:not(.dark) .guardrail-inline-desc {
   border: none !important;
   color: #ffffff !important;
   font-weight: 600 !important;
-  font-size: 12px !important;
+  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
   border-radius: 6px !important;
-  padding: 6px 14px !important;
+  padding: calc(6px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1)) !important;
   box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
   cursor: pointer;
   display: inline-flex;
@@ -1772,64 +1787,84 @@ html:not(.dark) .guardrail-inline-desc {
   will-change: transform;
 }
 
-:deep(.custom-bill-table tr.table-row-attention),
-:deep(.custom-bill-table tr.table-row-conflict) {
-  --el-table-tr-bg-color: rgba(245, 158, 11, 0.24) !important;
-  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.34) !important;
-  background-color: rgba(245, 158, 11, 0.24) !important;
+/* 深色模式下的实色暖琥珀高亮底色（消除透明度穿透与底色冲突） */
+.custom-bill-table :deep(tr.table-row-attention),
+.custom-bill-table :deep(tr.table-row-attention > td),
+.custom-bill-table :deep(tr.table-row-attention > td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-conflict),
+.custom-bill-table :deep(tr.table-row-conflict > td),
+.custom-bill-table :deep(tr.table-row-conflict > td.el-table__cell) {
+  --el-table-tr-bg-color: #2e1d09 !important;
+  --el-table-row-hover-bg-color: #482e11 !important;
+  background-color: #2e1d09 !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.45) !important;
+  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.4) !important;
+  transition: background-color 0.15s ease;
 }
 
-:deep(.custom-bill-table tr.table-row-attention > td),
-:deep(.custom-bill-table tr.table-row-attention > td.el-table__cell),
-:deep(.custom-bill-table tr.table-row-conflict > td),
-:deep(.custom-bill-table tr.table-row-conflict > td.el-table__cell) {
-  background-color: rgba(245, 158, 11, 0.24) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.35) !important;
-  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.35) !important;
-  transition: background-color 0.2s ease;
+/* 专用的高亮行鼠标悬停暖色（彻底告别蓝色 hover） */
+.custom-bill-table :deep(tr.table-row-attention:hover),
+.custom-bill-table :deep(tr.table-row-attention:hover > td),
+.custom-bill-table :deep(tr.table-row-attention:hover > td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-attention.hover-row),
+.custom-bill-table :deep(tr.table-row-attention.hover-row > td),
+.custom-bill-table :deep(tr.table-row-attention.hover-row > td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-conflict:hover),
+.custom-bill-table :deep(tr.table-row-conflict:hover > td),
+.custom-bill-table :deep(tr.table-row-conflict:hover > td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-conflict.hover-row),
+.custom-bill-table :deep(tr.table-row-conflict.hover-row > td),
+.custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el-table__cell) {
+  background-color: #482e11 !important;
 }
 
-:deep(.custom-bill-table tr.table-row-attention:hover > td),
-:deep(.custom-bill-table tr.table-row-attention:hover > td.el-table__cell),
-:deep(.custom-bill-table tr.table-row-conflict:hover > td),
-:deep(.custom-bill-table tr.table-row-conflict:hover > td.el-table__cell) {
-  background-color: rgba(245, 158, 11, 0.34) !important;
-}
-
-:deep(.custom-bill-table tr.table-row-attention > td:first-child),
-:deep(.custom-bill-table tr.table-row-conflict > td:first-child) {
+.custom-bill-table :deep(tr.table-row-attention > td:first-child),
+.custom-bill-table :deep(tr.table-row-conflict > td:first-child) {
   border-left: 5px solid #f59e0b !important;
-  box-shadow: inset 5px 0 14px -2px rgba(245, 158, 11, 0.55) !important;
+  box-shadow: inset 5px 0 16px -2px rgba(245, 158, 11, 0.6) !important;
 }
 
-/* 浅色模式下的明亮琥珀高亮底色 */
-html:not(.dark) :deep(.custom-bill-table tr.table-row-attention),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict) {
+.custom-bill-table :deep(tr.table-row-attention:hover > td:first-child),
+.custom-bill-table :deep(tr.table-row-attention.hover-row > td:first-child),
+.custom-bill-table :deep(tr.table-row-conflict:hover > td:first-child),
+.custom-bill-table :deep(tr.table-row-conflict.hover-row > td:first-child) {
+  border-left: 5px solid #fbbf24 !important;
+  box-shadow: inset 5px 0 18px -2px rgba(251, 191, 36, 0.75) !important;
+}
+
+/* 浅色模式下的明亮琥珀高亮底色与悬停暖色 */
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention > td),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention > td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict > td),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict > td.el-table__cell) {
   --el-table-tr-bg-color: #fef3c7 !important;
   --el-table-row-hover-bg-color: #fde68a !important;
-  background-color: #fef3c7 !important;
-}
-
-html:not(.dark) :deep(.custom-bill-table tr.table-row-attention > td),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-attention > td.el-table__cell),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict > td),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict > td.el-table__cell) {
   background-color: #fef3c7 !important;
   border-bottom: 1px solid #fcd34d !important;
 }
 
-html:not(.dark) :deep(.custom-bill-table tr.table-row-attention:hover > td),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-attention:hover > td.el-table__cell),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict:hover > td),
-html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict:hover > td.el-table__cell) {
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover > td),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover > td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row > td),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row > td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover > td),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover > td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el-table__cell) {
   background-color: #fde68a !important;
 }
 
 /* ================= 7. 步骤 3 预检与排重专属元素 ================= */
 .precheck-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(10px * var(--app-font-scale, 1));
   margin-bottom: 12px;
 }
 
@@ -1837,10 +1872,12 @@ html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict:hover > td.el-tab
   background: var(--bg-elevated, var(--table-row-alt-bg, #f8fafc));
   border: 1px solid var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08)));
   border-radius: 10px;
-  padding: 9px 14px;
+  padding: calc(8px * var(--app-font-scale, 1)) calc(12px * var(--app-font-scale, 1));
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: calc(8px * var(--app-font-scale, 1));
+  min-width: 0;
   transition: all 0.16s ease;
 }
 
@@ -1848,24 +1885,35 @@ html:not(.dark) :deep(.custom-bill-table tr.table-row-conflict:hover > td.el-tab
   font-size: calc(13px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .stat-val {
-  font-size: calc(20px * var(--app-font-scale, 1));
+  font-size: calc(19px * var(--app-font-scale, 1));
   font-weight: 800;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.stat-val.is-amount {
+  font-size: calc(16.5px * var(--app-font-scale, 1));
 }
 
 .stat-badge-success {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 8px;
+  padding: calc(3px * var(--app-font-scale, 1)) calc(8px * var(--app-font-scale, 1));
   border-radius: 6px;
   font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 600;
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
   border: 1px solid rgba(16, 185, 129, 0.28);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dedup-banner {

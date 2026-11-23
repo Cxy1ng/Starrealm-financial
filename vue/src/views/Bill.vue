@@ -697,23 +697,24 @@ const getPaymentMiniSvg = (paymentText) => {
 .kpi-strip {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 5px 14px;
+  gap: calc(16px * var(--app-font-scale, 1));
+  padding: calc(5px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1));
   border-radius: 8px;
   background: var(--bg-elevated, var(--table-row-alt-bg, #f8fafc));
   border: 1px solid var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08)));
-  font-size: 12px;
+  font-size: calc(12.5px * var(--app-font-scale, 1));
   color: var(--text-sub, #64748b);
+  white-space: nowrap;
 }
 
 .kpi-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--app-font-scale, 1));
 }
 
 .kpi-val {
-  font-size: 13px;
+  font-size: calc(13.5px * var(--app-font-scale, 1));
   font-weight: 700;
 }
 
