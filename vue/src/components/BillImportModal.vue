@@ -311,6 +311,7 @@
               filterable
               allow-create
               default-first-option
+              clearable
               placeholder="选择批量分类"
               style="width: 160px;"
             >
@@ -346,6 +347,7 @@
               <el-select
                 v-model="bannerTargetCategory"
                 size="small"
+                clearable
                 placeholder="选择分类"
                 style="width: 120px;"
               >
@@ -356,13 +358,18 @@
                   :value="opt"
                 />
               </el-select>
-              <el-button size="small" type="primary" :disabled="!bannerTargetCategory" @click="applyBannerCategory">
+              <button
+                type="button"
+                class="guardrail-btn guardrail-btn-apply"
+                :disabled="!bannerTargetCategory"
+                @click="applyBannerCategory"
+              >
                 应用
-              </el-button>
+              </button>
             </div>
             <button
               type="button"
-              class="guardrail-batch-btn"
+              class="guardrail-btn guardrail-btn-primary"
               @click="autoAssignUncertainToOther"
             >
               将这些账单归为其他分类
@@ -666,7 +673,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, watch } from 'vue';
 import { Check, UploadFilled, Document, WarningFilled } from '@element-plus/icons-vue';
 import { ElMessage, ElNotification } from 'element-plus';
 import { request } from '@/utils/request.js';
@@ -804,6 +811,7 @@ const filteredTableData = computed(() => {
 // 渠道与文件方法
 const selectChannel = (channel) => {
   currentChannel.value = channel;
+  resetBatchCategoryState();
 };
 
 const getChannelName = (ch) => {
@@ -883,7 +891,15 @@ const getMerchantDisplay = (row) => {
   return { title: payee, sub: detail, hasSub: true };
 };
 
+const resetBatchCategoryState = () => {
+  bannerTargetCategory.value = '';
+  batchTargetCategory.value = '';
+  selectedRows.value = [];
+  step1TableRef.value?.clearSelection();
+};
+
 const triggerFileSelect = () => {
+  resetBatchCategoryState();
   fileInputRef.value?.click();
 };
 
@@ -891,6 +907,7 @@ const handleFileInputChange = (e) => {
   const file = e.target.files?.[0];
   if (file) {
     uploadedFile.value = file;
+    resetBatchCategoryState();
   }
 };
 
@@ -899,15 +916,31 @@ const handleFileDrop = (e) => {
   const file = e.dataTransfer.files?.[0];
   if (file) {
     uploadedFile.value = file;
+    resetBatchCategoryState();
   }
 };
+
+// 监听弹窗显隐，确保打开或关闭时完全重置批量分类选择状态
+watch(() => props.visible, (val) => {
+  resetBatchCategoryState();
+  if (!val) {
+    guardrailBannerVisible.value = false;
+  }
+});
 
 // 步骤跳转与接口调用
 const goToStep = (step) => {
   currentStep.value = step;
+  resetBatchCategoryState();
 };
 
+// 步骤变更时确保批量选择状态自动清空
+watch(() => currentStep.value, () => {
+  resetBatchCategoryState();
+});
+
 const handleStep0Next = async () => {
+  resetBatchCategoryState();
   if (!uploadedFile.value) {
     ElMessage.warning('请先点击卡片或拖入要导入的账单文件');
     return;
@@ -1071,10 +1104,8 @@ const handleClosed = () => {
   currentStep.value = 0;
   uploadedFile.value = null;
   tableData.value = [];
-  selectedRows.value = [];
   guardrailBannerVisible.value = false;
-  bannerTargetCategory.value = '';
-  batchTargetCategory.value = '';
+  resetBatchCategoryState();
 };
 
 const miniSvgMap = {
@@ -1722,30 +1753,63 @@ html:not(.dark) .guardrail-inline-desc {
   gap: 6px;
 }
 
-.guardrail-batch-btn {
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-  border: none !important;
-  color: #ffffff !important;
+.guardrail-btn {
+  height: calc(28px * var(--app-font-scale, 1)) !important;
+  line-height: calc(28px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(13px * var(--app-font-scale, 1)) !important;
+  font-size: calc(12px * var(--app-font-scale, 1)) !important;
   font-weight: 600 !important;
-  font-size: calc(12.5px * var(--app-font-scale, 1)) !important;
   border-radius: 6px !important;
-  padding: calc(6px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1)) !important;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+  border: none !important;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
+  justify-content: center;
+  gap: 4px;
   white-space: nowrap;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease;
+  vertical-align: middle;
 }
 
-.guardrail-batch-btn:hover {
+.guardrail-btn-apply {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+.guardrail-btn-apply:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45) !important;
+}
+
+.guardrail-btn-apply:disabled {
+  background: #334155 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.55;
+}
+
+html:not(.dark) .guardrail-btn-apply:disabled {
+  background: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
+
+.guardrail-btn-primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+}
+
+.guardrail-btn-primary:hover {
   opacity: 0.94;
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45) !important;
 }
 
-.guardrail-batch-btn:active {
+.guardrail-btn-primary:active {
   transform: translateY(0);
 }
 
@@ -1794,75 +1858,70 @@ html:not(.dark) .guardrail-inline-desc {
   will-change: transform;
 }
 
-/* 深色模式下的实色暖琥珀高亮底色（全单元格均匀铺满） */
-.custom-bill-table :deep(tr.table-row-attention),
-.custom-bill-table :deep(tr.table-row-attention > td),
-.custom-bill-table :deep(tr.table-row-attention > td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-conflict),
-.custom-bill-table :deep(tr.table-row-conflict > td),
-.custom-bill-table :deep(tr.table-row-conflict > td.el-table__cell) {
-  --el-table-tr-bg-color: rgba(245, 158, 11, 0.22) !important;
-  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.35) !important;
-  background-color: rgba(245, 158, 11, 0.22) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.45) !important;
-  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.4) !important;
-  transition: background-color 0.15s ease;
+/* 深色模式下的实色暖金琥珀高亮底色（覆盖所有单元格，彻底告别幽暗发黑） */
+.custom-bill-table :deep(tr.table-row-attention td.el-table__cell),
+.custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-conflict td.el-table__cell),
+.custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell) {
+  --el-table-tr-bg-color: rgba(245, 158, 11, 0.36) !important;
+  --el-table-row-hover-bg-color: rgba(245, 158, 11, 0.52) !important;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.38) 0%, rgba(217, 119, 6, 0.24) 100%) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.55) !important;
+  box-shadow: inset 0 -1px 0 rgba(245, 158, 11, 0.45) !important;
+  transition: background 0.15s ease, background-color 0.15s ease;
 }
 
-/* 专用的高亮行鼠标悬停暖色（彻底告别蓝色 hover） */
-.custom-bill-table :deep(tr.table-row-attention:hover),
-.custom-bill-table :deep(tr.table-row-attention:hover > td),
-.custom-bill-table :deep(tr.table-row-attention:hover > td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-attention.hover-row),
-.custom-bill-table :deep(tr.table-row-attention.hover-row > td),
-.custom-bill-table :deep(tr.table-row-attention.hover-row > td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-conflict:hover),
-.custom-bill-table :deep(tr.table-row-conflict:hover > td),
-.custom-bill-table :deep(tr.table-row-conflict:hover > td.el-table__cell),
-.custom-bill-table :deep(tr.table-row-conflict.hover-row),
-.custom-bill-table :deep(tr.table-row-conflict.hover-row > td),
-.custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el-table__cell) {
-  background-color: rgba(245, 158, 11, 0.35) !important;
+/* 专用的高亮行鼠标悬停暖色（彻底告别蓝色 hover，保持明亮琥珀） */
+.custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell),
+.custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell),
+.custom-bill-table :deep(.el-table__row.table-row-attention.hover-row td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-conflict:hover td.el-table__cell),
+.custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell),
+.custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell),
+.custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell) {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.52) 0%, rgba(217, 119, 6, 0.38) 100%) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.7) !important;
 }
 
-.custom-bill-table :deep(tr.table-row-attention > td:first-child),
-.custom-bill-table :deep(tr.table-row-conflict > td:first-child) {
+.custom-bill-table :deep(tr.table-row-attention td.el-table__cell:first-child),
+.custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell:first-child),
+.custom-bill-table :deep(tr.table-row-conflict td.el-table__cell:first-child),
+.custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell:first-child) {
   border-left: 5px solid #f59e0b !important;
 }
 
-.custom-bill-table :deep(tr.table-row-attention:hover > td:first-child),
-.custom-bill-table :deep(tr.table-row-attention.hover-row > td:first-child),
-.custom-bill-table :deep(tr.table-row-conflict:hover > td:first-child),
-.custom-bill-table :deep(tr.table-row-conflict.hover-row > td:first-child) {
+.custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell:first-child),
+.custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell:first-child),
+.custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell:first-child),
+.custom-bill-table :deep(.el-table__row.table-row-attention.hover-row td.el-table__cell:first-child),
+.custom-bill-table :deep(tr.table-row-conflict:hover td.el-table__cell:first-child),
+.custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell:first-child),
+.custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell:first-child),
+.custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell:first-child) {
   border-left: 5px solid #fbbf24 !important;
 }
 
 /* 浅色模式下的明亮琥珀高亮底色与悬停暖色 */
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention > td),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention > td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict > td),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict > td.el-table__cell) {
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-attention td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-conflict td.el-table__cell) {
   --el-table-tr-bg-color: #fef3c7 !important;
   --el-table-row-hover-bg-color: #fde68a !important;
-  background-color: #fef3c7 !important;
+  background: #fef3c7 !important;
   border-bottom: 1px solid #fcd34d !important;
 }
 
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover > td),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover > td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row > td),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row > td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover > td),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover > td.el-table__cell),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td),
-html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row > td.el-table__cell) {
-  background-color: #fde68a !important;
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention:hover td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-attention.hover-row td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-attention:hover td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-attention.hover-row td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict:hover td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(tr.table-row-conflict.hover-row td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-conflict:hover td.el-table__cell),
+html:not(.dark) .custom-bill-table :deep(.el-table__row.table-row-conflict.hover-row td.el-table__cell) {
+  background: #fde68a !important;
 }
 
 /* ================= 7. 步骤 3 预检与排重专属元素 ================= */
