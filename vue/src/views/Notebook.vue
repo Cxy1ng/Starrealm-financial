@@ -157,9 +157,10 @@ import '@wangeditor/editor/dist/css/style.css'
 import {ElMessage, ElMessageBox} from "element-plus";
 import request from "@/utils/request.js";
 import {Delete, Edit, Plus, Search, Document, Refresh} from "@element-plus/icons-vue";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   tableData: [],
   pageNum: 1,
   pageSize: 10,

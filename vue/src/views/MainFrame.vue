@@ -269,7 +269,7 @@ import Exchange from "@/views/Exchange.vue";
 import ParticleBackground from "@/components/ParticleBackground.vue";
 import avatarFallback from "@/assets/avatar.jpg";
 import { useThemePalette } from "@/utils/theme.js";
-import { clearLoginSessionCookie, getLoginSessionFromCookie } from "@/utils/cookie.js";
+import { getStoredLoginUser, clearLoginSession } from "@/utils/auth.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -279,18 +279,12 @@ const showExchangeDrawer = ref(false);
 
 const { presets, activeThemeKey, applyThemePalette } = useThemePalette();
 
-const initialStoredUser = JSON.parse(localStorage.getItem("loginToken") || "{}");
-const initialCookieUser = (!initialStoredUser || !initialStoredUser.id) ? getLoginSessionFromCookie() : null;
-if (initialCookieUser && initialCookieUser.token) {
-  localStorage.setItem("loginToken", JSON.stringify(initialCookieUser));
-}
-
 const data = reactive({
-  user: initialStoredUser?.id ? initialStoredUser : (initialCookieUser || {})
+  user: getStoredLoginUser()
 });
 
 if (!data.user || !data.user.id) {
-  router.push("/login");
+  router.replace("/login");
 }
 
 const currentTitle = computed(() => {
@@ -352,15 +346,13 @@ const toggleRightAside = () => {
 };
 
 const logout = () => {
-  localStorage.removeItem("loginToken");
-  clearLoginSessionCookie();
+  clearLoginSession();
   request.post("/logout").catch(() => {});
   router.replace("/login");
 };
 
 const updateUser = () => {
-  const stored = JSON.parse(localStorage.getItem("loginToken") || "{}");
-  data.user = stored.token ? stored : (getLoginSessionFromCookie() || {});
+  data.user = getStoredLoginUser();
 };
 
 // 侧边导航底部实时数字时钟（setup 阶段立即初始化，保证首帧即渲染时间与日期）

@@ -33,7 +33,7 @@ import { useRouter } from "vue-router";
 import request from "@/utils/request.js";
 import {ArrowRight} from "@element-plus/icons-vue";
 import { validatePasswordRule } from "@/utils/validator.js";
-import { clearLoginSessionCookie } from "@/utils/cookie.js";
+import { getStoredLoginUser, clearLoginSession } from "@/utils/auth.js";
 
 const router = useRouter();
 
@@ -49,7 +49,7 @@ const validatePass = (rule, value, callback) => {
 
 const formRef = ref()
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   form: {},
   rules: {
     pwd: [
@@ -75,8 +75,7 @@ const updatePwd = () => {
       request.put('/password', data.form).then(res => {
         if (res.code === 200) {
           ElMessage.success('密码修改成功，请重新登录')
-          localStorage.removeItem('loginToken')
-          clearLoginSessionCookie()
+          clearLoginSession()
           request.post('/logout').catch(() => {})
           router.replace('/login')
         } else {

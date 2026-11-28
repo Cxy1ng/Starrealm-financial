@@ -150,12 +150,13 @@ import {ElMessage, ElMessageBox} from "element-plus";
 import { useRouter } from 'vue-router'
 import {Delete, Edit, Search, Refresh, Plus} from "@element-plus/icons-vue";
 import BossProgressBar from "@/components/BossProgressBar.vue";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
 const router = useRouter()
 const formRef = ref()
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   tableData: [],
   pageNum: 1,
   pageSize: 10,

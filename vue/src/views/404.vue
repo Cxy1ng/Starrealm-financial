@@ -18,7 +18,7 @@ import { useRouter } from "vue-router";
 import ParticleBackground from "@/components/ParticleBackground.vue";
 import { useDark } from "@vueuse/core";
 import { useThemePalette } from "@/utils/theme.js";
-import { getLoginSessionFromCookie } from "@/utils/cookie.js";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
 const router = useRouter();
 const isDark = useDark();
@@ -30,12 +30,8 @@ onMounted(() => {
 });
 
 const isLoggedIn = computed(() => {
-  try {
-    const u = JSON.parse(localStorage.getItem("loginToken") || "{}");
-    if (u?.token) return true;
-  } catch {}
-  const c = getLoginSessionFromCookie();
-  return Boolean(c?.token);
+  const u = getStoredLoginUser();
+  return Boolean(u?.token);
 });
 
 const handleReturn = () => {

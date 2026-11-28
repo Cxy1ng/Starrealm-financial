@@ -110,10 +110,11 @@ import {ElMessage, ElMessageBox} from "element-plus";
 import { useRoute } from 'vue-router'
 import {Delete} from "@element-plus/icons-vue";
 import BossProgressBar from "@/components/BossProgressBar.vue";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
 const route = useRoute()
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   plan: {},
   planId: route.query.planId,
   detailForm: {},

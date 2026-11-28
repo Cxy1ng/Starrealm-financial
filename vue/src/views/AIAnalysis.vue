@@ -445,6 +445,7 @@ import ContactSupportPopover from '@/components/ContactSupportPopover.vue'
 import LegalAgreementDialog from '@/components/LegalAgreementDialog.vue'
 import { inspectUserPromptLocally } from '@/utils/aiGuardrail.js'
 import { getChartFontScale } from '@/utils/theme.js'
+import { getStoredLoginUser } from '@/utils/auth.js'
 
 const router = useRouter()
 const isDark = useDark()
@@ -599,7 +600,7 @@ const renderMessageHtml = (msg) => {
 }
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   incomeList: [],
   payList: [],
   input: ''
@@ -840,7 +841,7 @@ const extractArchiveTitle = (messages = []) => {
 let syncTimer = null
 const syncChatStateToBackend = (immediate = false) => {
   const doSync = () => {
-    const tokenObj = JSON.parse(localStorage.getItem('loginToken') || '{}')
+    const tokenObj = getStoredLoginUser()
     if (!tokenObj || !tokenObj.token) return
     const cleanActive = (hasStartedChat.value && chatList.value.length > 0)
       ? {
@@ -1114,7 +1115,7 @@ const analyze = async () => {
   persistActiveSessionState()
 
   // 1.2 优先检查当前用户是否已配置个人 DeepSeek API Key（未配置则直接提示，不触发敏感词判定）
-  const currentUser = JSON.parse(localStorage.getItem('loginToken') || '{}')
+  const currentUser = getStoredLoginUser()
   if (!currentUser.hasApiKey) {
     const noKeyMsg = reactive({
       role: 'assistant',
@@ -1184,7 +1185,7 @@ const analyze = async () => {
       .map(m => ({ role: m.role, content: m.content }))
   ]
 
-  const userToken = JSON.parse(localStorage.getItem('loginToken') || '{}')?.token
+  const userToken = getStoredLoginUser()?.token
 
   // ==================== 平滑定速打字机队列（约 28 字/秒，比正常阅读速度稍快且始终匀速丝滑） ====================
   let charQueue = []

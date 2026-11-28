@@ -243,6 +243,7 @@ import MarkdownIt from 'markdown-it'
 import request from '@/utils/request.js'
 import LegalAgreementDialog from '@/components/LegalAgreementDialog.vue'
 import { inspectUserPromptLocally } from '@/utils/aiGuardrail.js'
+import { getStoredLoginUser } from '@/utils/auth.js'
 
 const legalDialogVisible = ref(false)
 const legalActiveTab = ref('agreement')
@@ -266,7 +267,7 @@ const renderMarkdown = (text) => md.render(text || '')
 
 // ==================== 上半部分：Finexly 汇率获取 + 本地金额实时乘算 ====================
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   form: {
     base: 'USD',
     target: 'CNY',
@@ -458,7 +459,7 @@ const sendMessage = async () => {
   const text = chatInput.value.trim()
   if (!text || isTyping.value) return
 
-  const userToken = JSON.parse(localStorage.getItem('loginToken') || '{}')?.token
+  const userToken = getStoredLoginUser()?.token
   chatInput.value = ''
   messages.value.push({
     role: 'user',
@@ -467,7 +468,7 @@ const sendMessage = async () => {
   })
 
   // 优先检查当前用户是否已配置个人 DeepSeek API Key（未配置则直接提示，不触发敏感词判定）
-  const currentUser = JSON.parse(localStorage.getItem('loginToken') || '{}')
+  const currentUser = getStoredLoginUser()
   if (!currentUser.hasApiKey) {
     const noKeyReply = reactive({
       role: 'assistant',

@@ -626,7 +626,8 @@ public class UserService {
             dbUser.setRole(String.valueOf(PermEnum.getRoleByPerm(dbUser.getPerm())));
         }
         String tokenData = dbUser.getId() + "-" + dbUser.getPerm() + "-" + dbUser.getRole();
-        String token = TokenUtils.createToken(tokenData, dbUser.getPwd());
+        boolean rememberMe = Boolean.TRUE.equals(account.getRememberMe());
+        String token = TokenUtils.createToken(tokenData, dbUser.getPwd(), rememberMe);
         dbUser.setToken(token);
         dbUser.setHasApiKey(StrUtil.isNotBlank(dbUser.getApiKey()));
         dbUser.setApiKey(ApiKeyCryptoUtil.mask(dbUser.getApiKey()));

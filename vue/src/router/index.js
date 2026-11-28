@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { getLoginSessionFromCookie } from '@/utils/cookie.js'
+import { getStoredLoginUser } from '@/utils/auth.js'
 
 // 轻量顶部路由跳转流光加载进度条
 let progressEl = null
@@ -33,18 +33,6 @@ function finishRouteProgress() {
   }, 180)
 }
 
-function checkIsLoggedIn() {
-  try {
-    const user = JSON.parse(localStorage.getItem('loginToken') || '{}')
-    if (user && user.token) return true
-  } catch (e) {}
-  try {
-    const cookieSession = getLoginSessionFromCookie()
-    if (cookieSession && cookieSession.token) return true
-  } catch (e) {}
-  return false
-}
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -76,20 +64,23 @@ router.beforeEach((to, from, next) => {
   startRouteProgress()
   document.title = to.meta.title || '星界'
 
-  // 在已经登录的情况下进入登录/注册页面，自动重定向到系统主页
-  const loggedIn = checkIsLoggedIn()
+  // 读取并校验 JWT 有效期（过期或无效会被就地清理并返回空对象）
+  const user = getStoredLoginUser()
+  const loggedIn = Boolean(user && user.token)
+
+  // 未登录或 token 已失效时直接拦截受保护页面，避免先渲染主页再跳回登录页
+  if (to.path.startsWith('/main') && !loggedIn) {
+    return next({ path: '/login', replace: true })
+  }
+
+  // 在已持有有效登录态的情况下进入登录/注册页面，自动重定向到系统主页
   if ((to.path === '/login' || to.path === '/register') && loggedIn) {
     return next('/main/home')
   }
 
   // 强制改密全局路由守卫（防 F12 绕过）：若用户处于初始密码待重置状态，限制在主页完成改密，禁止跳转到其他业务页面
-  if (loggedIn) {
-    try {
-      const user = JSON.parse(localStorage.getItem('loginToken') || '{}')
-      if (user && user.needChangePwd === 1 && to.path !== '/main/home' && to.path !== '/login') {
-        return next('/main/home')
-      }
-    } catch (e) {}
+  if (loggedIn && user.needChangePwd === 1 && to.path !== '/main/home' && to.path !== '/login') {
+    return next('/main/home')
   }
 
   next()

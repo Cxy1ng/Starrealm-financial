@@ -62,9 +62,10 @@ import {reactive} from "vue";
 import {Delete, Search, Refresh} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {request} from "@/utils/request.js";
+import {getStoredLoginUser} from "@/utils/auth.js";
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   userName: null,
   tableData: [],
   pageNum: 1,

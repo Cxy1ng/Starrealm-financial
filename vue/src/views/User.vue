@@ -402,6 +402,7 @@ import {Delete, Edit, Female, Lock, Male, Plus, Search, Unlock, Warning, Refresh
 import {request} from "@/utils/request.js";
 import {ElMessage, ElMessageBox} from 'element-plus'
 import { validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
 // 账号封禁原因预设：严格对应存钱日记、存钱计划、个人简介等社区内容违规
 const banReasonPresets = [
@@ -412,7 +413,7 @@ const banReasonPresets = [
 ]
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   tableData: [],
   pageNum: 1,
   pageSize: 10,

@@ -537,7 +537,7 @@ import defaultAvatar from "@/assets/avatar.jpg";
 import { useThemePalette } from "@/utils/theme.js";
 
 import { validatePasswordRule, validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
-import { clearLoginSessionCookie } from "@/utils/cookie.js";
+import { getStoredLoginUser, updateStoredLoginUser, clearLoginSession } from "@/utils/auth.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -550,7 +550,7 @@ const handleFontSizeChange = (val) => {
 };
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem("loginToken") || "{}"),
+  user: getStoredLoginUser(),
   form: {},
   formVisible: false,
   rules: {
@@ -630,17 +630,15 @@ const getUpdateEndpoint = () => {
 };
 
 const syncLocalStorageUser = (patch = {}) => {
-  const mergedData = {
-    ...data.user,
+  const patchData = {
     ...data.form,
     ...patch,
     token: data.user.token,
     role: data.user.role,
     hasApiKey: hasStoredKey.value
   };
-  delete mergedData.apiKey;
-  localStorage.setItem("loginToken", JSON.stringify(mergedData));
-  data.user = mergedData;
+  delete patchData.apiKey;
+  data.user = updateStoredLoginUser(patchData);
   emit("updateUser");
 };
 
@@ -811,8 +809,7 @@ const submitDeleteAccount = async () => {
     if (res.code === 200) {
       ElMessage.success('账户已成功注销，关联数据与图片已清除');
       deleteAccountDialogVisible.value = false;
-      localStorage.removeItem('loginToken');
-      clearLoginSessionCookie();
+      clearLoginSession();
       router.replace('/login');
     } else {
       ElMessage.error(res.msg || '注销失败，请核对密码是否正确');
@@ -876,8 +873,7 @@ const submitPwdChange = () => {
         if (res.code === 200) {
           ElMessage.success("密码修改成功，请重新登录");
           pwdDialogVisible.value = false;
-          localStorage.removeItem("loginToken");
-          clearLoginSessionCookie();
+          clearLoginSession();
           request.post('/logout').catch(() => {});
           router.replace('/login');
         } else {

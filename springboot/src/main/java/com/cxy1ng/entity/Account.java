@@ -12,6 +12,15 @@ public class Account {
     private String apiKey;
     private Boolean hasApiKey;
     private Integer needChangePwd;
+    private Boolean rememberMe;
+
+    public Boolean getRememberMe() {
+        return rememberMe;
+    }
+
+    public void setRememberMe(Boolean rememberMe) {
+        this.rememberMe = rememberMe;
+    }
 
     public Integer getNeedChangePwd() {
         return needChangePwd;

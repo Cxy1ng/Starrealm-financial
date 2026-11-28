@@ -214,7 +214,8 @@ public class AdminService {
             dbAdmin.setRole(String.valueOf(PermEnum.getRoleByPerm(dbAdmin.getPerm())));
         }
         String tokenData = dbAdmin.getId() + "-" + dbAdmin.getPerm() + "-" + dbAdmin.getRole();
-        String token = TokenUtils.createToken(tokenData, dbAdmin.getPwd());
+        boolean rememberMe = Boolean.TRUE.equals(account.getRememberMe());
+        String token = TokenUtils.createToken(tokenData, dbAdmin.getPwd(), rememberMe);
         dbAdmin.setToken(token);
         dbAdmin.setHasApiKey(StrUtil.isNotBlank(dbAdmin.getApiKey()));
         dbAdmin.setApiKey(ApiKeyCryptoUtil.mask(dbAdmin.getApiKey()));

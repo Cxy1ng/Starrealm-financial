@@ -1,106 +1,108 @@
 <template>
   <div class="bill-page-wrap">
-    <!-- 1. 顶部检索与过滤卡片 -->
-    <div class="surface-card filter-panel">
-      <div class="filter-group">
-        <el-input
-            v-model="data.type"
-            class="search-input"
-            placeholder="账单类型（支出/收入）"
-            clearable
-            style="width: 170px;"
-            :prefix-icon="Search"
-        />
-        <el-input
-            v-model="data.category"
-            class="search-input"
-            placeholder="输入账单分类查询"
-            clearable
-            style="width: 170px;"
-            :prefix-icon="Search"
-        />
-        <el-date-picker
-            class="search-date"
-            format="YYYY/MM/DD"
-            value-format="YYYY-MM-DD"
-            v-model="data.start"
-            placeholder="查询开始日期"
-            style="width: 150px;"/>
-        <el-date-picker
-            class="search-date"
-            format="YYYY/MM/DD"
-            value-format="YYYY-MM-DD"
-            v-model="data.end"
-            placeholder="查询结束日期"
-            :disabled-date="disabledDate"
-            :shortcuts="shortcuts"
-            style="width: 150px;"/>
-        <el-button class="btn-action btn-toolbar-search" :icon="Search" @click="load">查询</el-button>
-        <el-button class="btn-action btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
-      </div>
-
-      <div class="kpi-strip" v-if="data.total !== undefined">
-        <div class="kpi-item">
-          <span>共计流水</span>
-          <span class="kpi-val num-font" style="color: var(--text-main);">{{ data.total }} 笔</span>
+    <!-- 1. 顶部检索与操作统一控制卡片 -->
+    <div class="surface-card bill-control-card">
+      <div class="control-filter-row">
+        <div class="filter-inputs-grid">
+          <el-input
+              v-model="data.type"
+              class="search-input"
+              placeholder="账单类型（支出/收入）"
+              clearable
+              :prefix-icon="Search"
+              @keyup.enter="load"
+          />
+          <el-input
+              v-model="data.category"
+              class="search-input"
+              placeholder="输入账单分类查询"
+              clearable
+              :prefix-icon="Search"
+              @keyup.enter="load"
+          />
+          <el-date-picker
+              class="search-date"
+              format="YYYY/MM/DD"
+              value-format="YYYY-MM-DD"
+              v-model="data.start"
+              placeholder="查询开始日期"
+          />
+          <el-date-picker
+              class="search-date"
+              format="YYYY/MM/DD"
+              value-format="YYYY-MM-DD"
+              v-model="data.end"
+              placeholder="查询结束日期"
+              :disabled-date="disabledDate"
+              :shortcuts="shortcuts"
+          />
+        </div>
+        <div class="filter-query-actions">
+          <el-button class="btn-action btn-toolbar-search" :icon="Search" @click="load">查询</el-button>
+          <el-button class="btn-action btn-toolbar-reset" :icon="Refresh" @click="reset">重置</el-button>
         </div>
       </div>
-    </div>
 
-    <!-- 2. 操作工具栏与单双行排版切换卡片 -->
-    <div class="surface-card toolbar-panel">
-      <div class="toolbar-left">
-        <el-button
-            class="btn-action btn-toolbar-create"
-            :icon="Plus"
-            @click="handleAdd"
-            v-if="data.user.role === 'USER'"
-        >
-          新建账单
-        </el-button>
-        <el-button
-            class="btn-action btn-toolbar-delete"
-            :icon="Delete"
-            @click="delBatch"
-        >
-          批量删除
-        </el-button>
-        <el-button
-            v-if="data.user.role === 'USER'"
-            class="btn-action btn-toolbar-import"
-            :icon="Upload"
-            @click="importModalVisible = true"
-        >
-          导入
-        </el-button>
-        <el-button
-            class="btn-action btn-toolbar-export"
-            :icon="Download"
-            @click="exportData"
-            v-if="data.user.role === 'USER'"
-        >
-          导出
-        </el-button>
-      </div>
+      <div class="control-toolbar-row">
+        <div class="toolbar-left">
+          <el-button
+              class="btn-action btn-toolbar-create"
+              :icon="Plus"
+              @click="handleAdd"
+              v-if="data.user.role === 'USER'"
+          >
+            新建账单
+          </el-button>
+          <el-button
+              class="btn-action btn-toolbar-delete"
+              :icon="Delete"
+              @click="delBatch"
+          >
+            批量删除
+          </el-button>
+          <el-button
+              v-if="data.user.role === 'USER'"
+              class="btn-action btn-toolbar-import"
+              :icon="Upload"
+              @click="importModalVisible = true"
+          >
+            导入
+          </el-button>
+          <el-button
+              class="btn-action btn-toolbar-export"
+              :icon="Download"
+              @click="exportData"
+              v-if="data.user.role === 'USER'"
+          >
+            导出
+          </el-button>
+        </div>
 
-      <div class="toolbar-right">
-        <div class="segmented-switch" role="group" aria-label="表格行密度切换">
-          <button
-              type="button"
-              class="segmented-btn"
-              :class="{ 'is-active': layoutMode === 'single' }"
-              @click="layoutMode = 'single'"
-          >
-            单行紧凑
-          </button>
-          <button
-              type="button"
-              class="segmented-btn"
-              :class="{ 'is-active': layoutMode === 'double' }"
-              @click="layoutMode = 'double'"
-          >
-            双行聚合
-          </button>
+        <div class="toolbar-right">
+          <div class="kpi-strip" v-if="data.total !== undefined">
+            <div class="kpi-item">
+              <span>共计流水</span>
+              <span class="kpi-val num-font" style="color: var(--text-main);">{{ data.total }} 笔</span>
+            </div>
+          </div>
+          <div class="segmented-switch" role="group" aria-label="表格行密度切换">
+            <button
+                type="button"
+                class="segmented-btn"
+                :class="{ 'is-active': layoutMode === 'single' }"
+                @click="layoutMode = 'single'"
+            >
+              单行紧凑
+            </button>
+            <button
+                type="button"
+                class="segmented-btn"
+                :class="{ 'is-active': layoutMode === 'double' }"
+                @click="layoutMode = 'double'"
+            >
+              双行聚合
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -203,10 +205,10 @@
         <!-- 交易状态（带 status-dot 呼吸小圆点动效） -->
         <el-table-column label="交易状态" prop="status" min-width="95" align="center">
           <template #default="{ row }">
-            <el-tooltip :content="row.status || '支付成功'" placement="top" :show-after="150">
-              <span class="status-pill" :class="'status-' + getStatusMeta(row.status).type">
+            <el-tooltip :content="row.status || (row.type === '收入' ? '已入账' : '支付成功')" placement="top" :show-after="150">
+              <span class="status-pill" :class="'status-' + getStatusMeta(row.status, row.type).type">
                 <span class="status-dot"></span>
-                <span>{{ getStatusMeta(row.status).label }}</span>
+                <span>{{ getStatusMeta(row.status, row.type).label }}</span>
               </span>
             </el-tooltip>
           </template>
@@ -317,6 +319,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { request } from "@/utils/request.js";
 import dayjs from "dayjs";
 import BillImportModal from "@/components/BillImportModal.vue";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
 const importModalVisible = ref(false);
 const layoutMode = ref('single'); // 'single' | 'double'
@@ -382,7 +385,7 @@ const getMerchantDisplay = (row) => {
 };
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   form: {},
   name: null,
   tableData: [],
@@ -604,20 +607,33 @@ const getCategoryClass = (catName) => {
 const STATUS_TAXONOMY = [
   { type: 'warning', label: '部分退款', regex: /已退款\s*\([¥￥]?([0-9.]+)\)|部分退款|退差价/ },
   { type: 'warning', label: '全额退款', regex: /已全额退款|全额退款|对方已退还|已退还|退还成功/ },
-  { type: 'danger', label: '交易关闭', regex: /交易关闭|已关闭|超时未支付|超时关闭|订单取消|用户取消/ },
+  { type: 'warning', label: '已退款', regex: /已退款|退款成功/ },
+  { type: 'warning', label: '等待确认', regex: /等待确认收货|待确认收货|待收货/ },
+  { type: 'warning', label: '待处理', regex: /待处理|处理中|待付款|待确认|pending/i },
+  { type: 'danger', label: '交易关闭', regex: /交易关闭|已关闭|超时未支付|超时关闭|订单取消|用户取消|已撤销/ },
   { type: 'danger', label: '支付失败', regex: /支付失败|扣款失败|对方已拒收|交易失败|扣款不足/ },
-  { type: 'success', label: '转账成功', regex: /对方已收钱|已转账|转账成功|转账到/ },
-  { type: 'success', label: '支付成功', regex: /支付成功|交易成功|扣款成功|消费成功|存入成功|已到账/ }
+  { type: 'success', label: '已到账', regex: /已到账/ },
+  { type: 'success', label: '存入成功', regex: /存入成功|已存入零钱|已存入/ }
 ];
 
-const getStatusMeta = (statusStr) => {
-  const raw = String(statusStr || '支付成功').trim();
+const getStatusMeta = (statusStr, billType) => {
+  const isIncome = billType === '收入';
+  const raw = String(statusStr || '').trim();
+  if (!raw) {
+    return { label: isIncome ? '已入账' : '支付成功', type: 'success' };
+  }
   for (const item of STATUS_TAXONOMY) {
     if (item.regex.test(raw)) {
       return { label: item.label, type: item.type };
     }
   }
-  return { label: raw || '支付成功', type: 'success' };
+  if (/对方已收钱|已转账|转账成功|转账到/.test(raw)) {
+    return { label: isIncome ? '收款成功' : '转账成功', type: 'success' };
+  }
+  if (/支付成功|扣款成功|消费成功|交易成功|已完成/.test(raw)) {
+    return { label: isIncome ? '已入账' : '支付成功', type: 'success' };
+  }
+  return { label: raw, type: 'success' };
 };
 
 const miniSvgMap = {
@@ -656,49 +672,93 @@ const getPaymentMiniSvg = (paymentText) => {
   box-shadow: var(--card-shadow, 0 4px 20px -4px rgba(15, 23, 42, 0.06));
 }
 
-/* 2. 顶部检索面板 */
-.filter-panel {
-  padding: 13px 16px;
+/* 2. 顶部检索与操作统一控制卡片 */
+.bill-control-card {
+  padding: calc(13px * var(--app-font-scale, 1)) calc(16px * var(--app-font-scale, 1));
+  display: flex;
+  flex-direction: column;
+  gap: calc(12px * var(--app-font-scale, 1));
+}
+
+.control-filter-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: calc(10px * var(--app-font-scale, 1));
+  padding-bottom: calc(12px * var(--app-font-scale, 1));
+  border-bottom: 1px solid var(--border-subtle, var(--table-divider, rgba(15, 23, 42, 0.06)));
 }
 
-.filter-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+.filter-inputs-grid {
+  flex: 1 1 calc(660px * var(--app-font-scale, 1));
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1.28fr 1.06fr 0.83fr 0.83fr;
+  gap: calc(10px * var(--app-font-scale, 1));
 }
 
-.filter-group :deep(.el-input__wrapper),
-.filter-group :deep(.el-select__wrapper),
-.filter-group :deep(.el-date-editor.el-input__wrapper) {
+.filter-inputs-grid :deep(.el-input),
+.filter-inputs-grid :deep(.el-date-editor.el-input) {
+  width: 100% !important;
+  --el-date-editor-width: 100%;
+  min-width: 0;
+}
+
+.filter-inputs-grid :deep(.el-input:not(.el-input--small):not(.el-input--large) .el-input__wrapper),
+.filter-inputs-grid :deep(.el-select:not(.el-select--small):not(.el-select--large) .el-select__wrapper),
+.filter-inputs-grid :deep(.el-date-editor.el-input__wrapper) {
+  width: 100% !important;
+  min-height: calc(36px * var(--app-font-scale, 1)) !important;
+  height: calc(36px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(12px * var(--app-font-scale, 1)) !important;
   background-color: var(--bg-input, var(--el-fill-color-blank, #f8fafc)) !important;
   box-shadow: 0 0 0 1px var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08))) inset !important;
   border-radius: 8px !important;
   transition: box-shadow 0.18s ease;
 }
 
-.filter-group :deep(.el-input__wrapper:hover),
-.filter-group :deep(.el-select__wrapper:hover),
-.filter-group :deep(.el-date-editor.el-input__wrapper:hover) {
+.filter-inputs-grid :deep(.el-input__wrapper:hover),
+.filter-inputs-grid :deep(.el-select__wrapper:hover),
+.filter-inputs-grid :deep(.el-date-editor.el-input__wrapper:hover) {
   box-shadow: 0 0 0 1px var(--border-strong, rgba(15, 23, 42, 0.14)) inset !important;
 }
 
-.filter-group :deep(.el-input__wrapper.is-focus),
-.filter-group :deep(.el-select__wrapper.is-focused),
-.filter-group :deep(.el-date-editor.is-active) {
+.filter-inputs-grid :deep(.el-input__wrapper.is-focus),
+.filter-inputs-grid :deep(.el-select__wrapper.is-focused),
+.filter-inputs-grid :deep(.el-date-editor.is-active) {
   box-shadow: 0 0 0 1px var(--theme-primary, #1677ff) inset !important;
+}
+
+.filter-query-actions {
+  display: flex;
+  align-items: center;
+  gap: calc(10px * var(--app-font-scale, 1));
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.control-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: calc(10px * var(--app-font-scale, 1));
+}
+
+@media (max-width: 1120px) {
+  .filter-inputs-grid {
+    flex: 1 1 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .kpi-strip {
   display: flex;
   align-items: center;
+  height: calc(36px * var(--app-font-scale, 1));
   gap: calc(16px * var(--app-font-scale, 1));
-  padding: calc(5px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1));
+  padding: 0 calc(14px * var(--app-font-scale, 1));
   border-radius: 8px;
   background: var(--bg-elevated, var(--table-row-alt-bg, #f8fafc));
   border: 1px solid var(--border-subtle, var(--table-border-color, rgba(15, 23, 42, 0.08)));
@@ -719,41 +779,37 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 /* 3. 操作工具栏与按钮体系 */
-.toolbar-panel {
-  padding: 11px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: calc(10px * var(--app-font-scale, 1));
   flex-wrap: wrap;
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: calc(10px * var(--app-font-scale, 1));
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 
-/* 动态随主题色联动的按钮渐变体系 */
-.btn-action {
+/* 动态随主题色联动的按钮渐变体系（高优先级对齐 36px * scale） */
+.bill-control-card .btn-action.el-button:not(.el-button--small):not(.el-button--large) {
   border-radius: 8px !important;
   font-weight: 600 !important;
   font-size: calc(13.5px * var(--app-font-scale, 1)) !important;
-  padding: calc(8px * var(--app-font-scale, 1)) calc(14px * var(--app-font-scale, 1)) !important;
+  padding: 0 calc(14px * var(--app-font-scale, 1)) !important;
   height: calc(36px * var(--app-font-scale, 1)) !important;
-  border: 1px solid transparent !important;
+  min-height: calc(36px * var(--app-font-scale, 1)) !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: transparent;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   margin: 0 !important;
   display: inline-flex;
   align-items: center;
-  gap: calc(5px * var(--app-font-scale, 1));
+  gap: calc(5px * var(--app-font-scale, 1)) !important;
 }
 
 .btn-action:hover {
@@ -826,6 +882,8 @@ const getPaymentMiniSvg = (paymentText) => {
 /* 分段切换器（单行紧凑 / 双行聚合） */
 .segmented-switch {
   display: inline-flex;
+  align-items: stretch;
+  height: calc(36px * var(--app-font-scale, 1));
   padding: 3px;
   border-radius: 8px;
   background: var(--bg-elevated, var(--table-row-alt-bg, #f8fafc));
@@ -834,12 +892,15 @@ const getPaymentMiniSvg = (paymentText) => {
 }
 
 .segmented-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   background: transparent;
   color: var(--text-sub, #64748b);
   font-size: calc(13px * var(--app-font-scale, 1));
   font-weight: 500;
-  padding: calc(4px * var(--app-font-scale, 1)) calc(10px * var(--app-font-scale, 1));
+  padding: 0 calc(11px * var(--app-font-scale, 1));
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.16s ease;

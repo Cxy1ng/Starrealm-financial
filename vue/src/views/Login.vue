@@ -185,9 +185,9 @@ import { useThemePalette } from "@/utils/theme.js";
 import {
   hasAgreedLegalTerms,
   setAgreedLegalTerms,
-  saveLoginSessionCookie,
   readRememberedAccountFromCookie
 } from "@/utils/cookie.js";
+import { saveLoginUser } from "@/utils/auth.js";
 import loginBgVideoUrl from "@/assets/loginbg1080.mp4";
 
 const router = useRouter();
@@ -197,8 +197,9 @@ const bgVideoRef = ref(null);
 const isDark = useDark();
 const { presets, activeThemeKey, applyThemePalette, activeFontSize, applyGlobalFontSize } = useThemePalette();
 
+const remembered = readRememberedAccountFromCookie();
 const agreedTerms = ref(false);
-const rememberMe = ref(false);
+const rememberMe = ref(remembered.rememberMe);
 const legalDialogVisible = ref(false);
 const legalActiveTab = ref('agreement');
 
@@ -272,7 +273,6 @@ const selectAccentTheme = (themeKey, event) => {
   });
 };
 
-const remembered = readRememberedAccountFromCookie();
 const data = reactive({
   form: {
     username: remembered.username || '',
@@ -298,11 +298,13 @@ const login = () => {
   formRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
-      request.post('/login', data.form).then(res => {
+      request.post('/login', {
+        ...data.form,
+        rememberMe: rememberMe.value
+      }).then(res => {
         loading.value = false;
         if (res.code === 200) {
-          localStorage.setItem('loginToken', JSON.stringify(res.data));
-          saveLoginSessionCookie(res.data, rememberMe.value, data.form.perm);
+          saveLoginUser(res.data, rememberMe.value, data.form.perm);
           ElMessage.success('登录成功，欢迎回来！');
           router.push('/main/home');
         } else {

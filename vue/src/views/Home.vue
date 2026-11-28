@@ -234,7 +234,7 @@ import { ElMessage } from "element-plus";
 import { Plus, MagicStick, Bell, Wallet, TrendCharts, Histogram } from "@element-plus/icons-vue";
 import { useDark, useTransition } from '@vueuse/core';
 import * as echarts from "echarts";
-import { clearLoginSessionCookie } from "@/utils/cookie.js";
+import { getStoredLoginUser, updateStoredLoginUser, clearLoginSession } from "@/utils/auth.js";
 import { getChartFontScale } from "@/utils/theme.js";
 // Validator rules for password validation
 import { validatePasswordRule } from "@/utils/validator.js";
@@ -291,7 +291,7 @@ const todayCalendarText = computed(() => {
 });
 
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('loginToken') || '{}'),
+  user: getStoredLoginUser(),
   noticeData: [],
   acfun: {},
   payList: [],
@@ -329,8 +329,7 @@ const forcePwdRules = {
 };
 
 const handleForcePwdLogout = () => {
-  localStorage.removeItem("loginToken");
-  clearLoginSessionCookie();
+  clearLoginSession();
   request.post("/logout").catch(() => {});
   router.replace("/login");
 };
@@ -340,21 +339,9 @@ const checkNeedChangePwd = () => {
   const api = data.user.perm >= 10 ? ('/admins/' + data.user.id) : ('/users/' + data.user.id);
   request.get(api).then(res => {
     if (res.code === 200 && res.data) {
-      if (res.data.needChangePwd === 1) {
-        forcePwdVisible.value = true;
-        try {
-          const stored = JSON.parse(localStorage.getItem('loginToken') || '{}');
-          stored.needChangePwd = 1;
-          localStorage.setItem('loginToken', JSON.stringify(stored));
-        } catch (e) {}
-      } else {
-        forcePwdVisible.value = false;
-        try {
-          const stored = JSON.parse(localStorage.getItem('loginToken') || '{}');
-          stored.needChangePwd = 0;
-          localStorage.setItem('loginToken', JSON.stringify(stored));
-        } catch (e) {}
-      }
+      const needChange = res.data.needChangePwd === 1 ? 1 : 0;
+      forcePwdVisible.value = needChange === 1;
+      updateStoredLoginUser({ needChangePwd: needChange });
     }
   });
 };
@@ -378,8 +365,7 @@ const handleForcePwdSubmit = () => {
         ElMessage.success("初始密码重置成功，请使用新密码重新登录！");
         forcePwdVisible.value = false;
         // 密码重置后立即强制退出登录并跳转至登录页
-        localStorage.removeItem("loginToken");
-        clearLoginSessionCookie();
+        clearLoginSession();
         request.post("/logout").catch(() => {});
         router.replace("/login");
       } else {
@@ -395,7 +381,7 @@ const loadNotice = () => {
   request.get('/notices/all').then(res => {
     if (res.code === 200) {
       data.noticeData = (res.data || []).slice(0, 4);
-    } else {
+    } else if (res.code !== 401) {
       ElMessage.error(res.msg);
     }
   });
@@ -409,7 +395,7 @@ const loadAcfun = () => {
     }).then(res => {
       if (res.code === 200) {
         data.acfun = res.data?.length ? res.data[0] : {};
-      } else {
+      } else if (res.code !== 401) {
         ElMessage.error(res.msg);
       }
     });

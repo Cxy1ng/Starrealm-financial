@@ -34,6 +34,7 @@ public class WebController {
         if (ObjectUtil.isEmpty(account.getUsername()) || ObjectUtil.isEmpty(account.getPwd()) || ObjectUtil.isEmpty(account.getPerm())) {
             return Result.error(ResultCodeEnum.PARAM_LOST_ERROR);
         }
+        boolean rememberMe = Boolean.TRUE.equals(account.getRememberMe());
         PermEnum role = PermEnum.getRoleByPerm(account.getPerm());
         if (role.equals(PermEnum.USER)) {
             account.setRole(String.valueOf(role));
@@ -48,7 +49,8 @@ public class WebController {
             Cookie authCookie = new Cookie(AUTH_COOKIE_NAME, account.getToken());
             authCookie.setHttpOnly(true);
             authCookie.setPath("/");
-            authCookie.setMaxAge(7 * 24 * 60 * 60);
+            // 仅勾选“7天内自动登录”时持久化 7 天；否则设为会话级 Cookie（关闭浏览器即清理）
+            authCookie.setMaxAge(rememberMe ? 7 * 24 * 60 * 60 : -1);
             response.addCookie(authCookie);
         }
         return Result.success(account);

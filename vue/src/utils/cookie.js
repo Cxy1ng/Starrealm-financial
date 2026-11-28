@@ -112,7 +112,7 @@ export function readThemePreferencesFromCookie() {
 export function readRememberedAccountFromCookie() {
   const username = getCookie(LAST_USER_COOKIE) || ''
   const perm = getCookie(LAST_PERM_COOKIE) || '1'
-  const rememberMe = getCookie(REMEMBER_ME_COOKIE) !== '0'
+  const rememberMe = getCookie(REMEMBER_ME_COOKIE) === '1'
   return { username, perm, rememberMe }
 }
 
@@ -131,6 +131,8 @@ export function saveLoginSessionCookie(userData, rememberMe = true, fallbackPerm
       role: userData.role,
       perm: userData.perm ?? fallbackPerm,
       avatar: userData.avatar,
+      hasApiKey: Boolean(userData.hasApiKey),
+      needChangePwd: userData.needChangePwd ?? 0,
       token: userData.token
     }
     setCookie(AUTH_SESSION_COOKIE, JSON.stringify(slimSession), { days })

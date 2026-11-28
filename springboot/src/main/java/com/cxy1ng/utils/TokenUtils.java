@@ -34,6 +34,9 @@ public class TokenUtils {
     @Resource
     UserService userService;
 
+    private static final int DEFAULT_TOKEN_EXPIRE_HOURS = 12;
+    private static final int REMEMBER_ME_TOKEN_EXPIRE_HOURS = 24 * 7;
+
     @PostConstruct
     public void setUserService() {
         staticAdminService = adminService;
@@ -41,8 +44,20 @@ public class TokenUtils {
     }
 
     public static String createToken(String data, String sign) {
+        return createToken(data, sign, DEFAULT_TOKEN_EXPIRE_HOURS);
+    }
+
+    /**
+     * 按是否勾选“7天内自动登录”签发对应有效期的 JWT（未勾选 12 小时，勾选 7 天）
+     */
+    public static String createToken(String data, String sign, boolean rememberMe) {
+        return createToken(data, sign, rememberMe ? REMEMBER_ME_TOKEN_EXPIRE_HOURS : DEFAULT_TOKEN_EXPIRE_HOURS);
+    }
+
+    public static String createToken(String data, String sign, int expireHours) {
+        int hours = expireHours > 0 ? expireHours : DEFAULT_TOKEN_EXPIRE_HOURS;
         return JWT.create().withAudience(data)
-                .withExpiresAt(DateUtil.offsetHour(new Date(), 12))
+                .withExpiresAt(DateUtil.offsetHour(new Date(), hours))
                 .sign(Algorithm.HMAC256(sign));
     }
 

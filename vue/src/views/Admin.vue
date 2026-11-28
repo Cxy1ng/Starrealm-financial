@@ -168,8 +168,9 @@ import {request} from "@/utils/request.js";
 import {ElMessage, ElMessageBox} from 'element-plus'
 
 import { validatePhoneRule, validateEmailRule } from "@/utils/validator.js";
+import { getStoredLoginUser } from "@/utils/auth.js";
 
-const currentUser = JSON.parse(localStorage.getItem('loginToken') || '{}')
+const currentUser = getStoredLoginUser()
 
 const canOperate = (row) => {
   // 超级管理员(15)可以编辑自己和所有普通管理员
